@@ -2,25 +2,26 @@ import type { Metadata } from "next";
 
 import { PageHead } from "@/components/layout/PageHead";
 import { ChannelList } from "@/components/ui/ChannelList";
+import { GalleryCarousel } from "@/components/ui/GalleryCarousel";
 import { Reveal } from "@/components/ui/Reveal";
 import { Section } from "@/components/ui/Section";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { ServiceList } from "@/components/ui/ServiceList";
-import { aboutPage, aboutSections } from "@/config/about";
+import { aboutPage, aboutSections, galleryOptions, gallerySlides } from "@/config/about";
 import { principles, services } from "@/config/home";
-import { contactChannels, quickLinks } from "@/config/site";
+import { contactChannels, contactQr } from "@/config/site";
 
 export const metadata: Metadata = {
-  title: "关于我们",
-  description: "浙江农林大学电脑医院社团介绍、服务范围与联系方式。志愿性计算机技术服务，不收费。",
+  title: "关于电脑医院",
+  description: "浙江农林大学电脑医院社团介绍、现场图集、服务范围与联系方式。志愿性计算机技术服务，不收费。",
 };
 
 /**
- * /about 关于我们
+ * /about 关于电脑医院
  *
- * 内容结构：社团介绍 → 服务范围 → 联系方式。
- * 页面视觉全部由设计系统的既有组件拼装（PageHead / ServiceList / ChannelList / Card），
+ * 内容结构：社团介绍（含现场图集）→ 服务范围 → 联系方式。
+ * 页面视觉全部由设计系统的既有组件拼装（PageHead / GalleryCarousel / ServiceList / ChannelList），
  * 没有新增任何视觉语言。
  */
 
@@ -68,12 +69,18 @@ export default function AboutPage() {
           </Reveal>
         </div>
 
-        <Reveal as="ol" className="principles mt-s-8" index={3}>
-          {aboutPage.pendingFields.map((field) => (
-            <li key={field}>
+        {/* 现场图集：社团实拍走马灯 */}
+        <Reveal className="mt-s-8" index={3}>
+          <GalleryCarousel slides={gallerySlides} autoPlayMs={galleryOptions.autoPlayMs} />
+        </Reveal>
+
+        {/* 社团档案 */}
+        <Reveal as="ol" className="principles mt-s-8" index={4}>
+          {aboutPage.archive.map((item) => (
+            <li key={item.title}>
               <div>
-                <strong>{field}</strong>
-                <p>待社团确认后补入本页。</p>
+                <strong>{item.title}</strong>
+                <p>{item.description}</p>
               </div>
             </li>
           ))}
@@ -86,7 +93,7 @@ export default function AboutPage() {
         <div className="sec-titlebar">
           <SectionTitle id="about-scope-title">{aboutSections.scope.title}</SectionTitle>
           <Reveal as="p" className="sec-note" index={2}>
-            状态标签对应文档仓库里的实际完成度。标注「文档撰写中」的条目我们已经能做，只是整理成文的进度还没跟上。
+            以下是我们能处理的问题范围。超出能力范围的操作会当面说明并放弃，不会硬着头皮往下拆。
           </Reveal>
         </div>
 
@@ -96,7 +103,12 @@ export default function AboutPage() {
       {/* ---------------------------------------------------- 联系方式 */}
       <Section id="contact" labelledBy="about-contact-title">
         <SectionHead index={aboutSections.contact.index} label={aboutSections.contact.label} />
-        <SectionTitle id="about-contact-title">{aboutSections.contact.title}</SectionTitle>
+        <div className="sec-titlebar">
+          <SectionTitle id="about-contact-title">{aboutSections.contact.title}</SectionTitle>
+          <Reveal as="p" className="sec-note" index={2}>
+            校园网认证登录与自助服务属于学校的信息化服务，不在电脑医院的处理范围内，入口见页脚与「技术文档」页。
+          </Reveal>
+        </div>
 
         <div className="about__grid">
           <Reveal index={2}>
@@ -107,10 +119,14 @@ export default function AboutPage() {
           </Reveal>
 
           <Reveal index={3}>
-            <h3 className="eyebrow" style={{ margin: "0 0 var(--s-4)" }}>
-              常用入口
-            </h3>
-            <ChannelList items={quickLinks} />
+            <figure className="qr">
+              {/* eslint-disable-next-line @next/next/no-img-element -- 静态资源，尺寸固定，无需 next/image */}
+              <img className="qr__img" src={contactQr.src} alt={contactQr.alt} loading="lazy" decoding="async" />
+              <figcaption className="qr__cap">
+                <strong>{contactQr.caption}</strong>
+                <span>{contactQr.hint}</span>
+              </figcaption>
+            </figure>
           </Reveal>
         </div>
       </Section>

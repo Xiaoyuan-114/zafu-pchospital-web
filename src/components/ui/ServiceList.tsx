@@ -21,10 +21,6 @@ export function ServiceList({ items, className }: ServiceListProps) {
         <Reveal as="li" className="svc" index={index} key={service.name}>
           <span className="svc__idx">{pad2(index + 1)}</span>
           <h3 className="svc__name">{service.name}</h3>
-          <span className={cn("svc__tag", service.documented && "is-ready")}>
-            <i aria-hidden="true" />
-            {service.documented ? (service.readyLabel ?? "文档已上线") : "文档撰写中"}
-          </span>
           <p className="svc__desc">{service.description}</p>
         </Reveal>
       ))}

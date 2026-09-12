@@ -49,6 +49,7 @@
 | `--line-soft`   | `oklch(23% 0.007 95)`        | `border-line-soft`   | 区块分隔、更弱的分隔                    |
 | `--line-strong` | `oklch(52% 0.009 95)`        | `border-line-strong` | **仅用于交互控件边界**，保证 3:1 对比度 |
 | `--accent-line` | `oklch(85% 0.175 99 / 0.34)` | `border-accent-line` | 强调色描边、提示框边框                  |
+| `--plate`       | `oklch(97% 0.004 95)`        | `bg-plate`           | **仅用于二维码等必须浅底才能识别的图像承板**，不做普通面板底色 |
 
 ### 1.3 文字
 
@@ -238,6 +239,8 @@
 | `Icon`         | `ui/Icon.tsx`         | 内联 SVG                 | 24 格 / stroke 2 / round 端点        |
 | `ServiceList`  | `ui/ServiceList.tsx`  | `.svc-list` / `.svc`     | 服务条目列表                         |
 | `ChannelList`  | `ui/ChannelList.tsx`  | `.channels` / `.channel` | 渠道与外链入口                       |
+| `GalleryCarousel` | `ui/GalleryCarousel.tsx` | `.gallery` / `.gallery__*` | 现场图集走马灯（自动播放 + 暂停）  |
+| `QrCard`       | 内联（`/about` 联系方式区） | `.qr` / `.qr__*`        | 二维码展示卡（`.qr__img` 用 `--plate` 浅底） |
 
 ### 4.3 业务区块组件
 
