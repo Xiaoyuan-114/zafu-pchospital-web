@@ -92,9 +92,6 @@ export default function AboutPage() {
         <SectionHead index={aboutSections.scope.index} label={aboutSections.scope.label} />
         <div className="sec-titlebar">
           <SectionTitle id="about-scope-title">{aboutSections.scope.title}</SectionTitle>
-          <Reveal as="p" className="sec-note" index={2}>
-            以下是我们能处理的问题范围。超出能力范围的操作会当面说明并放弃，不会硬着头皮往下拆。
-          </Reveal>
         </div>
 
         <ServiceList items={services} />
@@ -105,9 +102,6 @@ export default function AboutPage() {
         <SectionHead index={aboutSections.contact.index} label={aboutSections.contact.label} />
         <div className="sec-titlebar">
           <SectionTitle id="about-contact-title">{aboutSections.contact.title}</SectionTitle>
-          <Reveal as="p" className="sec-note" index={2}>
-            校园网认证登录与自助服务属于学校的信息化服务，不在电脑医院的处理范围内，入口见页脚与「技术文档」页。
-          </Reveal>
         </div>
 
         <div className="about__grid">

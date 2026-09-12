@@ -41,9 +41,6 @@
   --line-soft: oklch(23% 0.007 95);
   --line-strong: oklch(52% 0.009 95); /* 仅用于交互控件边界，保证 3:1 */
 
-  /* 浅底承板：二维码等必须浅底才能被识别的图像专用，不用于普通面板 */
-  --plate: oklch(97% 0.004 95);
-
   /* 文字层级：四档都要满足 WCAG AA（最暗一档在 bg 上 5.0:1） */
   --ink: oklch(96% 0.008 95);
   --ink-2: oklch(82% 0.009 95);
@@ -123,7 +120,6 @@
   --color-line: var(--line);
   --color-line-soft: var(--line-soft);
   --color-line-strong: var(--line-strong);
-  --color-plate: var(--plate);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
@@ -1644,22 +1640,20 @@
     color: var(--line);
   }
 
-  /* 求助渠道二维码：白底 + 1px 描边，保证扫码识别率 */
+  /* 求助渠道二维码：图片自带页面同色的深底，卡片只负责描边与图注 */
   .qr {
     margin: 0;
     width: fit-content;
     border: 1px solid var(--line);
     border-radius: var(--r-mid);
     overflow: hidden;
-    background: var(--surface-1);
+    background: var(--bg);
   }
   .qr__img {
     display: block;
     width: 100%;
     max-width: 240px;
     height: auto;
-    /* 二维码本体是浅底图，用浅色承板垫住，不要套深色底 */
-    background: var(--plate);
   }
   .qr__cap {
     display: grid;

@@ -70,7 +70,7 @@ export const contactChannels: readonly LinkItem[] = [
 
 /** 求助渠道二维码（与 contactChannels 的 QQ 群对应） */
 export const contactQr = {
-  src: "/qq-group-qrcode.jpg",
+  src: "/qq-group-qrcode-accent.png",
   alt: "浙江农林大学电脑医院 QQ 群二维码，群号 532502904",
   caption: "扫码加入 QQ 群",
   hint: "群号 532502904",
