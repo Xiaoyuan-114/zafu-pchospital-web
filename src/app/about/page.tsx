@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
 import { PageHead } from "@/components/layout/PageHead";
-import { ChannelList } from "@/components/ui/ChannelList";
 import { GalleryCarousel } from "@/components/ui/GalleryCarousel";
 import { Reveal } from "@/components/ui/Reveal";
 import { Section } from "@/components/ui/Section";
@@ -10,7 +9,7 @@ import { SectionTitle } from "@/components/ui/SectionTitle";
 import { ServiceList } from "@/components/ui/ServiceList";
 import { aboutPage, aboutSections, galleryOptions, gallerySlides } from "@/config/about";
 import { principles, services } from "@/config/home";
-import { contactChannels, contactQr } from "@/config/site";
+import { contactQr } from "@/config/site";
 
 export const metadata: Metadata = {
   title: "关于电脑医院",
@@ -20,11 +19,15 @@ export const metadata: Metadata = {
 /**
  * /about 关于电脑医院
  *
- * 内容结构：社团介绍（含现场图集）→ 服务范围 → 联系方式。
- * 页面视觉全部由设计系统的既有组件拼装（PageHead / GalleryCarousel / ServiceList / ChannelList），
- * 没有新增任何视觉语言。
+ * 内容结构：我们是谁（叙述 + 服务原则 + 现场图集 + 社团档案）→ 服务范围 → 联系方式。
+ *
+ * 排版原则：三个区块各有自己的构图，不套同一套模板。
+ * - 我们是谁：左叙述 / 右原则（主次分栏）→ 整幅图集 → 资料卡式档案
+ * - 服务范围：编辑式大编号列表
+ * - 联系方式：大字号群号收束，二维码辅助
+ * 字体、色彩、间距、线条与编号体系仍全部来自设计系统，未新增视觉语言。
+ * 动画每个区块最多一次整体进入，避免一屏连续多个淡入。
  */
-
 export default function AboutPage() {
   return (
     <>
@@ -36,55 +39,58 @@ export default function AboutPage() {
         lead={aboutPage.lead}
       />
 
-      {/* ---------------------------------------------------- 社团介绍 */}
+      {/* ---------------------------------------------------- 我们是谁 */}
       <Section id="intro" labelledBy="about-intro-title">
         <SectionHead index={aboutSections.intro.index} label={aboutSections.intro.label} />
         <div className="sec-titlebar">
           <SectionTitle id="about-intro-title">{aboutSections.intro.title}</SectionTitle>
         </div>
 
-        <div className="about__grid">
-          <div>
-            {aboutPage.intro.map((paragraph, index) => (
-              <Reveal
-                as="p"
-                className={index === 0 ? "lead" : "muted"}
-                index={index + 2}
-                key={paragraph}
-              >
-                {paragraph}
-              </Reveal>
-            ))}
+        {/* 左叙述（主体）/ 右三条原则（附注），一次整体进入 */}
+        <Reveal className="about__lead">
+          <div className="about__grid">
+            <div>
+              {aboutPage.intro.map((paragraph, index) => (
+                <p className={index === 0 ? "lead" : "muted"} key={paragraph}>
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+
+            <ol className="principles">
+              {principles.map((item) => (
+                <li key={item.title}>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <p>{item.description}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
           </div>
-
-          <Reveal as="ol" className="principles" index={2}>
-            {principles.map((item) => (
-              <li key={item.title}>
-                <div>
-                  <strong>{item.title}</strong>
-                  <p>{item.description}</p>
-                </div>
-              </li>
-            ))}
-          </Reveal>
-        </div>
-
-        {/* 现场图集：社团实拍走马灯 */}
-        <Reveal className="mt-s-8" index={3}>
-          <GalleryCarousel slides={gallerySlides} autoPlayMs={galleryOptions.autoPlayMs} />
         </Reveal>
 
-        {/* 社团档案 */}
-        <Reveal as="ol" className="principles mt-s-8" index={4}>
-          {aboutPage.archive.map((item) => (
-            <li key={item.title}>
-              <div>
-                <strong>{item.title}</strong>
-                <p>{item.description}</p>
+        {/* 现场图集：整幅大图 + 编辑式信息栏 */}
+        <Reveal className="mt-s-8">
+          <GalleryCarousel
+            slides={gallerySlides}
+            autoPlayMs={galleryOptions.autoPlayMs}
+            variant="editorial"
+          />
+        </Reveal>
+
+        {/* 社团档案：资料卡式键值对，与服务原则明显区分 */}
+        <div className="archive mt-s-8">
+          <p className="archive__note">{aboutPage.archiveNote}</p>
+          <dl className="archive__list">
+            {aboutPage.archive.map((item) => (
+              <div className="archive__row" key={item.key}>
+                <dt className="archive__key">{item.key}</dt>
+                <dd className="archive__val">{item.value}</dd>
               </div>
-            </li>
-          ))}
-        </Reveal>
+            ))}
+          </dl>
+        </div>
       </Section>
 
       {/* ---------------------------------------------------- 服务范围 */}
@@ -92,9 +98,12 @@ export default function AboutPage() {
         <SectionHead index={aboutSections.scope.index} label={aboutSections.scope.label} />
         <div className="sec-titlebar">
           <SectionTitle id="about-scope-title">{aboutSections.scope.title}</SectionTitle>
+          <Reveal as="p" className="sec-note">
+            {aboutPage.scopeNote}
+          </Reveal>
         </div>
 
-        <ServiceList items={services} />
+        <ServiceList items={services} variant="editorial" />
       </Section>
 
       {/* ---------------------------------------------------- 联系方式 */}
@@ -104,25 +113,21 @@ export default function AboutPage() {
           <SectionTitle id="about-contact-title">{aboutSections.contact.title}</SectionTitle>
         </div>
 
-        <div className="about__grid">
-          <Reveal index={2}>
-            <h3 className="eyebrow" style={{ margin: "0 0 var(--s-4)" }}>
-              求助渠道
-            </h3>
-            <ChannelList items={contactChannels} />
-          </Reveal>
+        <Reveal className="contact-close">
+          <div>
+            <p className="contact-close__ask">有电脑问题？</p>
+            <p className="contact-close__num">{contactQr.hint}</p>
+            <p className="contact-close__hint">
+              扫码或搜索群号加入。群内可以问问题、约现场问诊，也能看到每次问诊活动的通知。
+            </p>
+          </div>
 
-          <Reveal index={3}>
-            <figure className="qr">
-              {/* eslint-disable-next-line @next/next/no-img-element -- 静态资源，尺寸固定，无需 next/image */}
-              <img className="qr__img" src={contactQr.src} alt={contactQr.alt} loading="lazy" decoding="async" />
-              <figcaption className="qr__cap">
-                <strong>{contactQr.caption}</strong>
-                <span>{contactQr.hint}</span>
-              </figcaption>
-            </figure>
-          </Reveal>
-        </div>
+          <figure className="contact-close__qr">
+            {/* eslint-disable-next-line @next/next/no-img-element -- 静态资源，尺寸固定，无需 next/image */}
+            <img src={contactQr.src} alt={contactQr.alt} loading="lazy" decoding="async" />
+            <figcaption>{contactQr.caption}</figcaption>
+          </figure>
+        </Reveal>
       </Section>
     </>
   );

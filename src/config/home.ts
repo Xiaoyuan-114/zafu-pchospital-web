@@ -47,7 +47,7 @@ export const principles: readonly Principle[] = [
   {
     title: "志愿性质，不收费",
     description:
-      "社团由学生志愿运营。遇到超出我们能力范围的操作，会直接说明并放弃，不会硬着头皮往下拆。",
+      "社团由学生志愿运营，不收取任何费用。超出能力范围的操作会提前说明，并建议寻求专业维修服务。",
   },
   {
     title: "先确认，再动手",
@@ -74,7 +74,8 @@ export const services: readonly Service[] = [
   },
   {
     name: "系统与软件问题处理",
-    description: "系统重装、驱动安装与版本回退、常用软件部署、开发与学习环境的依赖配置。",
+    description:
+      "系统安装与配置、驱动与软件故障排查、蓝屏及磁盘异常等常见问题处理。",
   },
   {
     name: "网络问题排查",

@@ -14,9 +14,18 @@ import { cn } from "@/lib/utils";
  * 行为约定：
  * - 自动播放间隔由 autoPlayMs 控制；> 5000ms 时按 WCAG 2.2.2 必须能暂停。
  * - 悬停暂停、聚焦暂停、切到后台暂停；点击暂停按钮可手动锁定。
- * - 只有一个按钮的作用是「暂停/继续」，不额外做「上一张/下一张」以外的控制。
  * - slides 为空时整块不渲染（调用方通常也不会渲染），避免出现空框。
  * - prefers-reduced-motion 或 autoPlayMs <= 0 时不自动播放。
+ *
+ * 两个呈现变体（variant）：
+ * - "panel"（默认）：带外框的独立面板，图注压在照片下缘，底部有完整控制条。
+ *   适合图片作为页面主体之一的场景。
+ * - "editorial"：无外框、整幅大图，图注移到照片下方成为一行编辑式信息栏
+ *   （「纪年 · 活动名 · 序号」），左右箭头收成极简的文字态。
+ *   控件刻意弱化，避免出现「企业官网轮播组件」的观感。
+ *
+ * 两个变体的 DOM 结构、无障碍语义与交互行为完全一致，
+ * 差异只体现在 class 与渲染方式上，调用方可安全按需切换。
  */
 
 export type GallerySlide = {
@@ -24,16 +33,25 @@ export type GallerySlide = {
   alt: string;
   title: string;
   description: string;
+  /** 图注左端的纪年 / 场次标签，缺省时该位不渲染 */
+  year?: string;
 };
 
 export type GalleryCarouselProps = {
   slides: readonly GallerySlide[];
   /** 自动播放间隔（ms）。<= 0 表示不自动播放。 */
   autoPlayMs?: number;
+  /** 呈现变体，默认 "panel" */
+  variant?: "panel" | "editorial";
   className?: string;
 };
 
-export function GalleryCarousel({ slides, autoPlayMs = 0, className }: GalleryCarouselProps) {
+export function GalleryCarousel({
+  slides,
+  autoPlayMs = 0,
+  variant = "panel",
+  className,
+}: GalleryCarouselProps) {
   const [index, setIndex] = useState(0);
   /** 用户显式锁定的暂停态（点了暂停按钮） */
   const [locked, setLocked] = useState(false);
@@ -43,6 +61,7 @@ export function GalleryCarousel({ slides, autoPlayMs = 0, className }: GalleryCa
   const [autoAllowed, setAutoAllowed] = useState(false);
 
   const count = slides.length;
+  const editorial = variant === "editorial";
 
   /** 减少动效偏好 + 间隔有效性，都在挂载后判定 */
   useEffect(() => {
@@ -93,10 +112,11 @@ export function GalleryCarousel({ slides, autoPlayMs = 0, className }: GalleryCa
   if (count === 0) return null;
 
   const multiple = count > 1;
+  const current = slides[index];
 
   return (
     <div
-      className={cn("gallery", className)}
+      className={cn("gallery", editorial && "gallery--editorial", className)}
       role="group"
       aria-roledescription="轮播"
       aria-label="社团现场图集"
@@ -119,13 +139,27 @@ export function GalleryCarousel({ slides, autoPlayMs = 0, className }: GalleryCa
           >
             {/* eslint-disable-next-line @next/next/no-img-element -- 纯静态资源，无需 next/image 的运行时开销 */}
             <img className="gallery__img" src={slide.src} alt={slide.alt} loading={i === 0 ? "eager" : "lazy"} decoding="async" />
-            <figcaption className="gallery__cap">
-              <strong className="gallery__cap-title">{slide.title}</strong>
-              <span className="gallery__cap-desc">{slide.description}</span>
-            </figcaption>
+            {/* panel 变体的图注压在照片下缘；editorial 变体改用下方独立信息栏 */}
+            {!editorial && (
+              <figcaption className="gallery__cap">
+                <strong className="gallery__cap-title">{slide.title}</strong>
+                <span className="gallery__cap-desc">{slide.description}</span>
+              </figcaption>
+            )}
           </figure>
         ))}
       </div>
+
+      {/* ---------------------------------------------------- editorial 信息栏 */}
+      {editorial && (
+        <div className="gallery__lede">
+          <p className="gallery__lede-line">
+            {current.year ? <span className="gallery__lede-year">{current.year}</span> : null}
+            <span className="gallery__lede-title">{current.title}</span>
+          </p>
+          <p className="gallery__lede-desc">{current.description}</p>
+        </div>
+      )}
 
       {multiple && (
         <div className="gallery__bar">

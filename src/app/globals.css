@@ -1192,6 +1192,79 @@
     color: var(--accent);
   }
 
+  /* ------------------------------------------------- 图集（编辑式变体）
+     去「企业轮播组件」观感：去掉外框与压图图注，整幅大图 + 下方一行
+     编辑式信息栏（纪年 · 活动名 · 序号）。箭头收成极简文字态。 */
+  .gallery--editorial {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  .gallery--editorial .gallery__stage {
+    border: 1px solid var(--line);
+    border-radius: var(--r-mid);
+    overflow: hidden;
+  }
+  /* 信息栏：左侧纪年 + 活动名，右侧序号与控件 */
+  .gallery__lede {
+    display: grid;
+    gap: var(--s-2);
+    padding-top: var(--s-4);
+  }
+  .gallery__lede-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s-2) var(--s-3);
+    margin: 0;
+  }
+  .gallery__lede-year {
+    font-family: var(--font-latin);
+    font-size: var(--t-micro);
+    font-weight: 800;
+    font-stretch: 116%;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .gallery__lede-title {
+    font-size: 1.0625rem;
+    font-weight: 700;
+    letter-spacing: 0.005em;
+  }
+  .gallery__lede-desc {
+    max-width: 62ch;
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.82;
+    color: var(--ink-3);
+    text-wrap: pretty;
+  }
+  .gallery--editorial .gallery__bar {
+    gap: var(--s-5);
+    padding: var(--s-4) 0 0;
+    border-top: 1px solid var(--line);
+    margin-top: var(--s-4);
+  }
+  /* 编辑式变体的箭头：无边框、无底色，只保留字形本身 */
+  .gallery--editorial .gallery__btn {
+    width: auto;
+    height: auto;
+    padding: 0.35rem 0.25rem;
+    border: 0;
+    background: transparent;
+    color: var(--ink-4);
+  }
+  .gallery--editorial .gallery__btn:hover {
+    color: var(--accent);
+    border: 0;
+    background: transparent;
+  }
+  .gallery--editorial .gallery__btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
   /* ------------------------------------------------------------ 跑马灯 */
   .ticker {
     position: relative;
@@ -1245,6 +1318,10 @@
     gap: clamp(2.5rem, 6vw, 6rem);
     align-items: start;
   }
+  /* 叙述与原则的外层分栏容器：小屏堆叠，≥760px 变两列（见响应式段） */
+  .about__lead {
+    display: block;
+  }
   .about__grid .lead {
     margin: 0 0 var(--s-5);
   }
@@ -1292,6 +1369,88 @@
     font-size: 0.9375rem;
     line-height: 1.82;
     color: var(--ink-3);
+  }
+
+  /* ------------------------------------------------------------ 社团档案
+     资料卡式键值对排版，刻意与「服务原则」的论述式列表拉开差异：
+     原则用编号 + 粗体标题 + 段落；档案用窄字段列 + 单行值，强对齐、弱装饰。 */
+  .archive {
+    display: grid;
+    gap: var(--s-6);
+  }
+  .archive__note {
+    max-width: 62ch;
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.85;
+    color: var(--ink-3);
+    text-wrap: pretty;
+  }
+  .archive__list {
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+  .archive__row {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 8rem) minmax(0, 1fr);
+    gap: var(--s-2) var(--s-5);
+    padding: var(--s-4) 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .archive__key {
+    font-family: var(--font-latin);
+    font-size: var(--t-micro);
+    font-weight: 800;
+    font-stretch: 116%;
+    letter-spacing: 0.16em;
+    color: var(--ink-4);
+    padding-top: 0.25em;
+  }
+  .archive__val {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--ink-2);
+    text-wrap: pretty;
+  }
+
+  /* ---------------------------------------------------- 服务范围（编辑式）
+     /about 用大编号 + 大标题 + 细分割线的非对称排版，
+     与首页紧凑版服务列表共用组件但呈现不同。 */
+  .svc-list--editorial {
+    border-top: 1px solid var(--line);
+  }
+  .svc-list--editorial .svc {
+    grid-template-columns: minmax(0, 5rem) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--s-3) var(--s-6);
+    padding: clamp(1.6rem, 3.4vw, 2.6rem) 0;
+  }
+  .svc-list--editorial .svc__idx {
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--line-strong);
+    line-height: 1;
+    padding-top: 0.1em;
+  }
+  .svc-list--editorial .svc__name {
+    font-size: clamp(1.25rem, 3.2vw, 2rem);
+    font-weight: 750;
+    letter-spacing: -0.014em;
+  }
+  .svc-list--editorial .svc__desc {
+    margin-top: var(--s-3);
+    max-width: 56ch;
+  }
+  .svc-list--editorial .svc:hover {
+    background: transparent;
+  }
+  .svc-list--editorial .svc:hover .svc__idx {
+    color: var(--accent);
+  }
+  .svc-list--editorial .svc:hover .svc__name {
+    transform: none;
   }
 
   /* -------------------------------------------------------------- 服务 */
@@ -1673,6 +1832,63 @@
     color: var(--ink-4);
   }
 
+  /* ------------------------------------------------------ 联系方式收束区
+     页面最后一个视觉落点：大字号群号作为主体，二维码退为辅助。
+     刻意不做卡片，用强对比的字号把视线收住。 */
+  .contact-close {
+    display: grid;
+    gap: var(--s-7);
+    align-items: end;
+  }
+  .contact-close__ask {
+    margin: 0 0 var(--s-3);
+    font-size: var(--t-sm);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--ink-3);
+  }
+  .contact-close__num {
+    display: block;
+    margin: 0;
+    font-family: var(--font-latin);
+    font-size: clamp(2.75rem, 10vw, 5.5rem);
+    font-weight: 800;
+    font-stretch: 112%;
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    word-break: break-all;
+  }
+  .contact-close__hint {
+    max-width: 34ch;
+    margin: var(--s-4) 0 0;
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--ink-3);
+    text-wrap: pretty;
+  }
+  /* 二维码退为辅助：只留图形与一行小注，不加外框 */
+  .contact-close__qr {
+    margin: 0;
+    width: fit-content;
+  }
+  .contact-close__qr img {
+    display: block;
+    width: 100%;
+    max-width: 168px;
+    height: auto;
+  }
+  .contact-close__qr figcaption {
+    margin-top: var(--s-3);
+    font-family: var(--font-latin);
+    font-size: var(--t-micro);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+
   /* 待补充标记 */
   .todo {
     display: inline-flex;
@@ -1762,11 +1978,21 @@
     .about__grid {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
     }
+    /* 「我们是谁」：左侧叙述为主，右侧三条原则靠上对齐，主次分明 */
+    .about__lead {
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr);
+      gap: clamp(2rem, 5vw, 5rem);
+    }
     .docs__grid {
       grid-template-columns: minmax(0, 1.3fr) minmax(220px, 0.7fr);
     }
     .hero__meta {
       display: block;
+    }
+    /* 联系方式收束：左群号为主体，右侧二维码辅助 */
+    .contact-close {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: clamp(2rem, 6vw, 6rem);
     }
   }
 
@@ -1829,6 +2055,41 @@
     }
     .qr__img {
       max-width: 200px;
+    }
+
+    /* 小屏档案：字段列收窄，值换到下一行，避免窄屏挤压 */
+    .archive__row {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.35rem;
+    }
+    .archive__key {
+      padding-top: 0;
+    }
+
+    /* 小屏编辑式服务条目：编号回到行首，不再独立成列 */
+    .svc-list--editorial .svc {
+      grid-template-columns: 2.5rem minmax(0, 1fr);
+      gap: var(--s-2) var(--s-3);
+    }
+    .svc-list--editorial .svc__idx {
+      grid-row: 1;
+      font-size: clamp(1.125rem, 5vw, 1.5rem);
+    }
+    .svc-list--editorial .svc__name {
+      grid-row: 1;
+    }
+    .svc-list--editorial .svc__desc {
+      grid-row: 2;
+      grid-column: 2;
+      margin-top: var(--s-2);
+    }
+
+    /* 小屏联系方式收束：群号换行到整块宽度，二维码居中跟随 */
+    .contact-close__qr {
+      margin-inline: auto;
+    }
+    .contact-close__hint {
+      max-width: 100%;
     }
 
     /* 小屏把读数面板压成一行，保证英雄区不被撑高 */
