@@ -1,25 +1,28 @@
 "use client";
+
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
+
+import { FavoriteToggle } from "@/components/community/FavoriteToggle";
+import { RepairComments } from "@/components/community/RepairComments";
+import { RepairFlagControls } from "@/components/community/RepairFlagControls";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { communityCopy } from "@/config/community";
+import { repairCopy } from "@/config/repairs";
 import type { RepairDetailView } from "@/types/contracts";
+
 type Props = {
   recordId: string;
   statusLabels: Record<string, string>;
   resultLabels: Record<string, string>;
   timelineLabels: Record<string, string>;
-  commentsPlaceholder: string;
 };
-export function RepairDetail({
-  recordId,
-  statusLabels,
-  resultLabels,
-  timelineLabels,
-  commentsPlaceholder,
-}: Props) {
+
+export function RepairDetail({ recordId, statusLabels, resultLabels, timelineLabels }: Props) {
   const [record, setRecord] = useState<RepairDetailView>();
   const [state, setState] = useState<"loading" | "ready" | "error" | "forbidden">("loading");
+
   const load = useCallback(async () => {
     setState("loading");
     try {
@@ -27,9 +30,7 @@ export function RepairDetail({
       const j = await r.json();
       if (!j.success) {
         setState(
-          j.error.code === "REPAIR_NOT_FOUND" || j.error.code === "REPAIR_FORBIDDEN"
-            ? "forbidden"
-            : "error",
+          j.error.code === "REPAIR_NOT_FOUND" || j.error.code === "REPAIR_FORBIDDEN" ? "forbidden" : "error",
         );
         return;
       }
@@ -39,9 +40,11 @@ export function RepairDetail({
       setState("error");
     }
   }, [recordId]);
+
   useEffect(() => {
     void load();
   }, [load]);
+
   if (state === "loading") return <p role="status">正在加载维修详情…</p>;
   if (state === "error")
     return (
@@ -58,6 +61,7 @@ export function RepairDetail({
       </Card>
     );
   if (!record) return null;
+
   return (
     <div className="gap-s-6 grid">
       <Card className="gap-s-4 grid">
@@ -83,8 +87,27 @@ export function RepairDetail({
             <dd>{record.category?.name ?? "待补充"}</dd>
           </div>
         </dl>
-        {record.canEdit ? (
-          <Button href={`/member/repairs/${record.id}/edit`}>继续编辑</Button>
+        <div className="community-flags-inline">
+          {record.isDifficult ? (
+            <span className="member-tag member-tag--accent">{communityCopy.flags.difficult}</span>
+          ) : null}
+          {record.isTypical ? <span className="member-tag">{communityCopy.flags.typical}</span> : null}
+        </div>
+        <div className="community-actions">
+          <FavoriteToggle
+            recordId={record.id}
+            isFavorited={record.isFavorited}
+            onChanged={(favorited) => setRecord({ ...record, isFavorited: favorited })}
+          />
+          {record.canEdit ? <Button href={`/member/repairs/${record.id}/edit`}>继续编辑</Button> : null}
+        </div>
+        {record.canFlag ? (
+          <RepairFlagControls
+            recordId={record.id}
+            isDifficult={record.isDifficult}
+            isTypical={record.isTypical}
+            onChanged={(next) => setRecord({ ...record, ...next })}
+          />
         ) : null}
       </Card>
       <Card className="gap-s-3 grid">
@@ -143,10 +166,10 @@ export function RepairDetail({
           ))}
         </ol>
       </Card>
-      <Card variant="notice">
-        <h2 className="font-bold">交流讨论</h2>
-        <p>{commentsPlaceholder}</p>
+      <Card className="gap-s-3 grid">
+        <RepairComments recordId={record.id} />
       </Card>
+      <p className="sr-only">{repairCopy.detail.title}</p>
     </div>
   );
 }

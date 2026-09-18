@@ -31,7 +31,6 @@ export default async function RepairDetailPage({ params }: { params: Promise<{ i
           statusLabels={repairStatusLabels}
           resultLabels={repairResultLabels}
           timelineLabels={repairTimelineLabels}
-          commentsPlaceholder={repairCopy.commentsPlaceholder}
         />
       </Section>
     </>

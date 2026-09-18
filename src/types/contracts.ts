@@ -41,6 +41,13 @@ export const RepairTimelineEventType = [
   "DELETED",
   "FLAG_CHANGED",
 ] as const;
+export const NotificationType = [
+  "MENTIONED",
+  "REPAIR_COMMENTED",
+  "REPAIR_APPROVED",
+  "REPAIR_REJECTED",
+] as const;
+export const NotificationStatus = ["UNREAD", "READ"] as const;
 
 type ValueOf<T extends readonly string[]> = T[number];
 
@@ -59,6 +66,8 @@ export type RepairStatus = ValueOf<typeof RepairStatus>;
 export type RepairResult = ValueOf<typeof RepairResult>;
 export type RepairReviewDecision = ValueOf<typeof RepairReviewDecision>;
 export type RepairTimelineEventType = ValueOf<typeof RepairTimelineEventType>;
+export type NotificationType = ValueOf<typeof NotificationType>;
+export type NotificationStatus = ValueOf<typeof NotificationStatus>;
 
 export const Permission = [
   "join:submit",
@@ -83,6 +92,11 @@ export const Permission = [
   "member.profile.update_self",
   "member.profile.read_internal",
   "member.skill.assign_self",
+  "comment:create",
+  "comment:read",
+  "comment:delete",
+  "favorite:manage",
+  "notification:read",
 ] as const;
 export type Permission = ValueOf<typeof Permission>;
 
@@ -331,6 +345,8 @@ export type RepairDetailView = RepairView & {
   timeline: RepairTimelineView[];
   canEdit: boolean;
   canReview: boolean;
+  canFlag: boolean;
+  isFavorited: boolean;
 };
 export type RepairDraftFields = {
   repairDate?: string | null;
@@ -480,7 +496,86 @@ export type MemberDashboardDegraded =
   | "repairSummary"
   | "workQueue"
   | "recentRepairs"
-  | "recentActivity";
+  | "recentActivity"
+  | "notifications"
+  | "favorites";
+
+export type MemberRef = { id: string; name: string };
+
+export type CommentMentionView = MemberRef;
+
+export type RepairCommentView = {
+  id: string;
+  body: string;
+  author: MemberRef;
+  parentCommentId: string | null;
+  mentions: CommentMentionView[];
+  createdAt: string;
+  canDelete: boolean;
+  replies: RepairCommentView[];
+};
+
+export type CreateRepairCommentInput = {
+  body: string;
+  parentCommentId?: string | null;
+  mentionedMemberProfileIds?: string[];
+};
+
+export type RepairCommentListResult = {
+  items: RepairCommentView[];
+  pagination: PaginationMeta;
+};
+
+export type NotificationView = {
+  id: string;
+  type: NotificationType;
+  status: NotificationStatus;
+  repairRecordId: string | null;
+  commentId: string | null;
+  actor: MemberRef | null;
+  repairExcerpt: string | null;
+  createdAt: string;
+  readAt: string | null;
+};
+
+export type NotificationListInput = PaginationInput & {
+  status?: NotificationStatus;
+};
+
+export type NotificationListResult = {
+  items: NotificationView[];
+  unreadCount: number;
+  pagination: PaginationMeta;
+};
+
+export type FavoriteView = {
+  id: string;
+  repairRecordId: string;
+  repairDate: string | null;
+  categoryName: string | null;
+  contentExcerpt: string;
+  memberName: string;
+  isDifficult: boolean;
+  isTypical: boolean;
+  createdAt: string;
+};
+
+export type FavoriteListResult = {
+  items: FavoriteView[];
+  pagination: PaginationMeta;
+};
+
+export type MemberNotificationSummary = {
+  available: true;
+  unreadCount: number;
+  latest: NotificationView[];
+};
+
+export type MemberFavoriteSummary = {
+  available: true;
+  count: number;
+  latest: FavoriteView[];
+};
 
 export type MemberDashboard = {
   profile: MemberProfileSummary;
@@ -490,8 +585,8 @@ export type MemberDashboard = {
   recentActivity: MemberRecentActivity[];
   /** 加载失败的区块清单；空数组表示全部成功。 */
   degraded: MemberDashboardDegraded[];
-  notifications: DeferredModule;
-  favorites: DeferredModule;
+  notifications: MemberNotificationSummary;
+  favorites: MemberFavoriteSummary;
   ranking: DeferredModule;
 };
 
@@ -532,6 +627,10 @@ export type UpdateMemberSkillsResult = {
 export const MEMBER_SKILL_LIMIT = 12;
 export const MEMBER_NICKNAME_MAX_LENGTH = 64;
 export const MEMBER_RECENT_REPAIR_LIMIT = 5;
+export const COMMENT_BODY_MAX_LENGTH = 2000;
+export const COMMENT_MENTION_LIMIT = 10;
+export const MEMBER_DASHBOARD_NOTIFICATION_LIMIT = 5;
+export const MEMBER_DASHBOARD_FAVORITE_LIMIT = 5;
 
 export interface MemberProfileServiceContract {
   getSelf(actor: AuthorizedActor): Promise<MemberSelfProfileView>;
@@ -597,4 +696,31 @@ export interface RepairReviewServiceContract {
 export interface RepairQueryServiceContract {
   list(input: RepairListInput, actor: AuthorizedActor): Promise<RepairListResult>;
   getById(recordId: string, actor: AuthorizedActor): Promise<RepairDetailView>;
+}
+
+export interface RepairCommentServiceContract {
+  list(
+    recordId: string,
+    input: PaginationInput,
+    actor: AuthorizedActor,
+  ): Promise<RepairCommentListResult>;
+  create(
+    recordId: string,
+    input: CreateRepairCommentInput,
+    actor: AuthorizedActor,
+  ): Promise<RepairCommentView>;
+  softDelete(recordId: string, commentId: string, actor: AuthorizedActor): Promise<void>;
+}
+
+export interface RepairFavoriteServiceContract {
+  list(input: PaginationInput, actor: AuthorizedActor): Promise<FavoriteListResult>;
+  add(repairRecordId: string, actor: AuthorizedActor): Promise<FavoriteView>;
+  remove(repairRecordId: string, actor: AuthorizedActor): Promise<void>;
+}
+
+export interface NotificationServiceContract {
+  list(input: NotificationListInput, actor: AuthorizedActor): Promise<NotificationListResult>;
+  markRead(notificationId: string, actor: AuthorizedActor): Promise<NotificationView>;
+  markAllRead(actor: AuthorizedActor): Promise<{ updatedCount: number }>;
+  softDelete(notificationId: string, actor: AuthorizedActor): Promise<void>;
 }

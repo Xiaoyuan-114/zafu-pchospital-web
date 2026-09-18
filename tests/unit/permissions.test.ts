@@ -11,6 +11,17 @@ test("管理员与成员权限边界固定", () => {
   assert.equal(permissionsForRoles(["ADMIN"]).includes("member:manage"), true);
 });
 
+test("M4 交流权限：成员可评论/收藏/读通知，不能删他人评论", () => {
+  const member = permissionsForRoles(["MEMBER"]);
+  const admin = permissionsForRoles(["ADMIN"]);
+  for (const permission of ["comment:create", "comment:read", "favorite:manage", "notification:read"] as const) {
+    assert.equal(member.includes(permission), true, `成员缺少 ${permission}`);
+    assert.equal(admin.includes(permission), true, `管理员缺少 ${permission}`);
+  }
+  assert.equal(member.includes("comment:delete"), false);
+  assert.equal(admin.includes("comment:delete"), true);
+});
+
 test("未登录、禁用账号与普通成员均不能读取报名", () => {
   assert.throws(
     () => requirePermission(null, "join:read"),

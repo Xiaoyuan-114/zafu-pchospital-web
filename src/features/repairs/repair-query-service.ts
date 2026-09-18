@@ -6,6 +6,7 @@ import { getDb } from "@/lib/db/client";
 import { assertCanReadRepair } from "./repair-policy";
 import { repairDetailInclude, repairRepository } from "./repair-repository";
 import { toRepairDetail, toRepairView } from "./repair-view";
+import { isFavorited } from "@/features/community/favorite-service";
 import type {
   AuthorizedActor,
   MemberRecentActivity,
@@ -37,7 +38,15 @@ export const repairQueryService: RepairQueryServiceContract = {
   async getById(recordId, actor) {
     const record = await repairRepository.getById(recordId);
     assertCanReadRepair(actor, record);
-    return toRepairDetail(record, actor);
+    let favorited = false;
+    if (actor.userId) {
+      const member = await getDb().memberProfile.findFirst({
+        where: { userId: actor.userId, status: "ACTIVE", deletedAt: null },
+        select: { id: true },
+      });
+      if (member) favorited = await isFavorited(member.id, recordId);
+    }
+    return toRepairDetail(record, actor, { isFavorited: favorited });
   },
 };
 

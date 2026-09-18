@@ -52,6 +52,18 @@ async function prepareFixtures(): Promise<void> {
 
   // 1) 清掉上一轮遗留（顺序：子表 → 父表，避免外键冲突）。
   //    这些 deleteMany 本身是幂等的，即使上一轮被中断也不会有残留阻塞。
+  await db.notification.deleteMany({
+    where: { recipient: { realName: { startsWith: "M3 " } } },
+  });
+  await db.commentMention.deleteMany({
+    where: { comment: { record: { memberProfile: { realName: { startsWith: "M3 " } } } } },
+  });
+  await db.repairComment.deleteMany({
+    where: { record: { memberProfile: { realName: { startsWith: "M3 " } } } },
+  });
+  await db.repairFavorite.deleteMany({
+    where: { memberProfile: { realName: { startsWith: "M3 " } } },
+  });
   await db.repairTimelineEvent.deleteMany({
     where: { record: { memberProfile: { realName: { startsWith: "M3 " } } } },
   });
@@ -479,9 +491,12 @@ dbTest("M3 工作台只统计本人已通过记录且不计入草稿待审退回
   assert.equal(dashboard.recentRepairs.length, 2);
   const recentIds = new Set(dashboard.recentRepairs.map((row) => row.id));
   assert.equal(recentIds.has(pending.id), false, "待审记录不得出现在已通过列表");
-  // M4/M5 占位不返回虚假数据
-  assert.deepEqual(dashboard.notifications, { available: false, module: "M4" });
-  assert.deepEqual(dashboard.favorites, { available: false, module: "M4" });
+  // M4 摘要已接入：审核通过会给本人发未读通知；收藏仍为空。排行仍为 M5 占位。
+  assert.equal(dashboard.notifications.available, true);
+  assert.equal(dashboard.notifications.unreadCount, 2);
+  assert.equal(dashboard.notifications.latest.length, 2);
+  assert.equal(dashboard.favorites.available, true);
+  assert.equal(dashboard.favorites.count, 0);
   assert.deepEqual(dashboard.ranking, { available: false, module: "M5" });
   // 工作台摘要不含 QQ
   assert.doesNotMatch(JSON.stringify(dashboard.profile), /"qq"/);
@@ -725,10 +740,15 @@ dbTest("M3 成员接口响应信封固定为 success/data/meta 且带私有缓�
   assert.deepEqual(data.degraded, []);
   // 摘要视图不得出现 QQ / userId。
   assert.doesNotMatch(JSON.stringify(data), /"qq"|"userId"|"studentId"|"className"/);
-  // 后续模块占位必须显式声明未接入，且不得携带任何业务数字。
-  for (const key of ["notifications", "favorites", "ranking"]) {
-    assert.deepEqual(data[key], { available: false, module: key === "ranking" ? "M5" : "M4" });
-  }
+  const notifications = data.notifications as { available: boolean; unreadCount: number; latest: unknown[] };
+  const favorites = data.favorites as { available: boolean; count: number; latest: unknown[] };
+  assert.equal(notifications.available, true);
+  assert.equal(typeof notifications.unreadCount, "number");
+  assert.equal(Array.isArray(notifications.latest), true);
+  assert.equal(favorites.available, true);
+  assert.equal(typeof favorites.count, "number");
+  assert.equal(Array.isArray(favorites.latest), true);
+  assert.deepEqual(data.ranking, { available: false, module: "M5" });
 });
 
 dbTest("M3 越权字段被拒而不是被静默忽略", async () => {

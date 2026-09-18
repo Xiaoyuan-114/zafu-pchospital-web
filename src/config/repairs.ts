@@ -68,10 +68,9 @@ export const repairCopy = {
   detail: {
     title: "维修记录详情",
     label: "Repair Detail",
-    lead: "查看维修信息、审核历史与记录时间线。",
+    lead: "查看维修信息、审核历史、记录时间线与内部讨论。",
   },
   empty: "暂时没有符合条件的维修记录。",
-  commentsPlaceholder: "评论与讨论将在 M4 接入。",
 } as const;
 export const repairStatusLabels: Record<(typeof RepairStatus)[number], string> = {
   DRAFT: "草稿",

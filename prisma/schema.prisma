@@ -139,8 +139,13 @@ model MemberProfile {
   user          User                   @relation(fields: [userId], references: [id], onDelete: Restrict)
   redemptions   InviteCodeRedemption[]
   provisions    AccountProvision[]
-  repairRecords RepairRecord[]
-  userSkills    UserSkill[]
+  repairRecords     RepairRecord[]
+  userSkills        UserSkill[]
+  repairComments    RepairComment[]
+  commentMentions   CommentMention[]
+  repairFavorites   RepairFavorite[]
+  notificationsIn   Notification[]   @relation("NotificationRecipient")
+  notificationsOut  Notification[]   @relation("NotificationActor")
 
   @@index([status, deletedAt], map: "member_profiles_status_deleted_idx")
   @@map("member_profiles")
@@ -350,6 +355,9 @@ model RepairRecord {
   photos           RepairPhoto[]
   reviews          RepairReview[]
   timeline         RepairTimelineEvent[]
+  comments         RepairComment[]
+  favorites        RepairFavorite[]
+  notifications    Notification[]
 
   @@index([memberProfileId, status, repairDate], map: "repair_records_member_status_date_idx")
   @@index([status, submittedAt], map: "repair_records_status_submitted_idx")
@@ -406,4 +414,84 @@ model RepairTimelineEvent {
 
   @@index([repairRecordId, createdAt], map: "repair_timeline_record_created_idx")
   @@map("repair_timeline_events")
+}
+
+/// M4 维修记录评论。两层结构：根评论 parentCommentId 为空，回复一律挂到根评论。
+/// 删除走 deletedAt 软删除，正文保留供审计，默认读取排除已删行。
+model RepairComment {
+  id                    String           @id @db.Char(36)
+  repairRecordId        String           @map("repair_record_id") @db.Char(36)
+  authorMemberProfileId String           @map("author_member_profile_id") @db.Char(36)
+  parentCommentId       String?          @map("parent_comment_id") @db.Char(36)
+  body                  String           @db.Text
+  createdAt             DateTime         @map("created_at") @db.DateTime(3)
+  updatedAt             DateTime         @updatedAt @map("updated_at") @db.DateTime(3)
+  deletedAt             DateTime?        @map("deleted_at") @db.DateTime(3)
+  record                RepairRecord     @relation(fields: [repairRecordId], references: [id], onDelete: Restrict)
+  author                MemberProfile    @relation(fields: [authorMemberProfileId], references: [id], onDelete: Restrict)
+  parent                RepairComment?   @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Restrict)
+  replies               RepairComment[]  @relation("CommentReplies")
+  mentions              CommentMention[]
+  notifications         Notification[]
+
+  @@index([repairRecordId, createdAt], map: "repair_comments_record_created_idx")
+  @@index([authorMemberProfileId, createdAt], map: "repair_comments_author_created_idx")
+  @@index([parentCommentId, createdAt], map: "repair_comments_parent_created_idx")
+  @@map("repair_comments")
+}
+
+/// M4 评论提及。同一评论对同一成员只记一次。
+model CommentMention {
+  id                       String        @id @db.Char(36)
+  commentId                String        @map("comment_id") @db.Char(36)
+  mentionedMemberProfileId String        @map("mentioned_member_profile_id") @db.Char(36)
+  createdAt                DateTime      @map("created_at") @db.DateTime(3)
+  comment                  RepairComment @relation(fields: [commentId], references: [id], onDelete: Restrict)
+  mentioned                MemberProfile @relation(fields: [mentionedMemberProfileId], references: [id], onDelete: Restrict)
+
+  @@unique([commentId, mentionedMemberProfileId], map: "comment_mentions_comment_member_uq")
+  @@index([mentionedMemberProfileId], map: "comment_mentions_member_idx")
+  @@map("comment_mentions")
+}
+
+/// M4 维修记录收藏。唯一键 (memberProfileId, repairRecordId)；取消走软删除，再次收藏恢复同一行。
+model RepairFavorite {
+  id              String        @id @db.Char(36)
+  memberProfileId String        @map("member_profile_id") @db.Char(36)
+  repairRecordId  String        @map("repair_record_id") @db.Char(36)
+  createdAt       DateTime      @map("created_at") @db.DateTime(3)
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.DateTime(3)
+  deletedAt       DateTime?     @map("deleted_at") @db.DateTime(3)
+  memberProfile   MemberProfile @relation(fields: [memberProfileId], references: [id], onDelete: Restrict)
+  record          RepairRecord  @relation(fields: [repairRecordId], references: [id], onDelete: Restrict)
+
+  @@unique([memberProfileId, repairRecordId], map: "repair_favorites_member_record_uq")
+  @@index([memberProfileId, deletedAt, createdAt], map: "repair_favorites_member_deleted_created_idx")
+  @@index([repairRecordId, deletedAt], map: "repair_favorites_record_deleted_idx")
+  @@map("repair_favorites")
+}
+
+/// M4 成员通知。只发给有效成员档案；删除走软删除，未读/已读状态保留。
+model Notification {
+  id                       String         @id @db.Char(36)
+  recipientMemberProfileId String         @map("recipient_member_profile_id") @db.Char(36)
+  type                     String         @db.VarChar(32)
+  status                   String         @db.VarChar(16)
+  repairRecordId           String?        @map("repair_record_id") @db.Char(36)
+  commentId                String?        @map("comment_id") @db.Char(36)
+  actorMemberProfileId     String?        @map("actor_member_profile_id") @db.Char(36)
+  readAt                   DateTime?      @map("read_at") @db.DateTime(3)
+  createdAt                DateTime       @map("created_at") @db.DateTime(3)
+  updatedAt                DateTime       @updatedAt @map("updated_at") @db.DateTime(3)
+  deletedAt                DateTime?      @map("deleted_at") @db.DateTime(3)
+  recipient                MemberProfile  @relation("NotificationRecipient", fields: [recipientMemberProfileId], references: [id], onDelete: Restrict)
+  actor                    MemberProfile? @relation("NotificationActor", fields: [actorMemberProfileId], references: [id], onDelete: Restrict)
+  record                   RepairRecord?  @relation(fields: [repairRecordId], references: [id], onDelete: Restrict)
+  comment                  RepairComment? @relation(fields: [commentId], references: [id], onDelete: Restrict)
+
+  @@index([recipientMemberProfileId, status, createdAt], map: "notifications_recipient_status_created_idx")
+  @@index([recipientMemberProfileId, deletedAt, createdAt], map: "notifications_recipient_deleted_created_idx")
+  @@index([repairRecordId], map: "notifications_record_idx")
+  @@index([commentId], map: "notifications_comment_idx")
+  @@map("notifications")
 }
