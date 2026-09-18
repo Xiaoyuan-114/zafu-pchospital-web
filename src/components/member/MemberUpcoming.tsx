@@ -7,6 +7,7 @@ import { NotificationRow } from "@/components/community/NotificationInbox";
 import { Button } from "@/components/ui/Button";
 import { communityCopy } from "@/config/community";
 import { memberCopy } from "@/config/member";
+import { buildUpcomingEntries } from "@/features/member-dashboard/upcoming-entries";
 import type { DeferredModule, MemberFavoriteSummary, MemberNotificationSummary } from "@/types/contracts";
 
 /**
@@ -14,6 +15,18 @@ import type { DeferredModule, MemberFavoriteSummary, MemberNotificationSummary }
  *
  * 通知与收藏来自 dashboard 聚合字段，失败时由外层按 `degraded` 渲染局部错误。
  * 排行仍为 `{ available: false }`，只渲染中性说明，不显示数字或红点。
+ *
+ * 尚未接入的模块只渲染中性说明：
+ * - 不显示任何数字（哪怕是 0）、不显示红点、不显示「查看」按钮；
+ * - 明确写出「尚未接入」，避免用户误以为功能已存在只是没数据；
+ * - **不把 `module`（M4/M5）渲染给终端用户** —— 那是内部里程碑编号，对用户无意义
+ *   （`sr-only` 同样会把文本交给读屏软件，不算例外）。
+ *
+ * 若某模块的 `available` 未来变为 true，本组件会忽略它 —— 接口形状不同，
+ * 那时的渲染需求（真实列表/角标）应由对应模块自行实现，不应在这里猜。
+ *
+ * 接入位条目的构造与「key 取能力标识」这一不变量见
+ * `src/features/member-dashboard/upcoming-entries.ts`。
  */
 
 export type MemberUpcomingProps = {
@@ -34,6 +47,7 @@ export function MemberUpcoming({
   const copy = memberCopy.dashboard;
   const notice = communityCopy.notifications;
   const fav = communityCopy.favorites;
+  const entries = buildUpcomingEntries(ranking);
 
   return (
     <div className="member-upcoming">
@@ -100,13 +114,14 @@ export function MemberUpcoming({
       </div>
 
       <ul className="member-upcoming__list">
-        <li className="member-upcoming__item">
-          <span className="member-upcoming__name">{copy.upcomingRanking}</span>
-          <span className="member-upcoming__state">{memberCopy.common.unsupported}</span>
-        </li>
+        {entries.map((item) => (
+          <li className="member-upcoming__item" key={item.key}>
+            <span className="member-upcoming__name">{item.name}</span>
+            <span className="member-upcoming__state">{memberCopy.common.unsupported}</span>
+          </li>
+        ))}
       </ul>
       <p className="member-section__foot">{copy.upcomingNote}</p>
-      <span className="sr-only">{ranking.module}</span>
     </div>
   );
 }
