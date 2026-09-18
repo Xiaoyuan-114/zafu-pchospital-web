@@ -201,17 +201,22 @@ async function createSessionToken(userId: string): Promise<string> {
   return token;
 }
 
-async function callRoute(
-  handler: (
-    request: Request,
-    context?: { params: Promise<Record<string, string>> },
-  ) => Promise<Response>,
+/**
+ * 调用一个 Route Handler。
+ *
+ * `Params` 从 `handler` 的第二个参数反推：`/api/v1/repairs/[id]/...` 这类动态段
+ * 路由把 `params` 声明为**必填**（`type Context = { params: Promise<{ id: string }> }`），
+ * 若这里写成可选，传入的处理器会因参数逆变而不满足签名。
+ * 无参数路由只声明一个形参，`Params` 取默认值即可，多传一个实参不影响运行。
+ */
+async function callRoute<Params extends Record<string, string> = Record<string, string>>(
+  handler: (request: Request, context: { params: Promise<Params> }) => Promise<Response>,
   url: string,
   init: {
     method?: string;
     body?: unknown;
     headers?: Record<string, string>;
-    params?: Record<string, string>;
+    params?: Params;
   } = {},
 ): Promise<{ status: number; json: Record<string, unknown>; cacheControl: string | null }> {
   const parsed = new URL(url);
@@ -226,7 +231,7 @@ async function callRoute(
     },
     body: init.body === undefined ? undefined : JSON.stringify(init.body),
   });
-  const response = await handler(request, init.params ? { params: Promise.resolve(init.params) } : undefined);
+  const response = await handler(request, { params: Promise.resolve(init.params ?? ({} as Params)) });
   const json = (await response.json()) as Record<string, unknown>;
   return { status: response.status, json, cacheControl: response.headers.get("cache-control") };
 }
@@ -331,7 +336,7 @@ dbTest("M4 未知显式提及 ID 拒绝，超限拒绝不截断", async () => {
     (error) => hasCode(error, "VALIDATION_FAILED"),
   );
 
-  const extras = [];
+  const extras: Awaited<ReturnType<typeof createMember>>[] = [];
   for (let index = 0; index < 11; index += 1) {
     extras.push(await createMember(`提及${index}`, `提及${index}`));
   }
