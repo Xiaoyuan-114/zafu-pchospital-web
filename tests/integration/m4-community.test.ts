@@ -40,6 +40,14 @@ async function prepareFixtures(): Promise<void> {
   await db.commentMention.deleteMany({
     where: { comment: { record: { memberProfile: { realName: { startsWith: "M4 " } } } } },
   });
+  // repair_comments 有自引用外键（回复 → 根评论，onDelete: Restrict）。InnoDB 外键
+  // 是**逐行即时检查**、没有 deferred 约束，直接 deleteMany 会在删到根评论时被子回复
+  // 挡住（`Foreign key constraint violated on the fields: ('parent_comment_id')`）。
+  // 故先把本次清理范围内的回复拍平（parent_comment_id 置空，字段本就可空），再整批删除。
+  await db.repairComment.updateMany({
+    where: { record: { memberProfile: { realName: { startsWith: "M4 " } } } },
+    data: { parentCommentId: null },
+  });
   await db.repairComment.deleteMany({
     where: { record: { memberProfile: { realName: { startsWith: "M4 " } } } },
   });
