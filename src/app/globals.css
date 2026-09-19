@@ -3681,6 +3681,24 @@ html[data-theme="black-yellow"] {
     color: var(--ink-4);
     max-width: 78ch;
   }
+  /* 备案号：页脚最底部居中，比免责说明再小一档（--t-micro 是设计文档里「编号」的档位）。
+     颜色用 --ink-4：页脚没有自己的背景，直接落在 --bg 上（实测 body 背景），
+     而 --ink-4 只能用在 --bg / --surface-1 上 —— 这里合法（4.54:1 / 5.01:1）。
+     若将来给页脚加了 --surface-2 / --bg-deep 底色，本行必须改成 --ink-3。 */
+  .footer__record {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3) var(--s-4);
+    justify-content: center;
+    margin-top: var(--s-4);
+    padding-top: var(--s-4);
+    border-top: 1px solid var(--line-soft);
+    font-family: var(--font-sans);
+    font-size: var(--t-micro);
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--ink-4);
+  }
   .footer a:hover {
     color: var(--accent);
   }
