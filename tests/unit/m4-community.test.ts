@@ -196,11 +196,17 @@ test("成员展示名与摘要截断按昵称/实名/账号名回退", () => {
   assert.equal([...excerptText("字".repeat(61))].length, 61);
 });
 
-test("M4 文案不伪造排行数据，工作台仍标明排行尚未接入", () => {
+test("M5 接入后文案不再声称排行未接入，且不出现内部里程碑编号", () => {
   const text = JSON.stringify({ communityCopy, memberCopy });
-  assert.match(memberCopy.dashboard.upcomingNote, /后续模块开放/);
-  assert.match(memberCopy.common.unsupported, /尚未接入/);
+  // M5 已把维修排行做成真实数据：「后续模块开放」「尚未接入」这类承诺必须消失，
+  // 否则页面会对外宣称一个并不存在的限制。
+  assert.doesNotMatch(text, /后续模块开放|尚未接入/);
+  // 内部里程碑编号（M4/M5）不得出现在任何用户可见文案里。
+  assert.doesNotMatch(text, /M\d/);
   assert.doesNotMatch(text, /红点|角标|模拟数据/);
+  // 排行区块的标题与状态文案仍然存在，避免把区块删空
+  assert.match(memberCopy.dashboard.rankingTitle, /排行/);
+  assert.equal(memberCopy.dashboard.rankingUnconfigured.length > 0, true);
 });
 
 /**

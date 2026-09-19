@@ -10,7 +10,8 @@ import { memberProfileRepository } from "@/features/member-profile/member-profil
 import { resolveMemberRanges } from "@/features/member-dashboard/member-overview-provider";
 import { skillRepository } from "@/features/skills/skill-repository";
 import { toSkillView } from "@/features/skills/skill-service";
-import { listMemberRepairSummary, listMemberRecentRepairs } from "@/features/repairs/repair-query-service";
+import { listMemberRecentRepairs } from "@/features/repairs/repair-query-service";
+import { getMemberSummary } from "@/features/analytics/analytics-repository";
 import type {
   AuthorizedActor,
   MemberInternalProfileView,
@@ -49,7 +50,9 @@ export const memberProfileService = {
     const { monthRange, termRange } = resolveMemberRanges(new Date());
     const [skills, repairSummary, recentRepairs] = await Promise.all([
       readSkills(row.id),
-      listMemberRepairSummary(row.id, { monthRange, termRange }),
+      // M5 起正式摘要统一由 Analytics 入口产出（source = M5_ANALYTICS）；
+      // 内部仍复用 M2 的正式谓词与同一套聚合，不产生第二个统计口径。
+      getMemberSummary(row.id, { monthRange, termRange }),
       listMemberRecentRepairs(row.id, MEMBER_RECENT_REPAIR_LIMIT),
     ]);
     return {
@@ -73,7 +76,8 @@ export const memberProfileService = {
     const { monthRange, termRange } = resolveMemberRanges(new Date());
     const [skills, repairSummary, recentRepairs] = await Promise.all([
       readSkills(row.id),
-      listMemberRepairSummary(row.id, { monthRange, termRange }),
+      // 同 getSelf：内部主页也走 M5 Analytics 入口，避免出现两套摘要来源。
+      getMemberSummary(row.id, { monthRange, termRange }),
       listMemberRecentRepairs(row.id, MEMBER_RECENT_REPAIR_LIMIT),
     ]);
     return {

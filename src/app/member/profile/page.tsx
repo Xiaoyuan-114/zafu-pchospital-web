@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { MemberAnalytics } from "@/components/member/MemberAnalytics";
 import { MemberProfileView } from "@/components/member/MemberProfileView";
 import { Section } from "@/components/ui/Section";
 import { memberCopy } from "@/config/member";
@@ -16,6 +17,8 @@ export default async function MemberProfilePage() {
       <MemberProfileView
         initialDisplayName={principal.displayName ?? memberCopy.common.fallbackName}
       />
+      {/* M5：分类分布与 12 个月趋势，与工作台摘要共用同一统计口径 */}
+      <MemberAnalytics />
     </Section>
   );
 }

@@ -3334,6 +3334,218 @@ html[data-theme="black-yellow"] {
     }
   }
 
+  /* ------------------------------------------------------ M5 统计与排行 */
+  /* 名单与名次：分层只靠描边与底色（全站禁用 box-shadow）。 */
+  .ranking-list {
+    display: grid;
+    gap: var(--s-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ranking-row {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--s-3);
+    padding: var(--s-3);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+  }
+
+  /* 当前成员：用左侧强调边与文字徽标双重标注，不只靠颜色 */
+  .ranking-row--current {
+    border-color: var(--accent);
+    border-left-width: 2px;
+  }
+
+  .ranking-row__rank {
+    font-size: var(--t-xs);
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .ranking-row__rank-num {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .ranking-row__name {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    min-width: 0;
+    font-size: 0.875rem;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+
+  .ranking-row__badge {
+    padding: 0 0.35rem;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    font-size: var(--t-xs);
+    color: var(--accent-deep);
+  }
+
+  .ranking-row__value {
+    font-size: 0.875rem;
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .ranking-preview {
+    display: grid;
+    gap: var(--s-3);
+  }
+
+  .ranking-preview__meta,
+  .rankings-board__meta {
+    margin: 0;
+    font-size: var(--t-xs);
+    color: var(--ink-3);
+  }
+
+  .ranking-preview__mine {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.75rem;
+    align-items: baseline;
+    margin: 0;
+    font-size: 0.8125rem;
+  }
+
+  .ranking-preview__mine-label {
+    color: var(--ink-3);
+  }
+
+  .ranking-preview__mine-value {
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rankings-page {
+    display: grid;
+    gap: var(--s-4);
+  }
+
+  .rankings-page__head {
+    display: grid;
+    gap: var(--s-2);
+  }
+
+  .rankings-page__title,
+  .rankings-board__title,
+  .rankings-mine__title {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 700;
+  }
+
+  .rankings-page__lead {
+    max-width: 68ch;
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    color: var(--ink-3);
+  }
+
+  .rankings-filters {
+    display: grid;
+    gap: var(--s-3);
+  }
+
+  .rankings-filters__group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .rankings-filters__legend {
+    padding: 0 var(--s-2) 0 0;
+    font-size: var(--t-xs);
+    color: var(--ink-3);
+  }
+
+  .rankings-board,
+  .rankings-mine {
+    display: grid;
+    gap: var(--s-3);
+  }
+
+  .rankings-mine {
+    padding-top: var(--s-3);
+    border-top: 1px solid var(--line);
+  }
+
+  .rankings-pager {
+    display: flex;
+    gap: var(--s-2);
+  }
+
+  /* 统计表格：分类分布与月度趋势共用；趋势行的比例条是装饰，语义在文字里 */
+  .analytics-block {
+    display: grid;
+    gap: var(--s-3);
+  }
+
+  .analytics-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+  }
+
+  .analytics-table th,
+  .analytics-table td {
+    padding: var(--s-2) var(--s-3);
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: baseline;
+  }
+
+  .analytics-table thead th {
+    color: var(--ink-3);
+    font-weight: 400;
+  }
+
+  .analytics-table tbody th,
+  .analytics-table tfoot th {
+    color: var(--ink);
+    font-weight: 400;
+    overflow-wrap: anywhere;
+  }
+
+  .analytics-table tfoot th {
+    color: var(--ink-3);
+  }
+
+  .analytics-table__num {
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+
+  .analytics-table__bar {
+    display: block;
+    block-size: 0.375rem;
+    margin-bottom: 0.25rem;
+    background: var(--accent);
+    border-radius: 999px;
+  }
+
+  @media (min-width: 760px) {
+    .rankings-filters {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
   /* -------------------------------------------------------------- 文档 */
   .docs__grid {
     display: grid;

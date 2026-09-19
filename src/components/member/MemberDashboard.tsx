@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { MemberAvatar } from "@/components/member/MemberAvatar";
 import { MemberMetrics } from "@/components/member/MemberMetrics";
+import { MemberRankingPreviewView } from "@/components/member/MemberRankingPreview";
 import { MemberRecentRepairs } from "@/components/member/MemberRecentRepairs";
 import { MemberSection } from "@/components/member/MemberSection";
 import { MemberShortcuts } from "@/components/member/MemberShortcuts";
@@ -145,6 +146,17 @@ export function MemberDashboard({ initialDisplayName, roles }: MemberDashboardPr
                   moreHref="/member/repairs"
                   moreLabel={copy.recentMore}
                 />
+              )}
+            </MemberSection>
+          </section>
+
+          <section aria-labelledby="member-ranking-title">
+            <MemberSection id="member-ranking-title" title={copy.rankingTitle} tag={copy.rankingTag}>
+              {/* 排行区块失败只影响本区块：其余区块照常展示真实数据 */}
+              {data.degraded.includes("ranking") ? (
+                <SectionError onRetry={() => void load()} />
+              ) : (
+                <MemberRankingPreviewView preview={data.ranking} />
               )}
             </MemberSection>
           </section>

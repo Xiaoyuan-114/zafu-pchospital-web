@@ -6,9 +6,9 @@ import {
 import {
   listMemberRecentActivity,
   listMemberRecentRepairs,
-  listMemberRepairSummary,
   listMemberWorkQueue,
 } from "@/features/repairs/repair-query-service";
+import { getMemberSummary } from "@/features/analytics/analytics-repository";
 import type {
   MemberRecentActivity,
   MemberRecentRepair,
@@ -119,10 +119,12 @@ export async function loadMemberOverview(query: MemberOverviewQuery): Promise<Me
 
   // 并行读取，但**逐项收敛**：使用 allSettled 而非 all，任一失败不影响其它区块。
   // 注意四路查询之间不构成强事务快照，页面不得假设快照一致性；
-  // 所有指标共用同一个 generatedAt（由 listMemberRepairSummary 内部生成）。
+  // 所有指标共用同一个 generatedAt（由 getMemberSummary 内部生成）。
   return collectSections(
     await Promise.allSettled([
-      listMemberRepairSummary(query.memberProfileId, { monthRange, termRange }),
+      // M5 起正式摘要统一由 Analytics 入口产出（source = M5_ANALYTICS），
+      // 内部仍复用 M2 的正式谓词与同一套聚合，不产生第二个统计口径。
+      getMemberSummary(query.memberProfileId, { monthRange, termRange }),
       listMemberRecentRepairs(query.memberProfileId, query.recentLimit),
       listMemberRecentActivity(query.memberProfileId, query.recentLimit),
       listMemberWorkQueue(query.memberProfileId),

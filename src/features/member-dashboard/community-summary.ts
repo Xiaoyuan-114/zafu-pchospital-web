@@ -2,6 +2,7 @@ import type {
   FavoriteView,
   MemberFavoriteSummary,
   MemberNotificationSummary,
+  MemberRankingPreview,
   NotificationView,
 } from "@/types/contracts";
 
@@ -81,4 +82,25 @@ export function toFavoriteSummary(settled: Settled<FavoriteSummaryData>): Member
   return settled.status === "ready"
     ? { available: true, count: settled.data.count, latest: settled.data.latest }
     : UNAVAILABLE_FAVORITE_SUMMARY;
+}
+
+/**
+ * 排行预览的失败占位：`available: false` + `status: null`。
+ *
+ * 与通知/收藏同样不给「空榜单」——空榜在业务上是合法结果
+ * （本学期确实没有人上榜），不能拿它冒充一次数据库故障。
+ * 学期未配置走的是另一条路：`available: true, status: "UNCONFIGURED"`。
+ */
+export const UNAVAILABLE_RANKING_PREVIEW: MemberRankingPreview = {
+  available: false,
+  status: null,
+  scope: "TERM",
+  metric: "REPAIR_COUNT",
+  leaders: [],
+  currentMember: null,
+  generatedAt: new Date(0).toISOString(),
+};
+
+export function toRankingPreview(settled: Settled<MemberRankingPreview>): MemberRankingPreview {
+  return settled.status === "ready" ? settled.data : UNAVAILABLE_RANKING_PREVIEW;
 }
