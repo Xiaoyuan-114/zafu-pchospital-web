@@ -9,14 +9,17 @@ import { skillRepository } from "@/features/skills/skill-repository";
 import { toSkillView } from "@/features/skills/skill-service";
 import { summarizeFavorites } from "@/features/community/favorite-service";
 import { summarizeNotifications } from "@/features/community/notification-service";
+import {
+  settleCommunity,
+  toFavoriteSummary,
+  toNotificationSummary,
+} from "@/features/member-dashboard/community-summary";
 import type {
   AuthorizedActor,
   DeferredModule,
   MemberDashboard,
   MemberDashboardDegraded,
   MemberDashboardServiceContract,
-  MemberFavoriteSummary,
-  MemberNotificationSummary,
   MemberRepairSummary,
   MemberWorkQueue,
 } from "@/types/contracts";
@@ -58,14 +61,8 @@ export const memberDashboardService: MemberDashboardServiceContract = {
         ...(notifications.status === "failed" ? (["notifications"] as const) : []),
         ...(favorites.status === "failed" ? (["favorites"] as const) : []),
       ],
-      notifications:
-        notifications.status === "ready"
-          ? { available: true, unreadCount: notifications.data.unreadCount, latest: notifications.data.latest }
-          : EMPTY_NOTIFICATIONS,
-      favorites:
-        favorites.status === "ready"
-          ? { available: true, count: favorites.data.count, latest: favorites.data.latest }
-          : EMPTY_FAVORITES,
+      notifications: toNotificationSummary(notifications),
+      favorites: toFavoriteSummary(favorites),
       ranking: DEFERRED_RANKING,
     };
   },
@@ -85,30 +82,6 @@ const EMPTY_SUMMARY: MemberRepairSummary = {
 };
 
 const EMPTY_QUEUE: MemberWorkQueue = { draftCount: 0, pendingCount: 0, rejectedCount: 0 };
-
-const EMPTY_NOTIFICATIONS: MemberNotificationSummary = {
-  available: true,
-  unreadCount: 0,
-  latest: [],
-};
-
-const EMPTY_FAVORITES: MemberFavoriteSummary = {
-  available: true,
-  count: 0,
-  latest: [],
-};
-
-async function settleCommunity<T>(promise: Promise<T>): Promise<{ status: "ready"; data: T } | { status: "failed"; code: string }> {
-  try {
-    return { status: "ready", data: await promise };
-  } catch (reason) {
-    const code =
-      reason && typeof reason === "object" && "code" in reason && typeof reason.code === "string"
-        ? reason.code
-        : "OVERVIEW_SECTION_FAILED";
-    return { status: "failed", code };
-  }
-}
 
 /** 列出失败的区块名，供页面做局部错误展示。 */
 function degradedSections(overview: MemberOverviewResult): MemberDashboardDegraded[] {

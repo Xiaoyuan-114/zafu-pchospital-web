@@ -6,6 +6,11 @@ import { createCommentInput, createFavoriteInput, notificationStatusFilter } fro
 import { excerptText, memberRef } from "../../src/features/community/community-view";
 import { normalizeCommentBody } from "../../src/features/community/comment-service";
 import {
+  settleCommunity,
+  toFavoriteSummary,
+  toNotificationSummary,
+} from "../../src/features/member-dashboard/community-summary";
+import {
   collectMemberNames,
   extractAtTokens,
   resolveMentionedMemberIds,
@@ -196,4 +201,51 @@ test("M4 文案不伪造排行数据，工作台仍标明排行尚未接入", ()
   assert.match(memberCopy.dashboard.upcomingNote, /后续模块开放/);
   assert.match(memberCopy.common.unsupported, /尚未接入/);
   assert.doesNotMatch(text, /红点|角标|模拟数据/);
+});
+
+/**
+ * 回归：通知/收藏摘要**失败时不得把计数降级成 0**。
+ *
+ * 早先的实现失败时返回 `{ available: true, unreadCount: 0 }`，
+ * 于是接口层面分不出「查询失败」和「真的没有未读」——调用方会把一次数据库故障
+ * 渲染成「你没有新消息」，静默丢消息。现在与 M3 的 `MetricValue` 口径对齐：
+ * `available: false` + 计数 `null`。
+ */
+test("通知/收藏摘要失败时 available 为 false 且计数为 null，不给 0", async () => {
+  const failure = () => Promise.reject(new AppError("INTERNAL_ERROR", "库挂了"));
+
+  const notifications = toNotificationSummary(await settleCommunity(failure()));
+  const favorites = toFavoriteSummary(await settleCommunity(failure()));
+
+  assert.equal(notifications.available, false);
+  assert.equal(notifications.unreadCount, null);
+  assert.notEqual(notifications.unreadCount, 0);
+  assert.deepEqual(notifications.latest, []);
+
+  assert.equal(favorites.available, false);
+  assert.equal(favorites.count, null);
+  assert.notEqual(favorites.count, 0);
+  assert.deepEqual(favorites.latest, []);
+});
+
+test("通知/收藏摘要成功时保留真实计数，0 只可能来自查询结果本身", async () => {
+  const notifications = toNotificationSummary(
+    await settleCommunity(Promise.resolve({ unreadCount: 0, latest: [] })),
+  );
+  const favorites = toFavoriteSummary(await settleCommunity(Promise.resolve({ count: 3, latest: [] })));
+
+  // 「0 条未读」是真实结论 —— 与上面的 null 必须是两个不同的值
+  assert.equal(notifications.available, true);
+  assert.equal(notifications.unreadCount, 0);
+
+  assert.equal(favorites.available, true);
+  assert.equal(favorites.count, 3);
+});
+
+test("settleCommunity 保留错误码，取不到 code 时退回既定兜底码", async () => {
+  const withCode = await settleCommunity(Promise.reject(new AppError("INTERNAL_ERROR", "库挂了")));
+  const withoutCode = await settleCommunity(Promise.reject(new Error("普通异常")));
+
+  assert.deepEqual(withCode, { status: "failed", code: "INTERNAL_ERROR" });
+  assert.deepEqual(withoutCode, { status: "failed", code: "OVERVIEW_SECTION_FAILED" });
 });

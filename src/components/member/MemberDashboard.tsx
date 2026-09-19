@@ -154,8 +154,6 @@ export function MemberDashboard({ initialDisplayName, roles }: MemberDashboardPr
               <MemberUpcoming
                 notifications={data.notifications}
                 favorites={data.favorites}
-                ranking={data.ranking}
-                degraded={data.degraded}
                 onRetry={() => void load()}
               />
             </MemberSection>

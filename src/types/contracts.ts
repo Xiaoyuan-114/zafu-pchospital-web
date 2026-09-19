@@ -565,17 +565,26 @@ export type FavoriteListResult = {
   pagination: PaginationMeta;
 };
 
-export type MemberNotificationSummary = {
-  available: true;
-  unreadCount: number;
-  latest: NotificationView[];
-};
+/**
+ * 通知摘要。
+ *
+ * `available: false` 表示**聚合这一项查询失败**（超时、连接不可用等），
+ * 此时 `unreadCount` 必须是 `null` —— **不允许降级成 0**：
+ * 「0 条未读」是一个真实的业务结论（确实没有），而「查不出来」是未知，
+ * 两者在接口层面必须可分，否则调用方会把失败渲染成「没有新消息」。
+ * 与 M3 的 `MetricValue`（宁可标 `UNCONFIGURED` 也不给 0）保持同一口径。
+ *
+ * `latest` 在失败时为空数组，仅作为结构占位；前端应据 `available` 渲染错误态，
+ * 而不是把空数组渲染成「暂无通知」。
+ */
+export type MemberNotificationSummary =
+  | { available: true; unreadCount: number; latest: NotificationView[] }
+  | { available: false; unreadCount: null; latest: NotificationView[] };
 
-export type MemberFavoriteSummary = {
-  available: true;
-  count: number;
-  latest: FavoriteView[];
-};
+/** 收藏摘要。失败语义同 {@link MemberNotificationSummary}：`available: false` 时 `count` 为 `null`，不给 0。 */
+export type MemberFavoriteSummary =
+  | { available: true; count: number; latest: FavoriteView[] }
+  | { available: false; count: null; latest: FavoriteView[] };
 
 export type MemberDashboard = {
   profile: MemberProfileSummary;

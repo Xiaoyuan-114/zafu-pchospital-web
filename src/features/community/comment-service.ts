@@ -79,19 +79,36 @@ export const repairCommentService: RepairCommentServiceContract = {
       repairRecordId: recordId,
       deletedAt: null,
     };
-    const [total, rows] = await Promise.all([
-      getDb().repairComment.count({ where: { ...where, parentCommentId: null } }),
+    const start = (input.page - 1) * input.pageSize;
+    const rootWhere: Prisma.RepairCommentWhereInput = { ...where, parentCommentId: null };
+
+    // 分页下推到 SQL：只取本页的根评论。
+    // 早先的写法是 `findMany({ where })` 不带 take/skip、把**整条记录的评论**
+    // （连作者与提及的 join 一起）读进内存再 slice —— 热门记录上这一条就是全量拉取。
+    // 页大小由 parsePagination 限制在 1..100，所以 take 有上界。
+    const [total, pageRoots] = await Promise.all([
+      getDb().repairComment.count({ where: rootWhere }),
       getDb().repairComment.findMany({
-        where,
+        where: rootWhere,
         include: commentInclude,
         orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+        skip: start,
+        take: input.pageSize,
       }),
     ]);
 
-    const roots = rows.filter((row) => row.parentCommentId === null);
-    const replies = rows.filter((row) => row.parentCommentId !== null);
-    const start = (input.page - 1) * input.pageSize;
-    const pageRoots = roots.slice(start, start + input.pageSize);
+    // 回复只取本页根评论的那些；本页没有根评论时不必再查。
+    // 排序与根评论一致，保证每条根评论下的回复仍是时间升序（与分页前行为等价）。
+    const rootIds = pageRoots.map((row) => row.id);
+    const replies =
+      rootIds.length === 0
+        ? []
+        : await getDb().repairComment.findMany({
+            where: { repairRecordId: recordId, deletedAt: null, parentCommentId: { in: rootIds } },
+            include: commentInclude,
+            orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+          });
+
     const items = pageRoots.map((root) => {
       const view = toCommentView(root, actor, self.id);
       view.replies = replies

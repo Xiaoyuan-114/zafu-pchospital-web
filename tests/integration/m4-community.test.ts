@@ -280,6 +280,48 @@ dbTest("M4 回复超过两层时拍平到根评论", async () => {
   );
 });
 
+dbTest("M4 评论按根评论分页，且每页只带本页根评论的回复", async () => {
+  const owner = await createMember("分页作者");
+  const actor = memberActor(owner.member.userId, "req_m4_paging");
+  const record = await createApprovedRepair(actor);
+
+  // 3 条根评论，每条挂 1 条回复
+  const roots: string[] = [];
+  for (let index = 0; index < 3; index += 1) {
+    const root = await repairCommentService.create(record.id, { body: `第 ${index} 条根评论内容足够长` }, actor);
+    await repairCommentService.create(
+      record.id,
+      { body: `第 ${index} 条回复内容足够长`, parentCommentId: root.id },
+      actor,
+    );
+    roots.push(root.id);
+  }
+
+  const page1 = await repairCommentService.list(record.id, { page: 1, pageSize: 2 }, actor);
+  const page2 = await repairCommentService.list(record.id, { page: 2, pageSize: 2 }, actor);
+
+  // total 只数根评论（回复不计入），回复必须跟着它所属的根评论一起返回。
+  // 分页已下推到 SQL，回复改为「只查本页根评论的那些」—— 这条用例就是那个改动的回归网。
+  assert.equal(page1.pagination.total, 3);
+  assert.equal(page1.pagination.totalPages, 2);
+  assert.equal(page1.items.length, 2);
+  assert.equal(page2.items.length, 1);
+
+  const listedIds = [...page1.items, ...page2.items].map((item) => item.id);
+  assert.equal(new Set(listedIds).size, listedIds.length, "两页出现重复的根评论");
+  assert.deepEqual([...listedIds].sort(), [...roots].sort(), "两页合起来应覆盖全部根评论");
+
+  for (const item of [...page1.items, ...page2.items]) {
+    assert.equal(item.replies.length, 1, `根评论 ${item.id} 的回复没有被带出`);
+    assert.equal(item.replies[0]?.parentCommentId, item.id);
+  }
+
+  // 越界页返回空列表而不是报错
+  const page3 = await repairCommentService.list(record.id, { page: 3, pageSize: 2 }, actor);
+  assert.deepEqual(page3.items, []);
+  assert.equal(page3.pagination.total, 3);
+});
+
 dbTest("M4 @成员与显式 ID 并集会通知，提及优先于记录评论通知", async () => {
   const ownerCreated = await createMember("记录主人", "主人");
   const mentionedCreated = await createMember("被提及", "小林");
