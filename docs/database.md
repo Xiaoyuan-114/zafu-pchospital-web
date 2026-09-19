@@ -96,9 +96,18 @@ Route、调用方、Contract、测试与文档；不能留下字段、Enum、错
   乐观锁失败重试至多 3 次；审计与业务行同事务提交或一同回滚。
 - `user_skills` 的取消选择只写 `deleted_at`，不删行；恢复时清空 `deleted_at`。
   唯一约束 `(member_profile_id, skill_id)` 保证并发下不会产生重复关联。
+- 评论删除、通知删除、收藏取消一律写 `deleted_at`，默认查询排除已删除行。
+- `repair_favorites` 再次收藏恢复同一行并刷新 `created_at` / `updated_at`；
+  唯一约束 `(member_profile_id, repair_record_id)` 保证并发下不会产生重复关联。
+- 通知软删除不改 `status` / `read_at`。评论创建、删除与收藏增减与 `AuditLog` 同事务。
 
 M3 引入 `skills` 与 `user_skills` 两张表（Migration `20260917100000_p2_m3_member_dashboard`）。
 两者都不含 QQ 或任何联系方式，成员侧的引用键始终是 `member_profiles.id`。
+
+M4 引入 `repair_comments`、`comment_mentions`、`repair_favorites`、`notifications`
+（Migration `20260918120000_p2_m4_community`）。四张表均为 InnoDB、`utf8mb4_unicode_ci`，
+外键指向 `member_profiles` / `repair_records` / `repair_comments`，`ON DELETE RESTRICT`，
+不含 QQ、手机号或学号。
 
 完整字段与状态语义见 `docs/contracts/data-contract.md`。
 

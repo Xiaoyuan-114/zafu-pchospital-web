@@ -1,62 +1,56 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildUpcomingEntries } from "../../src/components/member/MemberUpcoming";
+import { buildUpcomingEntries } from "../../src/features/member-dashboard/upcoming-entries";
 import { memberCopy } from "../../src/config/member";
-import type { DeferredModule } from "../../src/types/contracts";
 
 /**
- * 回归：`MemberUpcoming` 的列表 key 必须唯一。
+ * 回归：工作台接入位列表的 key 必须取「能力」标识，不能取 `module` 值。
  *
  * 真实故障（浏览器 Console 报错）：
  *   Encountered two children with the same key, `M4`.
- * 原因：key 取了 `item.module.module`，而通知与收藏的 module **都是 `"M4"`**。
- * 因此这里断言 key 集合无重复 —— 只要有人把 key 改回 `module`，本用例立刻失败。
+ * 原因：key 取了 `item.module.module`，而当时通知与收藏的 module **都是 `"M4"`**。
+ *
+ * M4 已把通知与收藏换成真实摘要（两处列表各自用数据行 id 当 key），
+ * 接入位因此只剩排行一项；本用例收窄为「key 不得退回 module 值」+「不泄漏里程碑编号」。
+ *
+ * 另有一条不变量：**条目里不允许再出现 `module` 字段**。
+ * 它此前只是为了「用掉」组件收到的 `ranking` prop —— 既没有任何消费方，
+ * 又是被 `sr-only` 藏起来照样会被读屏软件念出的内部编号。锁住形状，避免回潮。
+ *
+ * 注意：断言的是 `buildUpcomingEntries` 这个纯函数，不是组件渲染 ——
+ * 本仓库的测试不渲染 JSX（见 `upcoming-entries.ts` 顶部说明）。
  */
 
-const deferredM4: DeferredModule = { available: false, module: "M4" };
-const deferredM5: DeferredModule = { available: false, module: "M5" };
+test("接入位条目的 key 是能力标识，不是 module 值", () => {
+  const entries = buildUpcomingEntries();
 
-test("M3 接入位条目的 key 唯一（M4 同时提供两项，不可用 module 当 key）", () => {
-  const entries = buildUpcomingEntries({
-    notifications: deferredM4,
-    favorites: deferredM4,
-    ranking: deferredM5,
-  });
+  assert.equal(entries.length, 1);
 
   const keys = entries.map((entry) => entry.key);
-  assert.equal(keys.length, 3);
   assert.equal(new Set(keys).size, keys.length, `key 出现重复：${JSON.stringify(keys)}`);
+  assert.deepEqual(keys, ["ranking"]);
 
-  // 明确锁死「module 值本身是重复的」这一前提 ——
-  // 若将来 M4 拆成两个模块号，本用例会提醒重新审视该假设。
-  const moduleIds = entries.map((entry) => entry.module.module);
-  assert.deepEqual(moduleIds, ["M4", "M4", "M5"]);
+  // 当初产生重复 key 的写法就是把 module 值当 key —— 这里显式禁止退回
+  assert.notEqual(keys[0], "M5");
+  assert.notEqual(keys[0], "M4");
 });
 
-test("M3 接入位条目顺序与文案固定，且不泄漏里程碑编号", () => {
-  const entries = buildUpcomingEntries({
-    notifications: deferredM4,
-    favorites: deferredM4,
-    ranking: deferredM5,
-  });
+test("M3 接入位条目文案固定，不泄漏里程碑编号，且不再携带 module 字段", () => {
+  const entries = buildUpcomingEntries();
 
-  assert.deepEqual(
-    entries.map((entry) => entry.key),
-    ["notifications", "favorites", "ranking"],
-  );
-  assert.deepEqual(
-    entries.map((entry) => entry.name),
-    [
-      memberCopy.dashboard.upcomingNotifications,
-      memberCopy.dashboard.upcomingFavorites,
-      memberCopy.dashboard.upcomingRanking,
-    ],
-  );
+  assert.deepEqual(entries.map((entry) => entry.name), [memberCopy.dashboard.upcomingRanking]);
 
   // 面向用户的文案里不得出现 M4/M5 这类内部编号
   for (const entry of entries) {
     assert.doesNotMatch(entry.name, /M[0-9]/);
   }
   assert.doesNotMatch(memberCopy.dashboard.upcomingNote, /M[0-9]/);
+
+  // 接口契约里的 `ranking` 仍存在（由集成测试断言），但它不再进入渲染层：
+  // 条目形状只有 key + name，重新加回 module 会让本用例失败。
+  for (const entry of entries) {
+    assert.deepEqual(Object.keys(entry).sort(), ["key", "name"]);
+    assert.equal("module" in entry, false);
+  }
 });

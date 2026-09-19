@@ -7,6 +7,13 @@ import {
 } from "@/features/member-dashboard/member-overview-provider";
 import { skillRepository } from "@/features/skills/skill-repository";
 import { toSkillView } from "@/features/skills/skill-service";
+import { summarizeFavorites } from "@/features/community/favorite-service";
+import { summarizeNotifications } from "@/features/community/notification-service";
+import {
+  settleCommunity,
+  toFavoriteSummary,
+  toNotificationSummary,
+} from "@/features/member-dashboard/community-summary";
 import type {
   AuthorizedActor,
   DeferredModule,
@@ -19,14 +26,12 @@ import type {
 import { MEMBER_RECENT_REPAIR_LIMIT } from "@/types/contracts";
 
 /**
- * 成员工作台聚合服务（M3 任务书 §6.3、§9、§12.1）。
+ * 成员工作台聚合服务（M3 任务书 §6.3、§9、§12.1；M4 接入通知与收藏摘要）。
  *
  * 只接受 actor 推导出的身份，**不接受客户端传入 memberProfileId**。
- * M4/M5 接入位固定返回 `{ available: false }`，不产生任何模拟业务数字。
+ * M5 排行接入位固定返回 `{ available: false }`，不产生任何模拟业务数字。
  */
 
-const DEFERRED_NOTIFICATIONS: DeferredModule = { available: false, module: "M4" };
-const DEFERRED_FAVORITES: DeferredModule = { available: false, module: "M4" };
 const DEFERRED_RANKING: DeferredModule = { available: false, module: "M5" };
 
 export const memberDashboardService: MemberDashboardServiceContract = {
@@ -34,28 +39,30 @@ export const memberDashboardService: MemberDashboardServiceContract = {
     requirePermission(actor, "member.profile.read_self");
     const row = await memberProfileRepository.activeForUser(actor.userId);
 
-    const [skills, overview] = await Promise.all([
+    const [skills, overview, notifications, favorites] = await Promise.all([
       skillRepository.listMemberSkills(row.id),
       loadMemberOverview({
         memberProfileId: row.id,
         now: new Date(),
         recentLimit: MEMBER_RECENT_REPAIR_LIMIT,
       }),
+      settleCommunity(summarizeNotifications(row.id)),
+      settleCommunity(summarizeFavorites(row.id)),
     ]);
 
     return {
       profile: memberProfilePolicy.toSummary(row, skills.map(toSkillView)),
-      // 区块级降级：四路查询各自收敛，这里如实透传每个区块的状态。
-      // 契约要求 `MemberDashboard` 中这些字段是「数据」而非「结果包装」，
-      // 因此失败区块回退为空数组/零值队列，并由 `degraded` 显式标注是哪几块失败 ——
-      // 客户端据此渲染局部错误，而**不**把失败伪装成「真的没有数据」以外的含义。
       repairSummary: overview.repairSummary.status === "ready" ? overview.repairSummary.data : EMPTY_SUMMARY,
       workQueue: overview.workQueue.status === "ready" ? overview.workQueue.data : EMPTY_QUEUE,
       recentRepairs: overview.recentRepairs.status === "ready" ? overview.recentRepairs.data : [],
       recentActivity: overview.recentActivity.status === "ready" ? overview.recentActivity.data : [],
-      degraded: degradedSections(overview),
-      notifications: DEFERRED_NOTIFICATIONS,
-      favorites: DEFERRED_FAVORITES,
+      degraded: [
+        ...degradedSections(overview),
+        ...(notifications.status === "failed" ? (["notifications"] as const) : []),
+        ...(favorites.status === "failed" ? (["favorites"] as const) : []),
+      ],
+      notifications: toNotificationSummary(notifications),
+      favorites: toFavoriteSummary(favorites),
       ranking: DEFERRED_RANKING,
     };
   },

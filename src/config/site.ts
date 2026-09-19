@@ -45,6 +45,23 @@ export const siteConfig = {
     auth: "http://10.152.250.2/",
     selfService: "https://zfw.zafu.edu.cn/home",
   },
+
+  /**
+   * 备案信息（全站页脚依法公示，链接到备案系统供公众核对）
+   *
+   * `icp` 必须原样展示 —— 备案号里的每一个字符（含连字符与序号）都是备案信息的一部分，
+   * 不要改写大小写、不要插空格、不要换行拆断。
+   *
+   * 公安联网备案号尚未下发，因此这里没有 mps / mpsUrl。
+   * 下发后在 `record` 内追加这两项，并在 `components/layout/Footer.tsx` 的
+   * 展示列表里加一行即可 —— 标记结构与样式都不需要改。
+   */
+  record: {
+    /** 工业和信息化部 ICP 备案号（浙ICP备2026077959号-1） */
+    icp: "浙ICP备2026077959号-1",
+    /** 工信部备案系统，供公众查询核对 */
+    icpUrl: "https://beian.miit.gov.cn",
+  },
 } as const;
 
 /** 求助渠道（静态展示） */

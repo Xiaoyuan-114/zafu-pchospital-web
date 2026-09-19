@@ -48,12 +48,18 @@ export function toRepairView(record: RecordRow): RepairView {
   };
 }
 
-export function toRepairDetail(record: RecordRow, actor: AuthorizedActor): RepairDetailView {
+export function toRepairDetail(
+  record: RecordRow,
+  actor: AuthorizedActor,
+  options: { isFavorited?: boolean } = {},
+): RepairDetailView {
   const owner = record.memberProfile.userId === actor.userId;
   return {
     ...toRepairView(record),
     canEdit: owner && (record.status === "DRAFT" || record.status === "REJECTED"),
     canReview: actor.permissions.includes("repair:review") && record.status === "PENDING",
+    canFlag: actor.permissions.includes("repair:flag"),
+    isFavorited: options.isFavorited === true,
     reviews: record.reviews.map((review) => ({
       id: review.id,
       decision: review.decision as "APPROVED" | "REJECTED",

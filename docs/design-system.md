@@ -263,6 +263,18 @@
 | `Hero` / `Ticker` / `AboutSection` / `ServicesSection` / `ProcessSection` / `DocsSection` / `ContactSection` | `home/` | 仅首页                        |
 | `DocList` / `DocReadout`                                                                                     | `docs/` | 首页文档区块与 `/docs` 页共用 |
 | `MemberSignup`                                                                                               | `join/` | 仅 `/join`                    |
+| `MemberDashboard` / `MemberShortcuts` / `MemberUpcoming` / 工作台区块                                        | `member/` | `/member` 工作台            |
+| `RepairComments` / `FavoriteToggle` / `FavoriteList` / `NotificationInbox` / `RepairFlagControls`            | `community/` | 维修详情、工作台摘要、`/member/notifications`、`/member/favorites` |
+
+M4 稳定视觉模式（均在 `globals.css` `@layer components`，无 `box-shadow`，圆角只用 `--r-base` / `--r-mid` / `999px`）：
+
+| 类 | 用途 |
+| --- | --- |
+| `.community-block` / `__head` / `__meta` | 评论区标题与计数 |
+| `.community-thread` / `--replies` | 根评论列表；回复以左侧描边缩进 |
+| `.community-list` / `--compact` / `__item` / `__body` / `.is-unread` | 通知与收藏列表；未读用左侧强调线，不用红点 |
+| `.community-summary` / `__panel` | 工作台底部两栏摘要（≥760px） |
+| `.community-composer` / `.community-flags` / `.community-actions` | 发表框、案例标记、收藏动作 |
 
 ### 4.4 按钮的具体规则
 

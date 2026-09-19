@@ -105,3 +105,18 @@ Repository / Service 的默认读取必须加 `deletedAt: null`。身份采用�
 
   因此 QQ、学号、班级只存在于受保护的单成员详情，绝不进入列表、统计或公开数据。
 - 学生身份标识（学号、班级）当前由管理员维护，M3 不提供自助修改入口。
+
+## M4 内部交流契约
+
+- `repair_comments` 主体是维修记录 + 作者成员档案。`parent_comment_id` 为空表示根评论；
+  回复一律挂到根评论（两层）。默认查询排除 `deleted_at IS NOT NULL`。
+- `comment_mentions` 唯一约束 `(comment_id, mentioned_member_profile_id)`，同一评论对同一成员只记一次。
+  提及对象必须是有效成员档案；QQ / 手机号 / `users.id` 不进入该表。
+- `repair_favorites` 唯一约束 `(member_profile_id, repair_record_id)`。取消收藏只写
+  `deleted_at`，再次收藏恢复同一行并刷新时间。并发下不会产生重复关联。
+- `notifications` 收件人是 `member_profiles.id`。类型为 `MENTIONED` /
+  `REPAIR_COMMENTED` / `REPAIR_APPROVED` / `REPAIR_REJECTED`；状态为 `UNREAD` / `READ`。
+  删除走 `deleted_at`，状态保留。审核员可以没有成员档案（`actor_member_profile_id` 可空）。
+- 业务外键一律 `ON DELETE RESTRICT`，指向 `member_profiles` / `repair_records` /
+  `repair_comments`，不存联系方式。
+- 评论与收藏可见性继承维修记录对象级权限；通知只能由收件人本人读取、标已读或软删除。

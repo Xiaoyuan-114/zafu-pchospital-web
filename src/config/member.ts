@@ -64,19 +64,21 @@ export const memberCopy = {
     quickNew: "新增维修记录",
     quickAll: "查看全部记录",
     quickProfile: "编辑个人资料",
+    quickNotifications: "消息通知",
+    quickFavorites: "我的收藏",
 
     recentTitle: "最近已通过维修",
     recentTag: "Recent Approved",
     recentEmpty: "暂时还没有已通过的维修记录。",
     recentMore: "查看全部记录",
 
-    /** 后续模块接入位：中性说明，不出现虚假红点或数字 */
-    upcomingTitle: "后续模块",
-    upcomingTag: "Upcoming",
+    /** 工作台底部：M4 通知/收藏为真实摘要，M5 排行仍为中性接入位 */
+    upcomingTitle: "交流与后续",
+    upcomingTag: "Community",
     upcomingNotifications: "消息通知",
     upcomingFavorites: "收藏",
     upcomingRanking: "维修排行",
-    upcomingNote: "以上能力将在后续模块开放，当前不提供任何数据。",
+    upcomingNote: "维修排行将在后续模块开放，当前不提供任何数据。",
   },
 
   profile: {

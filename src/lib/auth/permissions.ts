@@ -12,6 +12,10 @@ export const rolePermissions: Readonly<Record<RoleCode, readonly Permission[]>> 
     "member.profile.update_self",
     "member.profile.read_internal",
     "member.skill.assign_self",
+    "comment:create",
+    "comment:read",
+    "favorite:manage",
+    "notification:read",
   ],
   ADMIN: [
     "join:read",
@@ -34,6 +38,11 @@ export const rolePermissions: Readonly<Record<RoleCode, readonly Permission[]>> 
     "member.profile.update_self",
     "member.profile.read_internal",
     "member.skill.assign_self",
+    "comment:create",
+    "comment:read",
+    "comment:delete",
+    "favorite:manage",
+    "notification:read",
   ],
 };
 

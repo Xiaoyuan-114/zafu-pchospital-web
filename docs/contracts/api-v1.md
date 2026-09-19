@@ -133,16 +133,68 @@ GET   /api/v1/skills                               # 启用中的技能标签（
   页面必须标注「内部可见」；
 - 他人主页对不存在、已软删除、非有效成员与无权访问统一返回 `MEMBER_PROFILE_NOT_FOUND` 404，
   避免成员枚举；
-- M4/M5 占位字段固定为 `{ available: false, module: "M4" | "M5" }`，不携带任何业务数字。
+- 工作台 `notifications` / `favorites` 为 M4 真实摘要（`available: true` + 计数 + `latest`）；
+  `ranking` 仍固定为 `{ available: false, module: "M5" }`，不携带任何业务数字。
 
 局部降级与日期口径：
 
 - `GET /member/dashboard` 额外返回 `degraded: MemberDashboardDegraded[]`，列出加载失败的区块
-  （`repairSummary` / `workQueue` / `recentRepairs` / `recentActivity`）。四路查询相互独立，
-  任一路失败**不得**让其余区块一并报错，客户端只对失败区块渲染错误态；全部成功时该字段为空数组。
-  失败区块回退为空数组 / 空队列，`repairSummary` 回退时所有 `MetricValue` 标为 `UNCONFIGURED`，
-  **绝不**伪造 `0`。
+  （`repairSummary` / `workQueue` / `recentRepairs` / `recentActivity` / `notifications` / `favorites`）。
+  维修四路与通知、收藏查询相互独立，任一路失败**不得**让其余区块一并报错，客户端只对失败区块
+  渲染错误态；全部成功时该字段为空数组。失败区块回退为空数组 / 空队列，`repairSummary` 回退时
+  所有 `MetricValue` 标为 `UNCONFIGURED`，**绝不**伪造 `0`。通知/收藏失败时摘要仍为
+  `{ available: true, unreadCount|count: 0, latest: [] }`，由 `degraded` 标明该区块失败。
 - 「本月 / 本学期」是日期相对口径。`GET /member/profile`、
   `GET /members/:memberProfileId/profile` 与工作台共用同一套
   `resolveMemberRanges(now)`，三个入口的同名指标必须相等。学期未配置时
   `termApprovedCount` 返回 `{ value: null, status: "UNCONFIGURED" }`。
+
+## M4 内部交流与通知
+
+成员端（均需有效 Session + 有效成员身份；`runtime = "nodejs"` + `dynamic = "force-dynamic"`，
+响应头固定 `Cache-Control: private, no-store`；写接口执行 `assertSameOrigin()`）：
+
+```text
+GET    /api/v1/repairs/:id/comments
+POST   /api/v1/repairs/:id/comments
+DELETE /api/v1/repairs/:id/comments/:commentId
+GET    /api/v1/member/favorites
+POST   /api/v1/member/favorites
+DELETE /api/v1/member/favorites/:repairId
+GET    /api/v1/member/notifications
+POST   /api/v1/member/notifications/:id/read
+POST   /api/v1/member/notifications/read-all
+DELETE /api/v1/member/notifications/:id
+```
+
+评论：
+
+- 列表分页的是**根评论**；每条根评论附带其全部未删除回复。回复深度固定两层：若
+  `parentCommentId` 已是回复，服务端拍平到该回复的根。
+- `POST` 请求体只接受 `body`、可选 `parentCommentId`、可选 `mentionedMemberProfileIds`；
+  出现其他字段返回 `VALIDATION_FAILED` 400。
+- 提及取请求 ID 与正文 `@姓名` 的并集，对照有效成员的昵称 / 实名 / 账号展示名做最长匹配；
+  未知、停用、自己跳过；未知显式 ID 返回 `VALIDATION_FAILED`；超过 `COMMENT_MENTION_LIMIT`
+  （10）返回 `MENTION_LIMIT_EXCEEDED`，**拒绝整条、不截断**。正文上限 2000 码点。
+- 作者可删除自己的评论（需 `comment:create`）；删除他人评论需 `comment:delete`（仅管理员）。
+  删除走 `deleted_at` 软删除并写审计。
+- 评论可见性继承维修记录：他人草稿 / 待审 / 退回统一 `REPAIR_NOT_FOUND`。
+
+收藏：
+
+- 唯一约束 `(memberProfileId, repairRecordId)`。取消写 `deleted_at`；再次收藏恢复同一行，
+  并刷新 `createdAt` / `updatedAt` 以反映最近收藏时间。
+- 只能收藏当前成员可见的记录。
+
+通知：
+
+- `GET` 的 `data` 为 `{ items, unreadCount }`，分页在 `meta.pagination`。
+- 可选 `status=UNREAD|READ`。标已读幂等；全部已读只更新未读行。
+- 删除走软删除，**不改** `status` / `readAt`。只能操作本人收件箱，他人 ID 一律
+  `NOTIFICATION_NOT_FOUND`。
+- 类型：`MENTIONED`、`REPAIR_COMMENTED`、`REPAIR_APPROVED`、`REPAIR_REJECTED`。
+  不通知自己；同一评论对记录主人若同时被 @，只发 `MENTIONED`。审核通知在审核事务内写入，
+  审核员没有成员档案时 `actorMemberProfileId` 可为 null，仍通知记录主人。
+
+案例标记仍走 M2 的 `PATCH /api/v1/admin/repairs/:id/flags`（需 `repair:flag`）；
+成员详情只展示徽章，管理员在详情页可改标记。

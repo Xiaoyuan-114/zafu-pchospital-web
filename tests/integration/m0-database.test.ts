@@ -34,6 +34,11 @@ before(async () => {
   uploadTestRoot = await mkdtemp(join(tmpdir(), "pc-hospital-m2-"));
   process.env.UPLOAD_PATH = uploadTestRoot;
   const db = getDb();
+  // M4 子表必须先于 repair_records / member_profiles 清空，否则 FK RESTRICT 会挡住全表清理。
+  await db.notification.deleteMany();
+  await db.commentMention.deleteMany();
+  await db.repairComment.deleteMany();
+  await db.repairFavorite.deleteMany();
   await db.repairTimelineEvent.deleteMany();
   await db.repairReview.deleteMany();
   await db.repairPhoto.deleteMany();

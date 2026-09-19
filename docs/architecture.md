@@ -63,7 +63,10 @@
 │   │   ├── ui/                # 通用 UI 原语
 │   │   ├── home/              # 仅首页使用的区块
 │   │   ├── docs/              # 文档相关区块（首页与 /docs 共用）
-│   │   └── join/              # /join 的登记表区块（客户端组件）
+│   │   ├── join/              # /join 的登记表区块（客户端组件）
+│   │   ├── member/            # 成员工作台区块
+│   │   ├── repairs/           # 维修列表 / 详情 / 表单
+│   │   └── community/         # 评论、通知、收藏、案例标记
 │   │
 │   ├── config/                # 站点配置与页面文案数据
 │   │   ├── site.ts            # 站点信息、外链、联系方式、文档仓库、二维码
@@ -71,7 +74,10 @@
 │   │   ├── theme.ts           # 主题注册表与「模式 → 主题」映射
 │   │   ├── home.ts            # 首页文案与服务/流程数据
 │   │   ├── about.ts           # /about 文案
-│   │   └── join.ts            # /join 文案
+│   │   ├── join.ts            # /join 文案
+│   │   ├── member.ts          # 工作台与个人主页文案
+│   │   ├── repairs.ts         # 维修记录文案
+│   │   └── community.ts       # 评论 / 通知 / 收藏文案
 │   │
 │   ├── lib/                   # 无 UI 的纯逻辑
 │   │   ├── db/                # Prisma client、事务和隔离级别
@@ -84,7 +90,12 @@
 │   │   ├── invitations/       # InviteCode 与原子兑换
 │   │   ├── accounts/          # AccountProvision
 │   │   ├── auth/              # 登录、数据库 Session、改密与限流
-│   │   └── members/           # 成员直建、启停与密码重置
+│   │   ├── members/           # 成员直建、启停与密码重置
+│   │   ├── repairs/           # 维修草稿、审核、查询
+│   │   ├── member-dashboard/  # 工作台聚合
+│   │   ├── member-profile/    # 个人主页
+│   │   ├── skills/            # 技能标签
+│   │   └── community/         # 评论、提及、收藏、通知
 │   ├── types/                 # 公共 Enum / API / Service Contract 唯一事实来源
 │   │
 │   └── data/

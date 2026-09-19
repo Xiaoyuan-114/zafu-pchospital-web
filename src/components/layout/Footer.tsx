@@ -7,6 +7,21 @@ import { siteConfig } from "@/config/site";
  * 对应设计基准的 `.footer`。首页与其他页面共用，不重复实现。
  */
 
+/**
+ * 页脚底部公示的备案号列表。
+ *
+ * 《非经营性互联网信息服务备案管理办法》第十三条要求主页底部标明备案编号，
+ * 并提供链接供公众查询核对。这里按列表渲染（而不是写死一个 <a>），
+ * 是为了将来公安联网备案号下发时只需追加一行：
+ *
+ *   { id: "mps", text: siteConfig.record.mps, href: siteConfig.record.mpsUrl }
+ *
+ * 样式已按多项并排处理，不需要改 CSS。
+ */
+const filingRecords = [
+  { id: "icp", text: siteConfig.record.icp, href: siteConfig.record.icpUrl },
+];
+
 export function Footer() {
   const year = new Date().getFullYear();
 
@@ -24,6 +39,13 @@ export function Footer() {
             {siteConfig.docRepo.name}
           </a>
           （作者 {siteConfig.docRepo.author}，由 mdBook 构建）。
+        </p>
+        <p className="footer__record">
+          {filingRecords.map((item) => (
+            <a key={item.id} href={item.href} target="_blank" rel="noopener noreferrer">
+              {item.text}
+            </a>
+          ))}
         </p>
       </Container>
     </footer>

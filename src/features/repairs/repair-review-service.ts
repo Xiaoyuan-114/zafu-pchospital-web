@@ -4,6 +4,7 @@ import { AppError } from "@/lib/api/errors";
 import { requirePermission } from "@/lib/auth/permissions";
 import { getDb } from "@/lib/db/client";
 import { inSerializableTransaction } from "@/lib/db/transaction";
+import { createReviewNotification } from "@/features/community/comment-service";
 import { repairDetailInclude } from "./repair-repository";
 import { timeline } from "./repair-service";
 import { toRepairView } from "./repair-view";
@@ -64,6 +65,23 @@ export const repairReviewService: RepairReviewServiceContract = {
         { decision: input.decision, note },
         now,
       );
+      const owner = await tx.repairRecord.findUniqueOrThrow({
+        where: { id: recordId },
+        select: { memberProfileId: true },
+      });
+      const actorMember = actor.userId
+        ? await tx.memberProfile.findFirst({
+            where: { userId: actor.userId, status: "ACTIVE", deletedAt: null },
+            select: { id: true },
+          })
+        : null;
+      await createReviewNotification(tx, {
+        recordId,
+        ownerMemberProfileId: owner.memberProfileId,
+        actorMemberProfileId: actorMember?.id ?? null,
+        decision: input.decision,
+        now,
+      });
       await appendAuditLog(tx, {
         actor,
         actorType: "USER",
