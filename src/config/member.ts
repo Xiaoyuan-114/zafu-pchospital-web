@@ -29,7 +29,6 @@ export const memberCopy = {
       ADMIN: "管理员",
     } as Record<string, string>,
     internalOnly: "内部可见",
-    unsupported: "该功能尚未接入",
   },
 
   dashboard: {
@@ -72,13 +71,24 @@ export const memberCopy = {
     recentEmpty: "暂时还没有已通过的维修记录。",
     recentMore: "查看全部记录",
 
-    /** 工作台底部：M4 通知/收藏为真实摘要，M5 排行仍为中性接入位 */
+    /** 工作台底部：M4 通知/收藏与 M5 排行均为真实数据 */
     upcomingTitle: "交流与后续",
     upcomingTag: "Community",
     upcomingNotifications: "消息通知",
     upcomingFavorites: "收藏",
-    upcomingRanking: "维修排行",
-    upcomingNote: "维修排行将在后续模块开放，当前不提供任何数据。",
+
+    rankingTitle: "维修排行",
+    rankingTag: "Rankings",
+    rankingTopLabel: "本学期前 {count} 名",
+    rankingEmpty: "本学期暂无上榜记录。",
+    /** 学期未配置：**不得**显示为「暂无记录」或空榜 */
+    rankingUnconfigured: "本学期区间未配置，暂不提供排行。",
+    rankingMyRank: "我的排名",
+    /** 我的名次展示模板，`{rank}` 会被替换成名次数值 */
+    rankingMyRankValue: "第 {rank} 名",
+    rankingNoRank: "当前范围暂无上榜记录。",
+    rankingMore: "查看完整排行榜",
+    rankingFootnote: "仅统计审核已通过的维修记录，按维修数量排名。",
   },
 
   profile: {
@@ -98,6 +108,27 @@ export const memberCopy = {
     metricsTag: "Repair Metrics",
     recentTitle: "最近已通过维修",
     recentTag: "Recent Approved",
+
+    /** M5：分类分布与月度趋势。图表必须带可读的文字/表格替代，不能只靠图形 */
+    distributionTitle: "故障分类分布",
+    distributionTag: "Categories",
+    distributionEmpty: "暂无已通过的维修记录，因此没有分类分布。",
+    distributionTableCaption: "按故障分类统计的已通过维修数量与时长",
+    distributionUnitCount: "次",
+    distributionUnitDuration: "时长",
+    /** 统计表格的列头 */
+    columnCategory: "分类",
+    columnCount: "数量",
+    columnDuration: "时长",
+    columnMonth: "月份",
+    columnTotal: "合计",
+    trendTitle: "最近 12 个月维修趋势",
+    trendTag: "Trend",
+    trendEmpty: "最近 12 个月暂无已通过的维修记录。",
+    trendTableCaption: "最近 12 个月按月的已通过维修数量与时长",
+    trendMonth: "月份",
+    trendUnavailable: "统计加载失败。",
+    trendTotalLabel: "合计",
 
     /** 只读字段：明确标注不可自助修改，且不渲染成输入框 */
     readonlyNote: "以下信息由管理员维护，暂不支持自助修改。",

@@ -69,6 +69,19 @@ export type RepairTimelineEventType = ValueOf<typeof RepairTimelineEventType>;
 export type NotificationType = ValueOf<typeof NotificationType>;
 export type NotificationStatus = ValueOf<typeof NotificationStatus>;
 
+/* ------------------------------------------------------------------ M5 统计 */
+
+/** 统计范围。ALL_TIME 不附加任何日期条件。 */
+export const AnalyticsScope = ["MONTH", "TERM", "ALL_TIME"] as const;
+/** 排行主指标。时长始终以整数分钟入库与比较，小时只在 UI 层格式化。 */
+export const RankingMetric = ["REPAIR_COUNT", "DURATION_MINUTES"] as const;
+/** 统计可用性。`UNCONFIGURED` 专指学期区间未配置，**不得**解释为 0 或空榜。 */
+export const AnalyticsStatus = ["AVAILABLE", "UNCONFIGURED"] as const;
+
+export type AnalyticsScope = ValueOf<typeof AnalyticsScope>;
+export type RankingMetric = ValueOf<typeof RankingMetric>;
+export type AnalyticsStatus = ValueOf<typeof AnalyticsStatus>;
+
 export const Permission = [
   "join:submit",
   "join:read",
@@ -97,6 +110,7 @@ export const Permission = [
   "comment:delete",
   "favorite:manage",
   "notification:read",
+  "analytics:read_internal",
 ] as const;
 export type Permission = ValueOf<typeof Permission>;
 
@@ -469,7 +483,8 @@ export type MemberRepairSummary = {
   termApprovedCount: MetricValue;
   monthApprovedCount: MetricValue;
   totalApprovedDurationMinutes: MetricValue;
-  source: "M2_APPROVED_REPAIRS";
+  /** M5 起正式统计统一来自 Analytics Service；`M2_APPROVED_REPAIRS` 保留为历史兼容值。 */
+  source: "M2_APPROVED_REPAIRS" | "M5_ANALYTICS";
   generatedAt: string;
 };
 
@@ -498,7 +513,8 @@ export type MemberDashboardDegraded =
   | "recentRepairs"
   | "recentActivity"
   | "notifications"
-  | "favorites";
+  | "favorites"
+  | "ranking";
 
 export type MemberRef = { id: string; name: string };
 
@@ -586,6 +602,120 @@ export type MemberFavoriteSummary =
   | { available: true; count: number; latest: FavoriteView[] }
   | { available: false; count: null; latest: FavoriteView[] };
 
+/* ------------------------------------------------------------------ M5 统计 */
+
+/**
+ * 统计范围对应的 UTC 半开区间 `[startInclusive, endExclusive)`。
+ * `MONTH` / `TERM` 两端必有值；`ALL_TIME` 无日期条件，两端为 `null`。
+ */
+export type AnalyticsRange = {
+  startInclusive: string | null;
+  endExclusive: string | null;
+  timezone: "Asia/Shanghai";
+};
+
+/** M5 个人正式统计摘要。四个指标字段的含义与 M3 完全一致，只换来源标注。 */
+export type MemberAnalyticsSummary = MemberRepairSummary & {
+  source: "M5_ANALYTICS";
+};
+
+/** 故障分类分布。无分类的历史记录归入稳定桶 `categoryId = null`，不因分类停用而改写。 */
+export type CategoryDistributionItem = {
+  categoryId: string | null;
+  categoryName: string;
+  approvedCount: number;
+  durationMinutes: number;
+};
+
+/** 月度趋势点。`month` 为 `Asia/Shanghai` 自然月的 `YYYY-MM`，缺失月份由 Service 补真实 0。 */
+export type MonthlyTrendPoint = {
+  month: string;
+  approvedCount: number;
+  durationMinutes: number;
+};
+
+export type MemberAnalytics = {
+  summary: MemberAnalyticsSummary;
+  categoryDistribution: CategoryDistributionItem[];
+  monthlyTrend: MonthlyTrendPoint[];
+  generatedAt: string;
+};
+
+/**
+ * 排行榜条目。
+ * **禁止**加入 QQ、手机号、学号、班级或 `userId` —— 这是内部榜单 DTO 的上限。
+ */
+export type RankingEntry = {
+  /** 竞赛排名语义：主指标相同则名次相同，后续名次跳号（10,10,8 → 1,1,3）。 */
+  rank: number;
+  memberProfileId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  approvedCount: number;
+  durationMinutes: number;
+  /** 当前主指标的值，等于 `approvedCount` 或 `durationMinutes`。 */
+  metricValue: number;
+  isCurrentMember: boolean;
+};
+
+export type RankingResult = {
+  scope: AnalyticsScope;
+  metric: RankingMetric;
+  status: AnalyticsStatus;
+  range: AnalyticsRange;
+  items: RankingEntry[];
+  /** 「我的排名」不受当前分页影响；零记录时为 `null`。 */
+  currentMember: RankingEntry | null;
+  pagination: PaginationMeta;
+  generatedAt: string;
+  source: "M5_ANALYTICS";
+};
+
+/**
+ * 工作台的本学期数量榜预览。
+ *
+ * 三种状态必须可区分：
+ * - `available: true, status: "AVAILABLE"` —— 正常榜单（可能为空数组，表示确实无人上榜）；
+ * - `available: true, status: "UNCONFIGURED"` —— **学期未配置**，`leaders` 为空，
+ *   页面显示「待配置」，**不得**伪装成空榜或 0；
+ * - `available: false, status: null` —— 该区块**加载失败**，字段置空、并同时出现在
+ *   `MemberDashboard.degraded` 中，页面渲染局部错误与重试。
+ *   （失败语义与 M4 的 `MemberNotificationSummary` 保持一致，避免用「空榜单」冒充故障。）
+ */
+export type MemberRankingPreview =
+  | {
+      available: true;
+      status: AnalyticsStatus;
+      scope: "TERM";
+      metric: "REPAIR_COUNT";
+      leaders: RankingEntry[];
+      currentMember: RankingEntry | null;
+      generatedAt: string;
+    }
+  | {
+      available: false;
+      status: null;
+      scope: "TERM";
+      metric: "REPAIR_COUNT";
+      leaders: RankingEntry[];
+      currentMember: null;
+      generatedAt: string;
+    };
+
+export const RANKING_PAGE_SIZE_DEFAULT = 20;
+export const RANKING_PAGE_SIZE_MAX = 100;
+/** 工作台预览只展示前三名。 */
+export const RANKING_PREVIEW_LIMIT = 3;
+/** 月度趋势固定 12 个月。 */
+export const ANALYTICS_TREND_MONTHS = 12;
+/** 无分类历史记录的稳定展示名，与 `categoryId = null` 桶对应。 */
+export const UNCATEGORIZED_LABEL = "未分类";
+
+export type RankingQueryInput = PaginationInput & {
+  scope: AnalyticsScope;
+  metric: RankingMetric;
+};
+
 export type MemberDashboard = {
   profile: MemberProfileSummary;
   repairSummary: MemberRepairSummary;
@@ -596,7 +726,8 @@ export type MemberDashboard = {
   degraded: MemberDashboardDegraded[];
   notifications: MemberNotificationSummary;
   favorites: MemberFavoriteSummary;
-  ranking: DeferredModule;
+  /** M5 起替换 M3 的 `DeferredModule` 占位，返回本学期维修数量榜预览。 */
+  ranking: MemberRankingPreview;
 };
 
 /** 个人主页（自己）聚合视图：资料 + 技能 + 摘要 + 最近已通过记录。 */
@@ -660,6 +791,24 @@ export interface SkillQueryServiceContract {
 
 export interface MemberDashboardServiceContract {
   getDashboard(actor: AuthorizedActor): Promise<MemberDashboard>;
+}
+
+export interface MemberAnalyticsServiceContract {
+  /** 本人正式统计：累计/本月/学期/时长 + 分类分布 + 12 个月趋势。 */
+  getMemberAnalytics(actor: AuthorizedActor): Promise<MemberAnalytics>;
+}
+
+export interface RankingServiceContract {
+  getRankings(input: RankingQueryInput, actor: AuthorizedActor): Promise<RankingResult>;
+  /**
+   * 工作台排行预览：固定「本学期 + 维修数量」，取前 {@link RANKING_PREVIEW_LIMIT} 名。
+   * 与完整榜单共用同一排名算法，不另写一套逻辑。
+   *
+   * 与 `getRankings` 一样**必须传 actor 并校验 `analytics:read_internal`** ——
+   * 它接受显式 `memberProfileId`，若不校验权限就会成为一条绕过排行权限、
+   * 直接读任意成员名次的旁路。
+   */
+  getTermPreview(memberProfileId: string, actor: AuthorizedActor): Promise<MemberRankingPreview>;
 }
 
 export interface JoinApplicationServiceContract {

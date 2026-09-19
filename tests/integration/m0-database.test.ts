@@ -37,7 +37,12 @@ before(async () => {
   // M4 子表必须先于 repair_records / member_profiles 清空，否则 FK RESTRICT 会挡住全表清理。
   await db.notification.deleteMany();
   await db.commentMention.deleteMany();
-  await db.repairComment.deleteMany();
+  // `repair_comments.parent_comment_id` 是**自引用**外键（回复 → 根评论，ON DELETE RESTRICT）。
+  // 一条 `DELETE` 会在删除根评论时被尚未删掉的回复挡住，报
+  // `Foreign key constraint violated on (parent_comment_id)`。
+  // 因此按「先回复、后根评论」两步删，而不是用 FOREIGN_KEY_CHECKS=0 绕过约束检查。
+  await db.repairComment.deleteMany({ where: { parentCommentId: { not: null } } });
+  await db.repairComment.deleteMany({ where: { parentCommentId: null } });
   await db.repairFavorite.deleteMany();
   await db.repairTimelineEvent.deleteMany();
   await db.repairReview.deleteMany();
@@ -62,6 +67,12 @@ before(async () => {
   await db.userRole.deleteMany();
   await db.memberProfile.deleteMany();
   await db.userIdentity.deleteMany();
+  // `skills` 与 `roles` 一样是**共享 seed 数据，刻意不删**（只补不存在的 code）。
+  // 但 `skills.created_by` 是可空外键且 `onDelete: Restrict`：只要有任意一行技能
+  // 带着创建者（测试、预览脚本或历史运行留下的），全表清空 `users` 就会被外键挡住，
+  // 表现为 `user.deleteMany()` 报 `Foreign key constraint violated on (created_by)`。
+  // 这里只**解绑引用**、不删除技能本身 —— 既保住共享 seed，又让清理对所有残留状态都成立。
+  await db.skill.updateMany({ where: { createdBy: { not: null } }, data: { createdBy: null } });
   await db.user.deleteMany();
   await db.user.create({
     data: {

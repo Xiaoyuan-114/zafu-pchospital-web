@@ -160,3 +160,24 @@ export function shanghaiDateToUtc(date: string): Date | null {
   if (!parsed.ok) return null;
   return shanghaiDayStartToUtc(parsed.year, parsed.month, parsed.day);
 }
+
+/**
+ * 以 `anchor` 所在上海自然月为**最后一个月**，向前取连续 `count` 个月的 `YYYY-MM`。
+ *
+ * 复用 `shanghaiMonthRange` 的年月推导，保证与本月/学期口径完全一致；
+ * 数据库只聚出有数据的月份，缺失月份由调用方按真实 `0` 补齐（M5 任务书 §7）。
+ */
+export function recentShanghaiMonths(anchor: Date, count: number): string[] {
+  if (count <= 0) return [];
+  const { year, month } = shanghaiMonthRange(anchor);
+  const months: string[] = [];
+  // 用「绝对月序号」做加减，避免手工处理跨年进位。
+  const anchorIndex = year * 12 + (month - 1);
+  for (let offset = count - 1; offset >= 0; offset -= 1) {
+    const index = anchorIndex - offset;
+    const y = Math.floor(index / 12);
+    const m = (index % 12) + 1;
+    months.push(`${String(y).padStart(4, "0")}-${String(m).padStart(2, "0")}`);
+  }
+  return months;
+}

@@ -20,6 +20,10 @@ const eslintConfig = [
       "public/handbook/**",
       // tools/inspect.mjs 的本地 Chrome 配置与扩展缓存
       ".chrome-profile/**",
+      // 本地 Agent 工具的临时工作区（Chromium 用户数据、截图脚本等）。
+      // 内含浏览器扩展压缩源码，会被当成业务代码报出上百条无关 warning/error，
+      // 让 `pnpm lint` 长期变红 —— 它不属于仓库源码，直接整目录忽略。
+      ".codex-tmp/**",
       "next-env.d.ts",
     ],
   },

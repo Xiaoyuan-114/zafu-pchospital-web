@@ -58,8 +58,14 @@ async function prepareFixtures(): Promise<void> {
   await db.commentMention.deleteMany({
     where: { comment: { record: { memberProfile: { realName: { startsWith: "M3 " } } } } },
   });
+  // `parent_comment_id` 是自引用外键：必须先删回复，再删根评论，
+  // 否则一条 DELETE 会被尚未删除的回复挡住（见 m0 清理处的同款说明）。
+  const m3Comments = { record: { memberProfile: { realName: { startsWith: "M3 " } } } };
   await db.repairComment.deleteMany({
-    where: { record: { memberProfile: { realName: { startsWith: "M3 " } } } },
+    where: { ...m3Comments, parentCommentId: { not: null } },
+  });
+  await db.repairComment.deleteMany({
+    where: { ...m3Comments, parentCommentId: null },
   });
   await db.repairFavorite.deleteMany({
     where: { memberProfile: { realName: { startsWith: "M3 " } } },
@@ -484,7 +490,8 @@ dbTest("M3 工作台只统计本人已通过记录且不计入草稿待审退回
   // 学期未配置 → UNCONFIGURED 且 value 为 null（绝不为 0）
   assert.equal(dashboard.repairSummary.termApprovedCount.status, "UNCONFIGURED");
   assert.equal(dashboard.repairSummary.termApprovedCount.value, null);
-  assert.equal(dashboard.repairSummary.source, "M2_APPROVED_REPAIRS");
+  // M5 起正式统计统一由 Analytics 入口产出，来源标注随之改为 M5_ANALYTICS。
+  assert.equal(dashboard.repairSummary.source, "M5_ANALYTICS");
   // 工作队列只数本人非删除记录
   assert.deepEqual(dashboard.workQueue, { draftCount: 1, pendingCount: 1, rejectedCount: 0 });
   // 最近已通过记录不含草稿/待审
@@ -497,7 +504,12 @@ dbTest("M3 工作台只统计本人已通过记录且不计入草稿待审退回
   assert.equal(dashboard.notifications.latest.length, 2);
   assert.equal(dashboard.favorites.available, true);
   assert.equal(dashboard.favorites.count, 0);
-  assert.deepEqual(dashboard.ranking, { available: false, module: "M5" });
+  // M5 起排行占位被替换为真实的本学期维修数量榜预览；学期未配置时状态为 UNCONFIGURED。
+  assert.equal(dashboard.ranking.available, true);
+  assert.equal(dashboard.ranking.scope, "TERM");
+  assert.equal(dashboard.ranking.metric, "REPAIR_COUNT");
+  assert.equal(dashboard.ranking.status, "UNCONFIGURED");
+  assert.deepEqual(dashboard.ranking.leaders, []);
   // 工作台摘要不含 QQ
   assert.doesNotMatch(JSON.stringify(dashboard.profile), /"qq"/);
 });
@@ -748,7 +760,28 @@ dbTest("M3 成员接口响应信封固定为 success/data/meta 且带私有缓�
   assert.equal(favorites.available, true);
   assert.equal(typeof favorites.count, "number");
   assert.equal(Array.isArray(favorites.latest), true);
-  assert.deepEqual(data.ranking, { available: false, module: "M5" });
+  // M5 排行接入后契约稳定：字段集仍为最小集合，且不含任何身份字段。
+  const ranking = data.ranking as {
+    available: boolean;
+    status: string | null;
+    scope: string;
+    metric: string;
+    leaders: unknown[];
+    currentMember: unknown;
+  };
+  assert.equal(ranking.available, true);
+  assert.equal(ranking.scope, "TERM");
+  assert.equal(ranking.metric, "REPAIR_COUNT");
+  assert.equal(Array.isArray(ranking.leaders), true);
+  assert.deepEqual(Object.keys(ranking).sort(), [
+    "available",
+    "currentMember",
+    "generatedAt",
+    "leaders",
+    "metric",
+    "scope",
+    "status",
+  ]);
 });
 
 dbTest("M3 越权字段被拒而不是被静默忽略", async () => {

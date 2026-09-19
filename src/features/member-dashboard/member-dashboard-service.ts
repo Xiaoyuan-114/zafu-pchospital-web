@@ -9,14 +9,15 @@ import { skillRepository } from "@/features/skills/skill-repository";
 import { toSkillView } from "@/features/skills/skill-service";
 import { summarizeFavorites } from "@/features/community/favorite-service";
 import { summarizeNotifications } from "@/features/community/notification-service";
+import { rankingService } from "@/features/analytics/ranking-service";
 import {
   settleCommunity,
   toFavoriteSummary,
   toNotificationSummary,
+  toRankingPreview,
 } from "@/features/member-dashboard/community-summary";
 import type {
   AuthorizedActor,
-  DeferredModule,
   MemberDashboard,
   MemberDashboardDegraded,
   MemberDashboardServiceContract,
@@ -29,17 +30,15 @@ import { MEMBER_RECENT_REPAIR_LIMIT } from "@/types/contracts";
  * 成员工作台聚合服务（M3 任务书 §6.3、§9、§12.1；M4 接入通知与收藏摘要）。
  *
  * 只接受 actor 推导出的身份，**不接受客户端传入 memberProfileId**。
- * M5 排行接入位固定返回 `{ available: false }`，不产生任何模拟业务数字。
+ * M5 起排行接入位返回真实的本学期维修数量榜预览（`ranking`）。
  */
-
-const DEFERRED_RANKING: DeferredModule = { available: false, module: "M5" };
 
 export const memberDashboardService: MemberDashboardServiceContract = {
   async getDashboard(actor: AuthorizedActor): Promise<MemberDashboard> {
     requirePermission(actor, "member.profile.read_self");
     const row = await memberProfileRepository.activeForUser(actor.userId);
 
-    const [skills, overview, notifications, favorites] = await Promise.all([
+    const [skills, overview, notifications, favorites, ranking] = await Promise.all([
       skillRepository.listMemberSkills(row.id),
       loadMemberOverview({
         memberProfileId: row.id,
@@ -48,6 +47,7 @@ export const memberDashboardService: MemberDashboardServiceContract = {
       }),
       settleCommunity(summarizeNotifications(row.id)),
       settleCommunity(summarizeFavorites(row.id)),
+      settleCommunity(rankingService.getTermPreview(row.id, actor)),
     ]);
 
     return {
@@ -60,10 +60,11 @@ export const memberDashboardService: MemberDashboardServiceContract = {
         ...degradedSections(overview),
         ...(notifications.status === "failed" ? (["notifications"] as const) : []),
         ...(favorites.status === "failed" ? (["favorites"] as const) : []),
+        ...(ranking.status === "failed" ? (["ranking"] as const) : []),
       ],
       notifications: toNotificationSummary(notifications),
       favorites: toFavoriteSummary(favorites),
-      ranking: DEFERRED_RANKING,
+      ranking: toRankingPreview(ranking),
     };
   },
 };
@@ -71,13 +72,15 @@ export const memberDashboardService: MemberDashboardServiceContract = {
 /**
  * 空摘要：**只在区块失败时**作为结构占位，且所有 MetricValue 标为 `UNCONFIGURED`，
  * 保证前端渲染出「待配置」而不是伪造的 0。
+ *
+ * `source` 与正常路径保持一致（M5 起正式统计由 Analytics 提供服务）。
  */
 const EMPTY_SUMMARY: MemberRepairSummary = {
   totalApprovedCount: { value: null, status: "UNCONFIGURED" },
   termApprovedCount: { value: null, status: "UNCONFIGURED" },
   monthApprovedCount: { value: null, status: "UNCONFIGURED" },
   totalApprovedDurationMinutes: { value: null, status: "UNCONFIGURED" },
-  source: "M2_APPROVED_REPAIRS",
+  source: "M5_ANALYTICS",
   generatedAt: new Date(0).toISOString(),
 };
 
