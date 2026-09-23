@@ -5,6 +5,7 @@ import { requirePermission } from "@/lib/auth/permissions";
 import { getDb } from "@/lib/db/client";
 import { assertCanReadRepair } from "./repair-policy";
 import { repairDetailInclude, repairRepository } from "./repair-repository";
+import { repairOrderBy } from "./repair-sort";
 import { toRepairDetail, toRepairView } from "./repair-view";
 import { isFavorited } from "@/features/community/favorite-service";
 import type {
@@ -21,14 +22,22 @@ import type {
 export const repairQueryService: RepairQueryServiceContract = {
   async list(input, actor) {
     requirePermission(actor, "repair:read");
-    await repairRepository.activeMemberForUser(actor.userId);
+    // 只有成员视角才需要「我自己是谁」——`listWhere` 会按 `repair:review` 决定可见范围。
+    // 纯管理员账号（有 ADMIN 角色但没有成员档案）必须能进管理端列表，
+    // 否则 `GET /api/v1/admin/repairs` 会对它永久返回 403 MEMBER_REQUIRED。
+    if (!actor.permissions.includes("repair:review")) {
+      await repairRepository.activeMemberForUser(actor.userId);
+    }
     const where = listWhere(input, actor);
     const [total, rows] = await Promise.all([
       getDb().repairRecord.count({ where }),
       getDb().repairRecord.findMany({
         where,
         include: repairDetailInclude,
-        orderBy: [{ repairDate: "desc" }, { createdAt: "desc" }, { id: "desc" }],
+        // 用户点过表头就按用户的选择排（白名单与映射见 `repair-sort.ts`），否则按
+        // 维修日期倒序；两条路径都由 `repairOrderBy` 补 `id` 兜底 ——
+        // 主排序键重复时没有确定名次，`skip` / `take` 的分页就会重复或漏行。
+        orderBy: repairOrderBy(input.sort),
         skip: (input.page - 1) * input.pageSize,
         take: input.pageSize,
       }),
@@ -232,7 +241,13 @@ function excerpt(content: string | null): string {
   return chars.length > 60 ? `${chars.slice(0, 60).join("")}…` : flat;
 }
 
-function listWhere(
+/**
+ * 维修列表的筛选谓词（含按 `repair:review` 分派的可见范围）。
+ *
+ * 导出复用它，保证「筛选后导出」与「界面看到的列表」是同一个结果集 ——
+ * 各写一套筛选条件是导出功能最容易出的错。
+ */
+export function listWhere(
   input: RepairListInput,
   actor: { userId?: string; permissions: readonly string[] },
 ): Prisma.RepairRecordWhereInput {
