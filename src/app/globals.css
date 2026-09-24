@@ -4733,6 +4733,25 @@ html[data-theme="black-yellow"] {
     letter-spacing: -0.01em;
     color: var(--ink);
   }
+  /* T-P1-3：侧栏分组，结构对齐 member-nav */
+  .admin-nav__groups {
+    display: grid;
+    gap: var(--s-4);
+    min-block-size: 0;
+  }
+  .admin-nav__group {
+    display: grid;
+    gap: var(--s-2);
+  }
+  .admin-nav__group-title {
+    margin: 0;
+    padding-inline: 0.7rem;
+    font-size: var(--t-micro);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
   .admin-nav__list {
     display: grid;
     gap: 1px;
@@ -4774,6 +4793,46 @@ html[data-theme="black-yellow"] {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  /* 后台首页：全部模块次级链接（T-P1-3，非 ChannelList 大卡） */
+  .admin-workspace__hint {
+    margin: 0 0 var(--s-3);
+    color: var(--ink-3);
+    font-size: var(--t-sm);
+  }
+  .admin-home-modules {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+    gap: var(--s-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .admin-home-modules__link {
+    display: grid;
+    grid-template-columns: 1.7rem minmax(0, 1fr);
+    align-items: center;
+    gap: var(--s-2);
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--r-base);
+    color: var(--ink-2);
+    font-size: var(--t-sm);
+    font-weight: 650;
+    transition:
+      background var(--d-fast) var(--ease-quart),
+      color var(--d-fast) var(--ease-quart),
+      border-color var(--d-fast) var(--ease-quart);
+  }
+  .admin-home-modules__link:hover,
+  .admin-home-modules__link:focus-visible {
+    background: var(--surface-2);
+    border-color: var(--line);
+    color: var(--ink);
+  }
+  .admin-home-modules__link .eyebrow {
+    font-size: var(--t-micro);
   }
 
   .admin-filters {
@@ -5474,28 +5533,50 @@ html[data-theme="black-yellow"] {
       border-inline-end: 1px solid var(--line);
       padding-inline-end: var(--s-4);
     }
-    .admin-nav__list {
+    .admin-nav__groups {
       overflow-y: auto;
       min-block-size: 0;
     }
   }
   @media (max-width: 1099px) {
     .admin-nav {
-      /* 窄屏：品牌 + 横向导航 + 足部上下堆叠；列表仍可横向滚动。 */
+      /* 窄屏：品牌 + 分组横滑 + 足部上下堆叠。 */
       grid-template-rows: auto auto auto;
       padding-block-end: var(--s-4);
       border-block-end: 1px solid var(--line);
     }
-    .admin-nav__list {
-      grid-auto-flow: column;
-      grid-auto-columns: max-content;
+    .admin-nav__groups {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: var(--s-4);
       overflow-x: auto;
       padding-block-end: var(--s-1);
+    }
+    .admin-nav__group {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: var(--s-2);
+      flex: none;
+    }
+    .admin-nav__group-title {
+      flex: none;
+      padding-inline: 0.35rem;
+      white-space: nowrap;
+    }
+    .admin-nav__list {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 1px;
     }
     .admin-nav__link {
       grid-template-columns: auto minmax(0, 1fr);
       border-inline-start: 0;
       border-block-end: 2px solid transparent;
+      white-space: nowrap;
     }
     .admin-nav__link[aria-current="page"] {
       border-block-end-color: var(--accent);
