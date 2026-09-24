@@ -241,6 +241,23 @@ export const memberCopy = {
   },
 } as const;
 
+
+/**
+ * 侧栏通知未读角标展示（T-P2-2）。
+ *
+ * - `null` / `undefined` / ≤0 / 非有限数 → 不展示（调用方应隐藏角标）；
+ * - 1–99 → 原样数字；
+ * - ≥100 → `99+`（避免宽数字撑破窄侧栏）。
+ *
+ * 真实计数仍由调用方保留，用于 `aria-label`（读屏可读完整「未读 N 条」）。
+ */
+export function formatNavUnreadBadge(count: number | null | undefined): string | null {
+  if (count == null || !Number.isFinite(count)) return null;
+  const n = Math.floor(count);
+  if (n <= 0) return null;
+  return n > 99 ? "99+" : String(n);
+}
+
 /** 把整数分钟格式化为「x 小时 y 分钟」。底层仍存整数分钟，这里只做展示。 */
 export function formatDurationMinutes(minutes: number): string {
   if (!Number.isFinite(minutes) || minutes < 0) return "—";

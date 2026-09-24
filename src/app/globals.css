@@ -4646,7 +4646,7 @@ html[data-theme="black-yellow"] {
   }
   .member-nav__link {
     display: grid;
-    grid-template-columns: 1.7rem minmax(0, 1fr);
+    grid-template-columns: 1.7rem minmax(0, 1fr) auto;
     align-items: center;
     gap: var(--s-2);
     padding: 0.5rem 0.7rem;
@@ -4676,6 +4676,25 @@ html[data-theme="black-yellow"] {
   .member-nav__label {
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* 通知未读角标（T-P2-2）：文字 + 描边双通道，令牌对齐 admin-tag--accent */
+  .member-nav__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: 1.25rem;
+    min-block-size: 1.25rem;
+    padding: 0 0.35rem;
+    border: 1px solid var(--accent-line);
+    border-radius: var(--r-full);
+    background: var(--accent-wash);
+    color: var(--accent-deep);
+    font-size: var(--t-micro);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    line-height: 1;
     white-space: nowrap;
   }
   .member-nav__foot {
@@ -5658,7 +5677,7 @@ html[data-theme="black-yellow"] {
       gap: 1px;
     }
     .member-nav__link {
-      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-columns: auto minmax(0, 1fr) auto;
       border-inline-start: 0;
       border-block-end: 2px solid transparent;
       white-space: nowrap;
