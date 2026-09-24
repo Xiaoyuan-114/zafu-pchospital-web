@@ -59,13 +59,17 @@ export const registerCopy = {
   backHome: "返回首页",
 } as const;
 
-/** T-P0-2 账号菜单：挂在成员 hero 与管理侧栏足部。 */
+/** T-P0-2 账号菜单：挂在成员 / 管理侧栏足部。T-P1-4 增加双角色壳层切换。 */
 export const accountMenuCopy = {
   /** `displayName` 为空时的降级展示名 */
   fallbackName: "成员",
   /** 触发按钮无障碍名称 */
   menuLabel: "账号菜单",
   changePassword: "修改密码",
+  /** 双角色：从管理壳切到成员工作台 */
+  switchToMember: "进入成员工作台",
+  /** 双角色：从成员壳切到管理后台 */
+  switchToAdmin: "进入管理后台",
   logout: "退出登录",
   loggingOut: "退出中…",
 } as const;

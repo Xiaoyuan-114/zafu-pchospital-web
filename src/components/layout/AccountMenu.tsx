@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { Icon } from "@/components/ui/Icon";
@@ -10,19 +10,22 @@ import { cn } from "@/lib/utils";
 import type { SessionPrincipal } from "@/types/contracts";
 
 /**
- * AccountMenu —— 登录后账号菜单（T-P0-2）
+ * AccountMenu —— 登录后账号菜单（T-P0-2 / T-P1-4）
  *
  * 挂点：成员 / 管理侧栏足部（`variant="nav"`）。工作台 hero 不再挂一份，避免与侧栏重复。
- * 菜单项本卡只做「修改密码 / 退出登录」；双角色切换留给 T-P1-4。
+ * 菜单项：双角色壳层切换（成员⇄管理）+ 修改密码 / 退出登录。
  *
  * 会话来源是 `GET /api/v1/me`：
  * - 成功 → 用 `displayName`（空则降级「成员」）作为触发文案；
  * - 未登录（`UNAUTHENTICATED`）或请求失败 → **静默不渲染**，绝不 toast
  *   （公开页若误挂本组件也不会闪错）。
  *
+ * 双角色判定（与 LoginForm / 成员空态一致）：
+ * - `roles` 含 `ADMIN` **且** `memberProfileId` 非空 → 可在菜单内切换壳层；
+ * - 仅管理员（无成员档案）或仅成员 → 不显示切换项，避免送进空态或无权限页。
+ *
  * 退出走同站 `POST /api/v1/auth/logout`（服务端有 `assertSameOrigin`），
- * 成功清 cookie 后 `router.replace("/login")` + `refresh`。写法沿用
- * 死代码 `MemberPanel` 的底稿。
+ * 成功清 cookie 后 `router.replace("/login")` + `refresh`。
  */
 
 export type AccountMenuProps = {
@@ -41,12 +44,21 @@ type MePayload = {
   data?: SessionPrincipal;
 };
 
+function isDualRole(principal: SessionPrincipal): boolean {
+  return (
+    principal.roles.includes("ADMIN") &&
+    typeof principal.memberProfileId === "string" &&
+    principal.memberProfileId.length > 0
+  );
+}
+
 export function AccountMenu({
   variant = "hero",
   initialDisplayName,
   className,
 }: AccountMenuProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const menuId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -116,6 +128,16 @@ export function AccountMenu({
   const displayName =
     (principal?.displayName ?? initialDisplayName)?.trim() || accountMenuCopy.fallbackName;
 
+  const dualRole = principal ? isDualRole(principal) : false;
+  const inAdminShell = pathname.startsWith("/admin");
+  // 双角色：管理壳 → 切成员；成员壳或其它页（如改密）→ 切管理。
+  const switchHref = dualRole ? (inAdminShell ? "/member" : "/admin") : null;
+  const switchLabel = dualRole
+    ? inAdminShell
+      ? accountMenuCopy.switchToMember
+      : accountMenuCopy.switchToAdmin
+    : null;
+
   return (
     <div
       ref={rootRef}
@@ -142,6 +164,16 @@ export function AccountMenu({
           role="menu"
           aria-label={accountMenuCopy.menuLabel}
         >
+          {switchHref && switchLabel ? (
+            <Link
+              className="account-menu__item"
+              role="menuitem"
+              href={switchHref}
+              onClick={() => setOpen(false)}
+            >
+              {switchLabel}
+            </Link>
+          ) : null}
           <Link
             className="account-menu__item"
             role="menuitem"
