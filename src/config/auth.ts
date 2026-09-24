@@ -47,6 +47,8 @@ export const registerCopy = {
   passwordPlaceholder: "设置登录密码",
   passwordConfirmLabel: "确认密码",
   passwordConfirmPlaceholder: "再次输入密码",
+  showPassword: "显示密码",
+  hidePassword: "隐藏密码",
   passwordMismatch: "两次输入的密码不一致",
   requiredMark: "必填",
   submit: "注册成员账号",

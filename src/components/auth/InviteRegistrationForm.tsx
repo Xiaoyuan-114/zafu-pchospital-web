@@ -4,6 +4,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
 import { registerCopy } from "@/config/auth";
 import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from "@/lib/security/password-policy";
 
@@ -122,6 +123,9 @@ export function InviteRegistrationForm() {
       setBusy(false);
       return;
     }
+    // MemberRegistrationResult（userId / memberProfileId / redemptionId / provisionId）
+    // 不含 mustChangePassword；邀请码注册者自设密码，服务端为 false。不发明契约字段，
+    // 成功后落到 /member（受保护页仍会按 Session 强制改密）。
     router.replace("/member");
     router.refresh();
   }
@@ -132,24 +136,7 @@ export function InviteRegistrationForm() {
         <fieldset key={group.title} className="auth-login__group">
           <legend className="auth-login__group-title">{group.title}</legend>
           {group.fields.map((field) => (
-            <div className="field" key={field.name}>
-              <label className="field__label" htmlFor={`register-${field.name}`}>
-                {field.label}
-                {field.required ? <span className="field__req">{registerCopy.requiredMark}</span> : null}
-              </label>
-              <input
-                className="field__input"
-                id={`register-${field.name}`}
-                name={field.name}
-                type={field.type}
-                inputMode={field.name === "qq" ? "numeric" : undefined}
-                placeholder={field.placeholder}
-                autoComplete={field.autoComplete}
-                minLength={field.type === "password" ? PASSWORD_MIN_LENGTH : undefined}
-                maxLength={field.type === "password" ? PASSWORD_MAX_LENGTH : 80}
-                required={field.required}
-              />
-            </div>
+            <RegisterField key={field.name} field={field} />
           ))}
         </fieldset>
       ))}
@@ -162,5 +149,45 @@ export function InviteRegistrationForm() {
         </p>
       ) : null}
     </form>
+  );
+}
+
+function RegisterField({ field }: { field: FieldSpec }) {
+  const [revealed, setRevealed] = useState(false);
+  const isPassword = field.type === "password";
+  const inputId = `register-${field.name}`;
+
+  return (
+    <div className="field">
+      <label className="field__label" htmlFor={inputId}>
+        {field.label}
+        {field.required ? <span className="field__req">{registerCopy.requiredMark}</span> : null}
+      </label>
+      <div className={isPassword ? "auth-login__password" : undefined}>
+        <input
+          className="field__input"
+          id={inputId}
+          name={field.name}
+          type={isPassword && revealed ? "text" : field.type}
+          inputMode={field.name === "qq" ? "numeric" : undefined}
+          placeholder={field.placeholder}
+          autoComplete={field.autoComplete}
+          minLength={isPassword ? PASSWORD_MIN_LENGTH : undefined}
+          maxLength={isPassword ? PASSWORD_MAX_LENGTH : 80}
+          required={field.required}
+        />
+        {isPassword ? (
+          <button
+            className="auth-login__password-toggle"
+            type="button"
+            aria-label={revealed ? registerCopy.hidePassword : registerCopy.showPassword}
+            aria-pressed={revealed}
+            onClick={() => setRevealed((visible) => !visible)}
+          >
+            <Icon name={revealed ? "eyeOff" : "eye"} />
+          </button>
+        ) : null}
+      </div>
+    </div>
   );
 }
