@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
+import { AccountMenu } from "@/components/layout/AccountMenu";
 import { adminCopy, adminNav } from "@/config/admin";
 
 /**
@@ -24,7 +25,12 @@ import { adminCopy, adminNav } from "@/config/admin";
  * （实测 `/admin` 首页必现，公开页不会）。改成鼠标悬停 / 键盘聚焦时才预取：
  * 既省掉 10 个无用请求，也把「点下去已经是成品」这件事保留下来。
  */
-export function AdminNav() {
+export type AdminNavProps = {
+  /** 服务端已认证的展示名，交给账号菜单做首屏乐观渲染 */
+  displayName?: string | null;
+};
+
+export function AdminNav({ displayName = null }: AdminNavProps) {
   const pathname = usePathname();
   const router = useRouter();
   return (
@@ -53,6 +59,9 @@ export function AdminNav() {
           );
         })}
       </ul>
+      <div className="admin-nav__foot">
+        <AccountMenu variant="nav" initialDisplayName={displayName ?? null} />
+      </div>
     </nav>
   );
 }

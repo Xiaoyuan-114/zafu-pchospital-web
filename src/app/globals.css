@@ -4321,6 +4321,84 @@ html[data-theme="black-yellow"] {
     color: var(--ink-3);
   }
 
+
+  /* ---------------------------------------------------------- 账号菜单（T-P0-2）
+     挂在成员 hero 行动区与管理侧栏足部。无投影；面板用描边 + surface 底色。 */
+  .account-menu {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--s-2);
+  }
+  .account-menu__trigger {
+    inline-size: 100%;
+    justify-content: space-between;
+    gap: var(--s-2);
+  }
+  .account-menu__trigger svg {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    transition: transform var(--d-fast) var(--ease-quart);
+  }
+  .account-menu[data-open="true"] .account-menu__trigger svg {
+    transform: rotate(180deg);
+  }
+  .account-menu__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-inline-size: 12rem;
+  }
+  .account-menu__panel {
+    display: grid;
+    gap: 1px;
+    padding: var(--s-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-base);
+    background: var(--surface-1);
+  }
+  .account-menu--hero .account-menu__panel {
+    position: absolute;
+    inset-inline-end: 0;
+    top: calc(100% + 0.35rem);
+    z-index: 40;
+    min-inline-size: 11rem;
+  }
+  .account-menu--nav .account-menu__panel {
+    /* 侧栏有 overflow，就地展开，不绝对定位。 */
+    position: static;
+  }
+  .account-menu__item {
+    display: block;
+    padding: 0.55rem 0.75rem;
+    border: 0;
+    border-radius: var(--r-base);
+    background: transparent;
+    color: var(--ink-2);
+    font: inherit;
+    font-size: var(--t-sm);
+    font-weight: 650;
+    text-align: start;
+    cursor: pointer;
+    transition:
+      background var(--d-fast) var(--ease-quart),
+      color var(--d-fast) var(--ease-quart);
+  }
+  .account-menu__item:hover,
+  .account-menu__item:focus-visible {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+  .account-menu__item[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .account-menu__item--danger {
+    color: var(--ink-2);
+  }
+
   /* ---------------------------------------------------------- 后台外壳（左栏 + 内容） */
   /* 参考邮箱类客户端：左侧固定导航栏常驻，右侧内容区独立滚动。
      外壳渲染在 `app/admin/layout.tsx` 里，客户端导航之间保持挂载，切页时侧栏不重建。 */
@@ -4350,9 +4428,16 @@ html[data-theme="black-yellow"] {
 
   .admin-nav {
     display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
     gap: var(--s-4);
     align-content: start;
     padding: var(--s-4) var(--s-3) var(--s-5);
+  }
+  .admin-nav__foot {
+    display: grid;
+    gap: var(--s-2);
+    padding-block-start: var(--s-3);
+    border-block-start: 1px solid var(--line-soft);
   }
   .admin-nav__brand {
     display: grid;
@@ -5109,13 +5194,20 @@ html[data-theme="black-yellow"] {
          视觉上的那点留白改由侧栏自身的 `padding-block-start` 提供，与页面高度无关。 */
       inset-block-start: 0;
       max-block-size: calc(100vh - var(--s-7));
-      overflow-y: auto;
+      /* 滚动交给中间的导航列表，足部账号菜单始终可见、面板不被裁切。 */
+      overflow: hidden;
       border-inline-end: 1px solid var(--line);
       padding-inline-end: var(--s-4);
+    }
+    .admin-nav__list {
+      overflow-y: auto;
+      min-block-size: 0;
     }
   }
   @media (max-width: 1099px) {
     .admin-nav {
+      /* 窄屏：品牌 + 横向导航 + 足部上下堆叠；列表仍可横向滚动。 */
+      grid-template-rows: auto auto auto;
       padding-block-end: var(--s-4);
       border-block-end: 1px solid var(--line);
     }

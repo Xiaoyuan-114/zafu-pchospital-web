@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { AccountMenu } from "@/components/layout/AccountMenu";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { MemberAvatar } from "@/components/member/MemberAvatar";
@@ -63,7 +64,8 @@ export function MemberDashboard({ initialDisplayName, roles }: MemberDashboardPr
 
   return (
     <>
-      <header className="member-hero">        <div className="member-hero__identity">
+      <header className="member-hero">
+        <div className="member-hero__identity">
           <MemberAvatar displayName={displayName} avatarUrl={profile?.avatarUrl} />
           <div className="member-hero__text">
             <h1 className="member-hero__name" id="member-title">
@@ -84,6 +86,7 @@ export function MemberDashboard({ initialDisplayName, roles }: MemberDashboardPr
         </div>
         <div className="member-hero__actions">
           <Button href="/member/profile">{copy.settingsAction}</Button>
+          <AccountMenu variant="hero" initialDisplayName={displayName} />
         </div>
       </header>
 

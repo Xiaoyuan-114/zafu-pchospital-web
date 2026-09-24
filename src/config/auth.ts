@@ -17,3 +17,14 @@ export const loginCopy = {
   registerAction: "使用邀请码注册",
   backHome: "返回首页",
 } as const;
+
+/** T-P0-2 账号菜单：挂在成员 hero 与管理侧栏足部。 */
+export const accountMenuCopy = {
+  /** `displayName` 为空时的降级展示名 */
+  fallbackName: "成员",
+  /** 触发按钮无障碍名称 */
+  menuLabel: "账号菜单",
+  changePassword: "修改密码",
+  logout: "退出登录",
+  loggingOut: "退出中…",
+} as const;
