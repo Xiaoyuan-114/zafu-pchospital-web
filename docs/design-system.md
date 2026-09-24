@@ -157,6 +157,20 @@ Warning 色相刻意偏琥珀（远离 accent 的信号黄 / 钴蓝），避免�
 相关列表态（工作台队列「草稿 / 待审核 / 已退回」、后台审核表状态列）使用同一映射。
 结果类标签（如维修结果 `FIXED` 等）若只需弱提示，可继续用 `neutral`，不要另发明颜色。
 
+#### 复用 `.repair-tag--*` 的后台表格
+
+`.repair-tag--approved/pending/rejected` 同时被后台其他表格复用，落地后这些位置同步变色，语义按下表理解（已与技术主线确认保留）：
+
+| 位置 | 取值 | 类名 | 令牌族 |
+| ---- | ---- | ---- | ------ |
+| 社员申请（`join-application-table-spec`） | 面试通过 / 待面试等进行中（未通过、已撤回用 `admin-tag--muted`） | `--approved` / `--pending` | `success` / `warning` |
+| 技能（`skill-table-spec`） | 启用（停用用 `admin-tag--muted`） | `--approved` | `success` |
+| 分类（`category-table-spec`） | 启用（停用用 `admin-tag--muted`） | `--approved` | `success` |
+| 邀请码（`invite-code-table-spec`） | 可用 / 未生效、已撤销、已过期、已用尽 | `--approved` / `--pending` | `success` / `warning`（后四种并非「处理中」，是否改 `neutral` 待定） |
+| 审计（`audit-table-spec`） | 成功 / 失败 | `--approved` / `--rejected` | `success` / `danger` |
+
+新增表格要复用这些类时，先确认取值语义与上表的「通过 / 处理中 / 失败」一致；不一致就用 `neutral`（`--draft` / `--result`）或 `admin-tag--muted`，不要为此另发明颜色。
+
 #### 对比度矩阵（WCAG AA，正文门槛 4.5:1）
 
 按相对亮度公式实测；`*-wash` 按叠在 `--bg` 上合成后再算（与 §9.6 口径一致）。

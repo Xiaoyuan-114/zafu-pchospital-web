@@ -65,7 +65,10 @@ export function NotificationInbox() {
   async function remove(id: string) {
     const response = await fetch(`/api/v1/member/notifications/${id}`, { method: "DELETE" });
     const json = await response.json();
-    if (json.success) await load();
+    if (json.success) {
+      await load();
+      notifyNavUnreadChanged();
+    }
   }
 
   if (state === "error") {
