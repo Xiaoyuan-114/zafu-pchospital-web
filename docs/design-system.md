@@ -37,7 +37,8 @@
 基调：**工业极简 · 深色石墨 + 单一信号黄强调色**。
 所有中性色统一带 **95° 微暖色相**，与信号黄同源，避免灰得发蓝。
 
-调色板刻意只保留**一个强调色**。新增第二种强调色需要先经过设计确认。
+调色板刻意只保留**一个强调色**（`--accent*`）。新增第二种强调色需要先经过设计确认。
+审核 / 列表用的 Success / Warning / Danger / Neutral 属于 **§1.5 状态语义色**，不是第二套强调色。
 
 ### 1.1 背景与表面
 
@@ -85,22 +86,112 @@
 
 **对比度规则**：任何「强调色底 + 文字」的组合必须使用 `--accent-on`，不得使用 `--ink`。
 
-### 1.5 语义色
+### 1.5 状态语义色（Success / Warning / Danger / Neutral）
 
-设计基准中**没有** Success / Warning / Danger 三色，现在也没有。
+> **落地顺序（T-P2-1）**：本小节先定义令牌与对比度；**技术主线审阅本文件后**，再写入
+> `globals.css` 双主题层，最后才改 `.repair-tag` 等组件。在 CSS 落地之前，组件仍沿用
+> 现有中性 / 强调色临时样式，但**不得**再在页面里另写十六进制状态色。
 
-`/join` 的新社员登记表是站点第一个带校验的界面，它同样不引入语义色：
+站点强调色（§1.4 `--accent*`）仍然只有一个，语义是「重点 / 可操作」。
+状态色是**另一组语义族**，只表达业务状态（通过 / 待审 / 退回 / 草稿），**不是第二套强调色**，
+也不得拿来做主按钮、链接或焦点环。
 
-- 必填与格式约束交给**浏览器原生约束校验**（`required` / `pattern` / `maxLength`）；
-- 被拒绝的字段只用唯一的强调色标出：描边 `--accent`、说明文字 `--accent-deep`，
-  语义仍然是「这一项需要你处理」，与 1.4 节的强调色语义一致；
-- 提交成功**不使用 `.notice`**，改用中性 `--surface-1` 面板（见 4.6）。
+#### 令牌家族（与 `--accent*` 同构）
 
-后续阶段（报修、备案、评价）引入完整的状态反馈时，**必须先在这里补充语义色定义**，不得由各页面自行挑选红色或绿色。补充时要求：
+每个状态一套五元组；组件只认令牌名，不认具体色值：
 
-- 与现有色板同色相体系（或明确说明为何需要不同色相）；
-- 文字与底色组合满足 WCAG AA；
-- 同时给出深色底下的可用变体。
+| 后缀 | 用途 |
+| ---- | ---- |
+| （无后缀） | 实心色：图标、实心底标签、强调描边 |
+| `-deep` | **淡底上的文字色**（徽章 / chip 主用） |
+| `-on` | **实心底上的文字色**（filled badge） |
+| `-wash` | 淡底（列表徽章默认底） |
+| `-line` | 淡底徽章描边 |
+
+| 令牌 | Tailwind（落地后） | 语义 |
+| ---- | ------------------ | ---- |
+| `--status-success` / `-deep` / `-on` / `-wash` / `-line` | `text-status-success` 等 | 成功 / 已通过 |
+| `--status-warning` / `-deep` / `-on` / `-wash` / `-line` | `text-status-warning` 等 | 等待处理 / 待审核 |
+| `--status-danger` / `-deep` / `-on` / `-wash` / `-line` | `text-status-danger` 等 | 失败 / 已退回 / 需修正 |
+| `--status-neutral` / `-deep` / `-on` / `-wash` / `-line` | `text-status-neutral` 等 | 中性过程态 / 草稿 |
+
+#### 双主题取值
+
+写法与 §9.4 一致：`swiss-cobalt` 用十六进制 / `rgb(... / α)`；`black-yellow` 用 `oklch`。
+Warning 色相刻意偏琥珀（远离 accent 的信号黄 / 钴蓝），避免「待审」与「可操作」撞色。
+
+| 令牌 | normal / `swiss-cobalt` | dark / `black-yellow` |
+| ---- | ----------------------- | --------------------- |
+| `--status-success` | `#0f7a45` | `oklch(78% 0.13 155)` |
+| `--status-success-deep` | `#0a5c34` | `oklch(72% 0.12 155)` |
+| `--status-success-on` | `#ffffff` | `oklch(18% 0.03 155)` |
+| `--status-success-wash` | `rgb(15 122 69 / 0.10)` | `oklch(78% 0.13 155 / 0.1)` |
+| `--status-success-line` | `rgb(15 122 69 / 0.32)` | `oklch(78% 0.13 155 / 0.34)` |
+| `--status-warning` | `#8a4b00` | `oklch(82% 0.14 75)` |
+| `--status-warning-deep` | `#6b3a00` | `oklch(76% 0.13 75)` |
+| `--status-warning-on` | `#ffffff` | `oklch(18% 0.03 75)` |
+| `--status-warning-wash` | `rgb(138 75 0 / 0.10)` | `oklch(82% 0.14 75 / 0.1)` |
+| `--status-warning-line` | `rgb(138 75 0 / 0.32)` | `oklch(82% 0.14 75 / 0.34)` |
+| `--status-danger` | `#c62828` | `oklch(76% 0.16 28)` |
+| `--status-danger-deep` | `#8e1818` | `oklch(70% 0.15 28)` |
+| `--status-danger-on` | `#ffffff` | `oklch(18% 0.04 28)` |
+| `--status-danger-wash` | `rgb(198 40 40 / 0.10)` | `oklch(76% 0.16 28 / 0.1)` |
+| `--status-danger-line` | `rgb(198 40 40 / 0.32)` | `oklch(76% 0.16 28 / 0.34)` |
+| `--status-neutral` | `#5f5f5d`（对齐 `--ink-3`） | `oklch(72% 0.01 95)` |
+| `--status-neutral-deep` | `#3d3d3b`（对齐 `--ink-2`） | `oklch(68% 0.009 95)` |
+| `--status-neutral-on` | `#ffffff` | `oklch(18% 0.006 95)` |
+| `--status-neutral-wash` | `rgb(95 95 93 / 0.10)` | `oklch(72% 0.01 95 / 0.1)` |
+| `--status-neutral-line` | `rgb(95 95 93 / 0.32)` | `oklch(72% 0.01 95 / 0.34)` |
+
+#### 维修审核态映射（列表徽章 / 工作台队列）
+
+与 `repairStatusLabels`（`src/config/repairs.ts`）及 `RepairStatus` 对齐：
+
+| `RepairStatus` | 文案 | 令牌族 | 推荐徽章样式 |
+| -------------- | ---- | ------ | ------------ |
+| `DRAFT` | 草稿 | `neutral` | wash + deep + line |
+| `PENDING` | 待审核 | `warning` | wash + deep + line |
+| `APPROVED` | 已通过 | `success` | wash + deep + line；需要强对比时可用 solid + on |
+| `REJECTED` | 已退回 | `danger` | wash + deep + line |
+
+相关列表态（工作台队列「草稿 / 待审核 / 已退回」、后台审核表状态列）使用同一映射。
+结果类标签（如维修结果 `FIXED` 等）若只需弱提示，可继续用 `neutral`，不要另发明颜色。
+
+#### 对比度矩阵（WCAG AA，正文门槛 4.5:1）
+
+按相对亮度公式实测；`*-wash` 按叠在 `--bg` 上合成后再算（与 §9.6 口径一致）。
+改取值后必须重测，并把数字写回本表。
+
+| 组合 | normal | dark |
+| ---- | ------ | ---- |
+| `--status-success-deep` on `--status-success-wash`（叠 `--bg`） | 6.48:1 ✅ | 7.26:1 ✅ |
+| `--status-success-on` on `--status-success` | 5.40:1 ✅ | 9.84:1 ✅ |
+| `--status-success-deep` on `--bg`（纯文字态） | 7.41:1 ✅ | 8.39:1 ✅ |
+| `--status-warning-deep` on `--status-warning-wash`（叠 `--bg`） | 7.45:1 ✅ | 7.77:1 ✅ |
+| `--status-warning-on` on `--status-warning` | 6.80:1 ✅ | 10.60:1 ✅ |
+| `--status-warning-deep` on `--bg` | 8.62:1 ✅ | 9.05:1 ✅ |
+| `--status-danger-deep` on `--status-danger-wash`（叠 `--bg`） | 7.19:1 ✅ | 6.15:1 ✅ |
+| `--status-danger-on` on `--status-danger` | 5.62:1 ✅ | 8.00:1 ✅ |
+| `--status-danger-deep` on `--bg` | 8.38:1 ✅ | 6.94:1 ✅ |
+| `--status-neutral-deep` on `--status-neutral-wash`（叠 `--bg`） | 8.71:1 ✅ | 6.08:1 ✅ |
+| `--status-neutral-on` on `--status-neutral` | 6.40:1 ✅ | 7.59:1 ✅ |
+| `--status-neutral-deep` on `--bg` | 9.97:1 ✅ | 6.87:1 ✅ |
+
+**徽章默认组合**：`color: var(--status-*-deep)` + `background: var(--status-*-wash)` +
+`border-color: var(--status-*-line)`。实心徽章才用 `*-on` on 无后缀实心色。
+**禁止**把 `--status-success`（亮实心）直接铺在 `--status-success-wash` 上当正文——与 accent 同理，淡底上必须用 `-deep`。
+
+#### 使用规则
+
+1. **组件只能使用上述令牌**（或封装它们的 `.repair-tag--*` / 未来的 `StatusBadge`）。
+   页面、业务组件、内联 `style` **不得**再写 `#c62828`、`red`、`oklch(... 145)` 等临时状态色。
+2. **状态不只靠纯文字**：列表 / 队列里的审核态必须同时有文案标签 + 令牌色（双通道）；
+   色盲与强制颜色模式下文案仍可独立读懂。
+3. **不要用状态色冒充强调色**：主按钮、链接、焦点环、当前导航项继续只用 `--accent*`。
+4. **`/join` 字段错误维持现状**：仍用 `--accent` / `--accent-deep` 表示「这一项需要你处理」，
+   **不迁移**到 `--status-danger`。状态色的作用域是审核 / 列表 / 队列徽章，不是表单校验。
+5. 成功反馈浮层（`.admin-toast`）在未单独立项前可继续用中性面板 + accent 图标；
+   若要改色，必须另开任务并同步本节，不得只在组件里改。
 
 ---
 
@@ -834,6 +925,10 @@ return <DarkAboutPage />;
 | 主色底上的文字 | `--accent-on`                              | `text-accent-on`                                          |
 | 主色淡底       | `--accent-wash`                            | `bg-accent-wash`                                          |
 | 主色描边       | `--accent-line`                            | `border-accent-line`                                      |
+| 状态·成功      | `--status-success` / `-deep` / `-on` / `-wash` / `-line` | （CSS 落地后映射） |
+| 状态·待审      | `--status-warning` / `-deep` / `-on` / `-wash` / `-line` | （CSS 落地后映射） |
+| 状态·退回      | `--status-danger` / `-deep` / `-on` / `-wash` / `-line`  | （CSS 落地后映射） |
+| 状态·草稿/中性 | `--status-neutral` / `-deep` / `-on` / `-wash` / `-line` | （CSS 落地后映射） |
 | 描边           | `--line` / `--line-soft` / `--line-strong` | `border-line` / `border-line-soft` / `border-line-strong` |
 
 **禁止**：
@@ -888,6 +983,9 @@ border-color: var(--line);
 | `--accent-deep` | `#1c44d6`               | `oklch(70% 0.155 97)`        |
 | `--accent-on`   | `#ffffff`               | `oklch(17% 0.03 99)`         |
 | `color-scheme`  | `light`                 | `dark`                       |
+
+状态语义色（`--status-*`）的双主题取值见 **§1.5**，不在本表重复；CSS 落地时与上表同一段落写入
+`:root` / `html[data-theme="black-yellow"]`。
 
 `swiss-cobalt` 取自实验分支 `style-about-editorial-test` 已验证的
 「暖白 + 炭黑 + 钴蓝 · Swiss Editorial / Technical Editorial」方向。
