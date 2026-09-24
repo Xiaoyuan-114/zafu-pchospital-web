@@ -8,6 +8,7 @@ import {
   validateSubmission,
 } from "../../src/features/repairs/repair-validation";
 import { RepairResult, RepairStatus, RepairTimelineEventType } from "../../src/types/contracts";
+import { parseRepairListStatus } from "../../src/features/repairs/repair-http";
 
 test("M2 公共枚举与错误码已冻结", () => {
   assert.deepEqual(RepairStatus, ["DRAFT", "PENDING", "APPROVED", "REJECTED"]);
@@ -65,4 +66,16 @@ test("图片魔数拒绝伪造 MIME 并识别 JPEG PNG WebP", () => {
     "image/webp",
   );
   assert.equal(detectImageType(Uint8Array.from(Buffer.from("not-an-image"))), null);
+});
+
+test("维修列表 status 查询白名单：合法预选，非法忽略", () => {
+  assert.equal(parseRepairListStatus("REJECTED"), "REJECTED");
+  assert.equal(parseRepairListStatus("DRAFT"), "DRAFT");
+  assert.equal(parseRepairListStatus("PENDING"), "PENDING");
+  assert.equal(parseRepairListStatus("APPROVED"), "APPROVED");
+  assert.equal(parseRepairListStatus(""), "");
+  assert.equal(parseRepairListStatus(null), "");
+  assert.equal(parseRepairListStatus(undefined), "");
+  assert.equal(parseRepairListStatus("DONE"), "");
+  assert.equal(parseRepairListStatus("rejected"), "");
 });

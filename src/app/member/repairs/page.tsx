@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { RepairList } from "@/components/repairs/RepairList";
 import { Section } from "@/components/ui/Section";
@@ -8,7 +9,9 @@ export default async function RepairsPage() {
   await requireActiveMemberPage();
   return (
     <Section variant="page-head" className="repair-workspace" labelledBy="repairs-title">
-      <RepairList statusLabels={repairStatusLabels} resultLabels={repairResultLabels} />
+      <Suspense fallback={null}>
+        <RepairList statusLabels={repairStatusLabels} resultLabels={repairResultLabels} />
+      </Suspense>
     </Section>
   );
 }
