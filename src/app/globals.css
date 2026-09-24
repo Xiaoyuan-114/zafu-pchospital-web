@@ -2929,9 +2929,10 @@ html[data-theme="black-yellow"] {
     text-wrap: pretty;
   }
 
-  /* ------------------------------------------ 成员工作台与个人主页（M3 / T-P0-5）
+  /* ------------------------------------------ 成员工作台与个人主页（M3 / T-P0-5 / T-P2-5）
      工作台：欢迎区（hero 主 CTA）→ 主栏（待处理 → 最近已通过）+ 辅栏（指标 / 技能可折 / 排行 / Upcoming）。
      ≥1100px 且含 .member-workspace__main 时双列；个人资料等单列页不受影响。
+     加载骨架复用同一套 content/main/aside，避免宽屏 CLS。
      分层只用底色与描边（全站禁止 box-shadow）；数值用等宽数字对齐。
      状态一律「文字 + 颜色」双通道，不单靠颜色区分。 */
   .member-workspace {
@@ -3328,12 +3329,11 @@ html[data-theme="black-yellow"] {
     padding-left: var(--s-2);
   }
 
-  /* 加载骨架：保持与真实内容一致的高度，避免布局跳动 */
-  .member-skeleton {
-    display: grid;
-    gap: var(--s-3);
-  }
+  /* 加载骨架（T-P2-5）：与 ready 共用 member-workspace__content / __main / __aside，
+     ≥1100px 时 :has(> .member-workspace__main) 双列同样生效，降低 CLS。
+     .member-skeleton 仅作标识；栅格由 .member-workspace__content 负责。 */
   .member-skeleton__bar {
+    display: block;
     height: 1rem;
     border-radius: var(--r-base);
     background: var(--surface-2);
@@ -3343,6 +3343,14 @@ html[data-theme="black-yellow"] {
   }
   .member-skeleton__bar--sm {
     width: 40%;
+  }
+  /* 最近记录 / 排行 / Upcoming 等区块内容占位，接近一条列表行高度 */
+  .member-skeleton__bar--block {
+    height: 3.25rem;
+  }
+  .member-skeleton__stack {
+    display: grid;
+    gap: var(--s-3);
   }
 
   /* 后续模块接入位：中性面板，明确说明未接入 */

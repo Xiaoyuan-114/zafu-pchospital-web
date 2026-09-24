@@ -28,6 +28,9 @@ import type { MemberDashboard as MemberDashboardData } from "@/types/contracts";
  * 降级策略（任务书 §12.1）：**指标加载用稳定骨架，失败时局部错误**。
  * 因此这里把「加载中 / 失败」限制在内容区，欢迎区（来自服务端已知的会话信息）
  * 始终可用，不会因为一次请求失败就整页白屏。
+ *
+ * 加载骨架（T-P2-5）复用 `member-workspace__content` / `__main` / `__aside`，
+ * 与 ready 双列几何对齐，降低 ≥1100px 下的 CLS。
  */
 
 export type MemberDashboardProps = {
