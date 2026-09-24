@@ -10,10 +10,17 @@ import type { MemberWorkQueue as MemberWorkQueueData } from "@/types/contracts";
  * `status` 查询参数 —— 复用 M2 已有的筛选能力，不新增列表接口、不复制列表逻辑。
  *
  * 计数为 0 时仍是有效数字（不是"待配置"）：这三项的查询口径恒定，与学期配置无关。
- * 仅当存在积压时给左边框加强调色；数字本身已表达信息，颜色不是唯一线索。
+ * 状态标签复用 `.repair-tag--*`（T-P2-1 状态语义色）；有积压时左边框跟同一状态色，
+ * 数字本身已表达信息，颜色不是唯一线索。
  */
 
 export type MemberWorkQueueProps = { queue: MemberWorkQueueData };
+
+const STATUS_TAG: Record<"DRAFT" | "PENDING" | "REJECTED", string> = {
+  DRAFT: "draft",
+  PENDING: "pending",
+  REJECTED: "rejected",
+};
 
 export function MemberWorkQueueView({ queue }: MemberWorkQueueProps) {
   const copy = memberCopy.dashboard;
@@ -28,20 +35,26 @@ export function MemberWorkQueueView({ queue }: MemberWorkQueueProps) {
     <div className="member-section">
       {allEmpty ? <p className="member-section__note">{copy.queueEmpty}</p> : null}
       <ul className="member-queue">
-        {items.map((item) => (
-          <li
-            className={`member-queue__item${item.count > 0 ? " member-queue__item--active" : ""}`}
-            key={item.key}
-          >
-            <span className="member-queue__label">{item.label}</span>
-            <span className="member-queue__count">
-              <Link href={`/member/repairs?status=${item.key}`}>
-                {item.count}
-                <span className="member-metric__unit">{copy.unitCount}</span>
-              </Link>
-            </span>
-          </li>
-        ))}
+        {items.map((item) => {
+          const tag = STATUS_TAG[item.key];
+          const active = item.count > 0;
+          return (
+            <li
+              className={`member-queue__item member-queue__item--${tag}${
+                active ? " member-queue__item--active" : ""
+              }`}
+              key={item.key}
+            >
+              <span className={`repair-tag repair-tag--${tag}`}>{item.label}</span>
+              <span className="member-queue__count">
+                <Link href={`/member/repairs?status=${item.key}`}>
+                  {item.count}
+                  <span className="member-metric__unit">{copy.unitCount}</span>
+                </Link>
+              </span>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

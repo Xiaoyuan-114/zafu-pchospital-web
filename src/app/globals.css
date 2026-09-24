@@ -182,6 +182,106 @@
   inherits: true;
   initial-value: transparent;
 }
+@property --status-success {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-success-deep {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-success-on {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-success-wash {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-success-line {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-warning {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-warning-deep {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-warning-on {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-warning-wash {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-warning-line {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-danger {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-danger-deep {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-danger-on {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-danger-wash {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-danger-line {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-neutral {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-neutral-deep {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-neutral-on {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-neutral-wash {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --status-neutral-line {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
 @property --deco-watermark {
   syntax: "<color>";
   inherits: true;
@@ -204,7 +304,7 @@
                           主题 ID 与映射关系见 src/config/theme.ts
      3. `@theme inline`   把令牌映射到 Tailwind 命名空间
 
-   规则：组件只使用语义令牌（--bg / --surface-* / --ink-* / --line* / --accent*），
+   规则：组件只使用语义令牌（--bg / --surface-* / --ink-* / --line* / --accent* / --status-*），
         禁止写死具体主题色值，也不要在组件里判断当前是什么模式。
         颜色该长什么样，由 `<html data-theme>` 上挂着的主题决定。 */
 
@@ -241,6 +341,28 @@
   --accent-on: #ffffff;
   --accent-wash: rgb(36 87 255 / 0.07);
   --accent-line: rgb(36 87 255 / 0.32);
+
+  /* 状态语义色（§1.5）：审核 / 列表 / 队列徽章。不是第二套强调色。 */
+  --status-success: #0f7a45;
+  --status-success-deep: #0a5c34;
+  --status-success-on: #ffffff;
+  --status-success-wash: rgb(15 122 69 / 0.10);
+  --status-success-line: rgb(15 122 69 / 0.32);
+  --status-warning: #8a4b00;
+  --status-warning-deep: #6b3a00;
+  --status-warning-on: #ffffff;
+  --status-warning-wash: rgb(138 75 0 / 0.10);
+  --status-warning-line: rgb(138 75 0 / 0.32);
+  --status-danger: #c62828;
+  --status-danger-deep: #8e1818;
+  --status-danger-on: #ffffff;
+  --status-danger-wash: rgb(198 40 40 / 0.10);
+  --status-danger-line: rgb(198 40 40 / 0.32);
+  --status-neutral: #5f5f5d;
+  --status-neutral-deep: #3d3d3b;
+  --status-neutral-on: #ffffff;
+  --status-neutral-wash: rgb(95 95 93 / 0.10);
+  --status-neutral-line: rgb(95 95 93 / 0.32);
 
   /* ------------------------------------ 视觉与排版令牌（非颜色部分）
      主题可以调整圆角与装饰强度；页面标题的字号、行高和字距属于稳定内容层级，
@@ -349,6 +471,28 @@ html[data-theme="black-yellow"] {
   --accent-wash: oklch(85% 0.175 99 / 0.1);
   --accent-line: oklch(85% 0.175 99 / 0.34);
 
+  /* 状态语义色（§1.5）· black-yellow */
+  --status-success: oklch(78% 0.13 155);
+  --status-success-deep: oklch(72% 0.12 155);
+  --status-success-on: oklch(18% 0.03 155);
+  --status-success-wash: oklch(78% 0.13 155 / 0.1);
+  --status-success-line: oklch(78% 0.13 155 / 0.34);
+  --status-warning: oklch(82% 0.14 75);
+  --status-warning-deep: oklch(76% 0.13 75);
+  --status-warning-on: oklch(18% 0.03 75);
+  --status-warning-wash: oklch(82% 0.14 75 / 0.1);
+  --status-warning-line: oklch(82% 0.14 75 / 0.34);
+  --status-danger: oklch(76% 0.16 28);
+  --status-danger-deep: oklch(70% 0.15 28);
+  --status-danger-on: oklch(18% 0.04 28);
+  --status-danger-wash: oklch(76% 0.16 28 / 0.1);
+  --status-danger-line: oklch(76% 0.16 28 / 0.34);
+  --status-neutral: oklch(72% 0.01 95);
+  --status-neutral-deep: oklch(68% 0.009 95);
+  --status-neutral-on: oklch(18% 0.006 95);
+  --status-neutral-wash: oklch(72% 0.01 95 / 0.1);
+  --status-neutral-line: oklch(72% 0.01 95 / 0.34);
+
   color-scheme: dark;
 
   /* 视觉令牌：深色主题保留原设计中偏「技术」的一面 —— 4px 面板圆角、
@@ -385,6 +529,26 @@ html[data-theme="black-yellow"] {
   --color-accent-on: var(--accent-on);
   --color-accent-wash: var(--accent-wash);
   --color-accent-line: var(--accent-line);
+  --color-status-success: var(--status-success);
+  --color-status-success-deep: var(--status-success-deep);
+  --color-status-success-on: var(--status-success-on);
+  --color-status-success-wash: var(--status-success-wash);
+  --color-status-success-line: var(--status-success-line);
+  --color-status-warning: var(--status-warning);
+  --color-status-warning-deep: var(--status-warning-deep);
+  --color-status-warning-on: var(--status-warning-on);
+  --color-status-warning-wash: var(--status-warning-wash);
+  --color-status-warning-line: var(--status-warning-line);
+  --color-status-danger: var(--status-danger);
+  --color-status-danger-deep: var(--status-danger-deep);
+  --color-status-danger-on: var(--status-danger-on);
+  --color-status-danger-wash: var(--status-danger-wash);
+  --color-status-danger-line: var(--status-danger-line);
+  --color-status-neutral: var(--status-neutral);
+  --color-status-neutral-deep: var(--status-neutral-deep);
+  --color-status-neutral-on: var(--status-neutral-on);
+  --color-status-neutral-wash: var(--status-neutral-wash);
+  --color-status-neutral-line: var(--status-neutral-line);
 
   /* 展示级字号 → text-micro / text-display-1 ... （其余档位沿用 Tailwind 默认） */
   --text-micro: var(--t-micro);
@@ -463,6 +627,26 @@ html[data-theme="black-yellow"] {
       --accent-on var(--d-theme) var(--ease-quart),
       --accent-wash var(--d-theme) var(--ease-quart),
       --accent-line var(--d-theme) var(--ease-quart),
+      --status-success var(--d-theme) var(--ease-quart),
+      --status-success-deep var(--d-theme) var(--ease-quart),
+      --status-success-on var(--d-theme) var(--ease-quart),
+      --status-success-wash var(--d-theme) var(--ease-quart),
+      --status-success-line var(--d-theme) var(--ease-quart),
+      --status-warning var(--d-theme) var(--ease-quart),
+      --status-warning-deep var(--d-theme) var(--ease-quart),
+      --status-warning-on var(--d-theme) var(--ease-quart),
+      --status-warning-wash var(--d-theme) var(--ease-quart),
+      --status-warning-line var(--d-theme) var(--ease-quart),
+      --status-danger var(--d-theme) var(--ease-quart),
+      --status-danger-deep var(--d-theme) var(--ease-quart),
+      --status-danger-on var(--d-theme) var(--ease-quart),
+      --status-danger-wash var(--d-theme) var(--ease-quart),
+      --status-danger-line var(--d-theme) var(--ease-quart),
+      --status-neutral var(--d-theme) var(--ease-quart),
+      --status-neutral-deep var(--d-theme) var(--ease-quart),
+      --status-neutral-on var(--d-theme) var(--ease-quart),
+      --status-neutral-wash var(--d-theme) var(--ease-quart),
+      --status-neutral-line var(--d-theme) var(--ease-quart),
       --deco-watermark var(--d-theme) var(--ease-quart),
       --r-frame var(--d-theme) var(--ease-quart);
   }
@@ -2735,21 +2919,27 @@ html[data-theme="black-yellow"] {
     line-height: 1;
     white-space: nowrap;
   }
+  /* 状态徽章默认组合（§1.5）：deep 字 + wash 底 + line 边 */
   .repair-tag--approved {
-    border-color: var(--ink);
-    background: var(--ink);
-    color: var(--bg);
+    border-color: var(--status-success-line);
+    background: var(--status-success-wash);
+    color: var(--status-success-deep);
   }
-  .repair-tag--pending,
+  .repair-tag--pending {
+    border-color: var(--status-warning-line);
+    background: var(--status-warning-wash);
+    color: var(--status-warning-deep);
+  }
   .repair-tag--rejected {
-    border-color: var(--accent-line);
-    background: var(--accent-wash);
-    color: var(--accent-deep);
+    border-color: var(--status-danger-line);
+    background: var(--status-danger-wash);
+    color: var(--status-danger-deep);
   }
   .repair-tag--draft,
   .repair-tag--result {
-    background: var(--surface-2);
-    color: var(--ink-2);
+    border-color: var(--status-neutral-line);
+    background: var(--status-neutral-wash);
+    color: var(--status-neutral-deep);
   }
 
   .repair-pagination,
@@ -3190,9 +3380,15 @@ html[data-theme="black-yellow"] {
     font-weight: 800;
     font-variant-numeric: tabular-nums;
   }
-  /* 有积压时用强调色左边框 + 文字，颜色不是唯一线索（数字本身就表达了） */
-  .member-queue__item--active {
-    border-left-color: var(--accent);
+  /* 有积压时左边框用对应状态色；颜色不是唯一线索（数字 + 标签文案） */
+  .member-queue__item--active.member-queue__item--draft {
+    border-left-color: var(--status-neutral);
+  }
+  .member-queue__item--active.member-queue__item--pending {
+    border-left-color: var(--status-warning);
+  }
+  .member-queue__item--active.member-queue__item--rejected {
+    border-left-color: var(--status-danger);
   }
 
   /* 记录列表（最近已通过 / 最近操作共用） */

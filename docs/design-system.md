@@ -88,9 +88,9 @@
 
 ### 1.5 状态语义色（Success / Warning / Danger / Neutral）
 
-> **落地顺序（T-P2-1）**：本小节先定义令牌与对比度；**技术主线审阅本文件后**，再写入
-> `globals.css` 双主题层，最后才改 `.repair-tag` 等组件。在 CSS 落地之前，组件仍沿用
-> 现有中性 / 强调色临时样式，但**不得**再在页面里另写十六进制状态色。
+> **落地（T-P2-1）**：令牌与对比度已写入 `globals.css` 双主题层，并映射到 Tailwind
+> `@theme`；`.repair-tag--*` 与成员工作台队列使用默认徽章组合（`-deep` + `-wash` + `-line`）。
+> 页面 / 业务组件**不得**再写十六进制状态色。
 
 站点强调色（§1.4 `--accent*`）仍然只有一个，语义是「重点 / 可操作」。
 状态色是**另一组语义族**，只表达业务状态（通过 / 待审 / 退回 / 草稿），**不是第二套强调色**，
@@ -925,10 +925,10 @@ return <DarkAboutPage />;
 | 主色底上的文字 | `--accent-on`                              | `text-accent-on`                                          |
 | 主色淡底       | `--accent-wash`                            | `bg-accent-wash`                                          |
 | 主色描边       | `--accent-line`                            | `border-accent-line`                                      |
-| 状态·成功      | `--status-success` / `-deep` / `-on` / `-wash` / `-line` | （CSS 落地后映射） |
-| 状态·待审      | `--status-warning` / `-deep` / `-on` / `-wash` / `-line` | （CSS 落地后映射） |
-| 状态·退回      | `--status-danger` / `-deep` / `-on` / `-wash` / `-line`  | （CSS 落地后映射） |
-| 状态·草稿/中性 | `--status-neutral` / `-deep` / `-on` / `-wash` / `-line` | （CSS 落地后映射） |
+| 状态·成功      | `--status-success` / `-deep` / `-on` / `-wash` / `-line` | `text-status-success` / `bg-status-success-wash` 等 |
+| 状态·待审      | `--status-warning` / `-deep` / `-on` / `-wash` / `-line` | `text-status-warning` / `bg-status-warning-wash` 等 |
+| 状态·退回      | `--status-danger` / `-deep` / `-on` / `-wash` / `-line`  | `text-status-danger` / `bg-status-danger-wash` 等 |
+| 状态·草稿/中性 | `--status-neutral` / `-deep` / `-on` / `-wash` / `-line` | `text-status-neutral` / `bg-status-neutral-wash` 等 |
 | 描边           | `--line` / `--line-soft` / `--line-strong` | `border-line` / `border-line-soft` / `border-line-strong` |
 
 **禁止**：
