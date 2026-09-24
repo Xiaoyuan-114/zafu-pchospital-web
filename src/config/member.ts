@@ -100,6 +100,8 @@ export const memberCopy = {
     welcome: "欢迎回来",
     joinedAtLabel: "加入时间",
     skillsLabel: "技能标签",
+    skillsTag: "Skills",
+    skillsEditLink: "编辑技能标签",
     noSkills: "尚未选择技能标签",
     settingsAction: "编辑个人资料",
 
@@ -122,6 +124,7 @@ export const memberCopy = {
 
     quickTitle: "快捷操作",
     quickTag: "Shortcuts",
+    /** hero 唯一 solid 主 CTA；不进侧栏（侧栏保留「维修记录」） */
     quickNew: "新增维修记录",
     quickAll: "查看全部记录",
     quickProfile: "编辑个人资料",

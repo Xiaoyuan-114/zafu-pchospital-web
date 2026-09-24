@@ -12,7 +12,7 @@ import type { SessionPrincipal } from "@/types/contracts";
 /**
  * AccountMenu —— 登录后账号菜单（T-P0-2）
  *
- * 挂点：成员工作台 hero 行动区、管理侧栏足部。
+ * 挂点：成员 / 管理侧栏足部（`variant="nav"`）。工作台 hero 不再挂一份，避免与侧栏重复。
  * 菜单项本卡只做「修改密码 / 退出登录」；双角色切换留给 T-P1-4。
  *
  * 会话来源是 `GET /api/v1/me`：

@@ -2907,8 +2907,9 @@ html[data-theme="black-yellow"] {
     text-wrap: pretty;
   }
 
-  /* ------------------------------------------ 成员工作台与个人主页（M3）
-     结构：欢迎区 → 指标卡 → 快捷操作 → 待处理 → 最近记录 → 后续模块接入位。
+  /* ------------------------------------------ 成员工作台与个人主页（M3 / T-P0-5）
+     工作台：欢迎区（hero 主 CTA）→ 主栏（待处理 → 最近已通过）+ 辅栏（指标 / 技能可折 / 排行 / Upcoming）。
+     ≥1100px 且含 .member-workspace__main 时双列；个人资料等单列页不受影响。
      分层只用底色与描边（全站禁止 box-shadow）；数值用等宽数字对齐。
      状态一律「文字 + 颜色」双通道，不单靠颜色区分。 */
   .member-workspace {
@@ -2917,6 +2918,55 @@ html[data-theme="black-yellow"] {
   .member-workspace__content {
     display: grid;
     gap: clamp(1.75rem, 4vw, 3rem);
+  }
+  .member-workspace__main,
+  .member-workspace__aside {
+    display: grid;
+    gap: clamp(1.75rem, 4vw, 3rem);
+    min-width: 0;
+  }
+
+  /* 辅栏技能：默认折叠，展开后链到资料编辑 */
+  .member-skills-fold {
+    display: grid;
+    gap: var(--s-3);
+    min-width: 0;
+  }
+  .member-skills-fold__summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.75rem;
+    cursor: pointer;
+    list-style: none;
+  }
+  .member-skills-fold__summary::-webkit-details-marker {
+    display: none;
+  }
+  .member-skills-fold__summary::before {
+    content: "";
+    display: inline-block;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-right: 0.15rem;
+    border-right: 1.5px solid var(--ink-3);
+    border-bottom: 1.5px solid var(--ink-3);
+    transform: rotate(-45deg);
+    transition: transform 160ms ease;
+  }
+  .member-skills-fold[open] > .member-skills-fold__summary::before {
+    transform: rotate(45deg);
+  }
+  .member-skills-fold__title {
+    margin: 0;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .member-skills-fold__body {
+    display: grid;
+    gap: var(--s-3);
+    justify-items: start;
   }
 
   /* 欢迎区：首字母占位头像 + 身份摘要 */
@@ -3120,13 +3170,6 @@ html[data-theme="black-yellow"] {
   /* 有积压时用强调色左边框 + 文字，颜色不是唯一线索（数字本身就表达了） */
   .member-queue__item--active {
     border-left-color: var(--accent);
-  }
-
-  /* 快捷操作 */
-  .member-shortcuts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-2);
   }
 
   /* 记录列表（最近已通过 / 最近操作共用） */
@@ -3484,8 +3527,10 @@ html[data-theme="black-yellow"] {
   }
 
   @media (min-width: 1100px) {
-    .member-workspace__content {
-      grid-template-columns: minmax(0, 1fr);
+    /* 仅工作台（含主/辅栏）双列；个人资料等仍单列 */
+    .member-workspace__content:has(> .member-workspace__main) {
+      grid-template-columns: minmax(0, 1.4fr) minmax(16rem, 22rem);
+      align-items: start;
     }
   }
 
