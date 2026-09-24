@@ -241,6 +241,8 @@ export const memberCopy = {
   },
 } as const;
 
+/** 通知列表标记已读 / 全部已读 / 删除成功后派发；MemberNav 监听并 refetch 未读角标（T-P2-2） */
+export const MEMBER_NOTIFICATIONS_CHANGED_EVENT = "member:notifications-changed";
 
 /**
  * 侧栏通知未读角标展示（T-P2-2）。
@@ -249,11 +251,8 @@ export const memberCopy = {
  * - 1–99 → 原样数字；
  * - ≥100 → `99+`（避免宽数字撑破窄侧栏）。
  *
- * 真实计数仍由调用方保留，用于 `aria-label`（读屏可读完整「未读 N 条」）。
+ * 可见角标 `aria-hidden`；真实计数由调用方放进 `sr-only` 的「未读 N 条」，读屏读完整数字。
  */
-/** 通知列表标记已读后派发；MemberNav 监听并 refetch 未读角标（T-P2-2） */
-export const MEMBER_NOTIFICATIONS_CHANGED_EVENT = "member:notifications-changed";
-
 export function formatNavUnreadBadge(count: number | null | undefined): string | null {
   if (count == null || !Number.isFinite(count)) return null;
   const n = Math.floor(count);
