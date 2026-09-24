@@ -56,7 +56,7 @@ export const inviteCodeTableSpec: TableViewSpec<InviteCodeAdminView, InviteCodeT
           className={
             item.status === "ACTIVE"
               ? "repair-tag repair-tag--approved"
-              : "repair-tag repair-tag--pending"
+              : "admin-tag admin-tag--muted"
           }
         >
           {inviteCodeStatusLabels[item.status]}

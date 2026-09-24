@@ -166,10 +166,10 @@ Warning 色相刻意偏琥珀（远离 accent 的信号黄 / 钴蓝），避免�
 | 社员申请（`join-application-table-spec`） | 面试通过 / 待面试等进行中（未通过、已撤回用 `admin-tag--muted`） | `--approved` / `--pending` | `success` / `warning` |
 | 技能（`skill-table-spec`） | 启用（停用用 `admin-tag--muted`） | `--approved` | `success` |
 | 分类（`category-table-spec`） | 启用（停用用 `admin-tag--muted`） | `--approved` | `success` |
-| 邀请码（`invite-code-table-spec`） | 可用 / 未生效、已撤销、已过期、已用尽 | `--approved` / `--pending` | `success` / `warning`（后四种并非「处理中」，是否改 `neutral` 待定） |
+| 邀请码（`invite-code-table-spec`） | 可用（未生效、已撤销、已过期、已用尽用 `admin-tag--muted`，表示当前不可用） | `--approved` | `success` |
 | 审计（`audit-table-spec`） | 成功 / 失败 | `--approved` / `--rejected` | `success` / `danger` |
 
-新增表格要复用这些类时，先确认取值语义与上表的「通过 / 处理中 / 失败」一致；不一致就用 `neutral`（`--draft` / `--result`）或 `admin-tag--muted`，不要为此另发明颜色。
+琥珀色（`--pending`）只用于真正等人处理的状态（维修待审、社员待面试）。新增表格要复用这些类时，先确认取值语义与上表的「通过 / 处理中 / 失败」一致；不一致就用 `neutral`（`--draft` / `--result`）或 `admin-tag--muted`，不要为此另发明颜色。
 
 #### 对比度矩阵（WCAG AA，正文门槛 4.5:1）
 
