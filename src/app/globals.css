@@ -4106,6 +4106,21 @@ html[data-theme="black-yellow"] {
     justify-content: space-between;
     align-items: center;
   }
+  /* 公开站 Footer「成员入口」次要链（T-P2-4）：低权重文字链，不抢主 CTA。 */
+  .footer__entry {
+    margin-top: var(--s-3);
+    font-family: var(--font-sans);
+    font-size: var(--t-xs);
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1.5;
+    color: var(--ink-4);
+  }
+  .footer__entry a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
   /* 免责说明：**不设 max-width**。这句话是一句完整的话，宽度够就应当一行读完；
      按 ch 限宽会在一行只差二三十像素的时候硬折成两行（1440px 桌面实测）。 */
   .footer__note {
