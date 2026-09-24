@@ -23,3 +23,16 @@ export const mainNav: readonly NavItem[] = [
   { index: "03", label: "加入我们", shortLabel: "加入", labelEn: "Join", href: "/join" },
   { index: "04", label: "技术文档", shortLabel: "文档", labelEn: "Docs", href: "/docs" },
 ] as const;
+
+/**
+ * 公开站「成员登录」入口（T-P0-1）
+ *
+ * 故意不进 `mainNav`：索引栏编号只服务公开四页；账号入口挂在 Header
+ * 足部 / 移动端浮层底部，避免把 `/login`（更别说 `/admin`）混进公开导航。
+ */
+export const memberLoginLink = {
+  label: "成员登录",
+  labelEn: "Member Login",
+  href: "/login",
+} as const;
+

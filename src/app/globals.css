@@ -903,6 +903,37 @@ html[data-theme="black-yellow"] {
     gap: var(--s-5);
   }
 
+  /* 公开站「成员登录」（T-P0-1）：挂在索引栏足部，风格贴近 theme-switch */
+  .rail__login {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--s-3) var(--s-2);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-base);
+    font-size: var(--t-xs);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    color: var(--ink-3);
+    transition:
+      color var(--d-fast) var(--ease-quart),
+      border-color var(--d-fast) var(--ease-quart),
+      background var(--d-fast) var(--ease-quart);
+  }
+  .rail__login:hover,
+  .rail__login:focus-visible {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .rail__login[aria-current="page"] {
+    color: var(--accent-deep);
+    border-color: var(--accent-line);
+    background: var(--accent-wash);
+    font-weight: 800;
+  }
+
   .rail__meta {
     display: flex;
     flex-direction: column;
@@ -1073,6 +1104,47 @@ html[data-theme="black-yellow"] {
     /* 用 --ink-3 而非 --ink-4：浮层底色是 --bg-deep，比页面更深，
        --ink-4 在其上只有 4.2:1（浅色主题），达不到 AA。 */
     color: var(--ink-3);
+  }
+
+  /* 公开站「成员登录」（T-P0-1）：浮层底部、主题切换上方 */
+  .menu__login-row {
+    margin-top: var(--s-6);
+    padding-top: var(--s-4);
+    border-top: 1px solid var(--line-soft);
+  }
+  .menu__login {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: var(--s-2) var(--s-4);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-base);
+    font-size: var(--t-sm);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--ink-2);
+    transition:
+      color var(--d-fast) var(--ease-quart),
+      border-color var(--d-fast) var(--ease-quart),
+      background var(--d-fast) var(--ease-quart);
+  }
+  .menu__login:hover,
+  .menu__login:focus-visible {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .menu__login[aria-current="page"] {
+    color: var(--accent-deep);
+    border-color: var(--accent-line);
+    background: var(--accent-wash);
+    font-weight: 800;
+  }
+  /* 登录行已自带顶部分隔，主题切换行不再重复一条边 */
+  .menu__login-row + .menu__foot {
+    margin-top: var(--s-4);
+    padding-top: 0;
+    border-top: 0;
   }
 
   /* -------------------------------------------------------- 显示模式切换
@@ -4399,6 +4471,123 @@ html[data-theme="black-yellow"] {
     color: var(--ink-2);
   }
 
+  /* ---------------------------------------------------------- 成员外壳（T-P0-3，对标 admin-shell） */
+  /* 左导航 + 主内容；渲染在 `app/member/layout.tsx`，客户端切页侧栏不重建。 */
+  .member-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+  /* 成员空间同属登录后工作台，不显示公开站脚。 */
+  body:has(.member-shell) .footer {
+    display: none;
+  }
+  /* 顺手弱化双导航：有成员壳时隐藏公开索引栏 / 顶栏（完整 P0.5 验收可再对 admin 对齐）。 */
+  body:has(.member-shell) .rail,
+  body:has(.member-shell) .topbar {
+    display: none;
+  }
+  .member-shell__main {
+    min-inline-size: 0;
+  }
+  /* 成员高频页不做进场揭示（与 admin-shell / SiteEffects 跳过一致）。 */
+  .member-shell .reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  .member-nav {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: var(--s-4);
+    align-content: start;
+    padding: var(--s-4) var(--s-3) var(--s-5);
+  }
+  .member-nav__brand {
+    display: grid;
+    gap: 0.15rem;
+    margin: 0;
+    padding-inline: 0.7rem;
+  }
+  .member-nav__brand-en {
+    font-size: var(--t-micro);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+  .member-nav__brand-cn {
+    font-size: var(--t-lg);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .member-nav__groups {
+    display: grid;
+    gap: var(--s-4);
+    min-block-size: 0;
+  }
+  .member-nav__group {
+    display: grid;
+    gap: var(--s-2);
+  }
+  .member-nav__group-title {
+    margin: 0;
+    padding-inline: 0.7rem;
+    font-size: var(--t-micro);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+  .member-nav__list {
+    display: grid;
+    gap: 1px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .member-nav__link {
+    display: grid;
+    grid-template-columns: 1.7rem minmax(0, 1fr);
+    align-items: center;
+    gap: var(--s-2);
+    padding: 0.5rem 0.7rem;
+    border-inline-start: 2px solid transparent;
+    border-radius: var(--r-base);
+    color: var(--ink-2);
+    font-size: var(--t-sm);
+    font-weight: 650;
+    transition:
+      background var(--d-fast) var(--ease-quart),
+      color var(--d-fast) var(--ease-quart);
+  }
+  .member-nav__link:hover,
+  .member-nav__link:focus-visible {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+  .member-nav__link[aria-current="page"] {
+    border-inline-start-color: var(--accent);
+    background: var(--surface-2);
+    color: var(--ink);
+    font-weight: 750;
+  }
+  .member-nav__link .eyebrow {
+    font-size: var(--t-micro);
+  }
+  .member-nav__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .member-nav__foot {
+    display: grid;
+    gap: var(--s-2);
+    padding-block-start: var(--s-3);
+    border-block-start: 1px solid var(--line-soft);
+  }
+
   /* ---------------------------------------------------------- 后台外壳（左栏 + 内容） */
   /* 参考邮箱类客户端：左侧固定导航栏常驻，右侧内容区独立滚动。
      外壳渲染在 `app/admin/layout.tsx` 里，客户端导航之间保持挂载，切页时侧栏不重建。 */
@@ -5226,6 +5415,70 @@ html[data-theme="black-yellow"] {
       border-block-end-color: var(--accent);
     }
   }
+  @media (min-width: 1100px) {
+    .member-shell {
+      grid-template-columns: 13.5rem minmax(0, 1fr);
+      gap: var(--s-5);
+    }
+    .member-nav {
+      position: sticky;
+      inset-block-start: 0;
+      max-block-size: calc(100vh - var(--s-7));
+      overflow: hidden;
+      border-inline-end: 1px solid var(--line);
+      padding-inline-end: var(--s-4);
+    }
+    .member-nav__groups {
+      overflow-y: auto;
+      min-block-size: 0;
+    }
+  }
+  @media (max-width: 1099px) {
+    .member-nav {
+      /* 窄屏：品牌 + 分组横滑 + 足部上下堆叠。 */
+      grid-template-rows: auto auto auto;
+      padding-block-end: var(--s-4);
+      border-block-end: 1px solid var(--line);
+    }
+    .member-nav__groups {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: var(--s-4);
+      overflow-x: auto;
+      padding-block-end: var(--s-1);
+    }
+    .member-nav__group {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: var(--s-2);
+      flex: none;
+    }
+    .member-nav__group-title {
+      flex: none;
+      padding-inline: 0.35rem;
+      white-space: nowrap;
+    }
+    .member-nav__list {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 1px;
+    }
+    .member-nav__link {
+      grid-template-columns: auto minmax(0, 1fr);
+      border-inline-start: 0;
+      border-block-end: 2px solid transparent;
+      white-space: nowrap;
+    }
+    .member-nav__link[aria-current="page"] {
+      border-block-end-color: var(--accent);
+    }
+  }
+
+
 
   /* 导航加载态骨架：只用 `--surface-2` 的块，不做动效。 */
   .admin-skeleton {
@@ -5915,6 +6168,18 @@ html[data-theme="black-yellow"] {
       font-size: var(--t-base);
     }
     .admin-nav__link {
+      padding: 0.35rem 0.6rem;
+      font-size: var(--t-xs);
+    }
+
+    .member-nav {
+      gap: var(--s-3);
+      padding-block: var(--s-3) var(--s-4);
+    }
+    .member-nav__brand-cn {
+      font-size: var(--t-base);
+    }
+    .member-nav__link {
       padding: 0.35rem 0.6rem;
       font-size: var(--t-xs);
     }
