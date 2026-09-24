@@ -2265,6 +2265,28 @@ html[data-theme="black-yellow"] {
     border-radius: var(--r-mid);
     background: var(--surface-1);
   }
+  .auth-login__panel--register {
+    width: min(100%, 520px);
+  }
+  .auth-login__form--register {
+    gap: var(--s-5);
+  }
+  .auth-login__group {
+    display: grid;
+    gap: var(--s-4);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-inline-size: 0;
+  }
+  .auth-login__group-title {
+    padding: 0;
+    font-family: var(--font-latin);
+    font-size: var(--t-micro);
+    font-weight: 750;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+  }
   .auth-login__brand {
     display: inline-flex;
     align-items: center;

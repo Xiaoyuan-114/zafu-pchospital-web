@@ -35,7 +35,7 @@ pnpm dev        # 打开 http://localhost:3000
 | `/join`                    | 加入我们     | 新社员登记表已接入真实报名 API                             |
 | `/docs`                    | 技术文档入口 | 指向站内 `/handbook/`，正文来自独立文档仓库                |
 | `/login`                   | 成员登录     | QQ + 密码登录                                              |
-| `/register/member`         | 邀请码注册   | 有效邀请码登记成员身份并设置密码                           |
+| `/login?mode=register`     | 邀请码注册   | 与登录同壳；旧 `/register/member` 重定向至此               |
 | `/account/change-password` | 修改密码     | 首次登录强制改密与日常改密                                 |
 | `/member`                  | 成员落地页   | M1 最小受保护页面，完整工作台留给 M3                       |
 
