@@ -7,7 +7,55 @@
  * - 时长底层始终是整数分钟，展示时统一用下面的格式化函数。
  */
 
+/**
+ * 成员端二级导航（T-P0-3）
+ *
+ * 分组：工作 / 我；账号区（改密 + 退出）由 `AccountMenu` 挂在侧栏足部，
+ * 不在此列表里重复「修改密码」。勿把「新建维修」放进侧栏——主 CTA 留给工作台 / 列表顶栏。
+ *
+ * `/member` 必须精确匹配高亮，否则所有子页都会把「工作台」标成当前页。
+ */
+export type MemberNavGroup = {
+  id: string;
+  title: string;
+  items: readonly {
+    index: string;
+    label: string;
+    shortLabel: string;
+    labelEn: string;
+    href: string;
+  }[];
+};
+
+export const memberNav: readonly MemberNavGroup[] = [
+  {
+    id: "work",
+    title: "工作",
+    items: [
+      { index: "05", label: "工作台", shortLabel: "工作台", labelEn: "Workspace", href: "/member" },
+      { index: "06", label: "维修记录", shortLabel: "维修", labelEn: "Repairs", href: "/member/repairs" },
+    ],
+  },
+  {
+    id: "me",
+    title: "我",
+    items: [
+      { index: "07", label: "个人资料", shortLabel: "资料", labelEn: "Profile", href: "/member/profile" },
+      { index: "08", label: "消息通知", shortLabel: "通知", labelEn: "Notifications", href: "/member/notifications" },
+      { index: "09", label: "我的收藏", shortLabel: "收藏", labelEn: "Favorites", href: "/member/favorites" },
+      { index: "10", label: "排行榜", shortLabel: "排行", labelEn: "Rankings", href: "/member/rankings" },
+    ],
+  },
+] as const;
+
 export const memberCopy = {
+  /** 成员壳品牌与导航无障碍名（T-P0-3） */
+  shell: {
+    title: "成员空间",
+    titleEn: "Member",
+    navLabel: "成员导航",
+  },
+
   common: {
     /** 无昵称也无实名时的兜底展示名 */
     fallbackName: "成员",
@@ -48,7 +96,8 @@ export const memberCopy = {
   dashboard: {
     title: "成员工作台",
     label: "Member Workspace",
-    lead: "查看个人维修概览、处理待办，并进入维修记录与个人主页。",    welcome: "欢迎回来",
+    lead: "查看个人维修概览、处理待办，并进入维修记录与个人主页。",
+    welcome: "欢迎回来",
     joinedAtLabel: "加入时间",
     skillsLabel: "技能标签",
     noSkills: "尚未选择技能标签",

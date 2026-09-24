@@ -4487,6 +4487,13 @@ html[data-theme="black-yellow"] {
   body:has(.member-shell) .topbar {
     display: none;
   }
+  /* 宽屏 body 默认 `padding-left: var(--rail)`；rail 已藏时收回，避免左侧空缝。 */
+  body:has(.member-shell) {
+    padding-left: 0;
+  }
+  body:has(.member-shell) .progress-line {
+    left: 0;
+  }
   .member-shell__main {
     min-inline-size: 0;
   }
@@ -6006,7 +6013,8 @@ html[data-theme="black-yellow"] {
       padding-inline: 0;
     }
     /* 左栏已经提供了左侧间隔，右侧留一点点，别让内容顶到视口边缘。 */
-    .admin-shell__main {
+    .admin-shell__main,
+    .member-shell__main {
       padding-inline-end: var(--s-4);
     }
   }
