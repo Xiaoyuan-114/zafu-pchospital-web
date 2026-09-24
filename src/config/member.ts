@@ -251,6 +251,9 @@ export const memberCopy = {
  *
  * 真实计数仍由调用方保留，用于 `aria-label`（读屏可读完整「未读 N 条」）。
  */
+/** 通知列表标记已读后派发；MemberNav 监听并 refetch 未读角标（T-P2-2） */
+export const MEMBER_NOTIFICATIONS_CHANGED_EVENT = "member:notifications-changed";
+
 export function formatNavUnreadBadge(count: number | null | undefined): string | null {
   if (count == null || !Number.isFinite(count)) return null;
   const n = Math.floor(count);

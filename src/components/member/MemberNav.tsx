@@ -6,7 +6,12 @@ import { useCallback, useEffect, useState } from "react";
 
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { communityCopy } from "@/config/community";
-import { formatNavUnreadBadge, memberCopy, memberNav } from "@/config/member";
+import {
+  formatNavUnreadBadge,
+  MEMBER_NOTIFICATIONS_CHANGED_EVENT,
+  memberCopy,
+  memberNav,
+} from "@/config/member";
 
 /**
  * 成员端二级导航（T-P0-3 / T-P2-2）
@@ -21,8 +26,10 @@ import { formatNavUnreadBadge, memberCopy, memberNav } from "@/config/member";
  *
  * 未读角标（T-P2-2）：从已有 `GET /api/v1/member/notifications` 的 `unreadCount`
  * 取值（与工作台 dashboard 摘要同源字段，不新增接口）。≤0 / 失败不展示；
- * 读屏用完整「未读 N 条」，可视数字封顶 `99+`。
+ * 可视数字封顶 `99+`，读屏用完整「未读 N 条」（`sr-only` 兄弟节点，角标本身 `aria-hidden`）。
+ * 标记已读后由 `member:notifications-changed` 事件立刻刷新，不必等切页 / 聚焦。
  */
+
 export type MemberNavProps = {
   /** 服务端已认证的展示名，交给账号菜单做首屏乐观渲染 */
   displayName?: string | null;
@@ -74,8 +81,15 @@ export function MemberNav({ displayName = null }: MemberNavProps) {
     const onFocus = () => {
       void loadUnread();
     };
+    const onChanged = () => {
+      void loadUnread();
+    };
     window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
+    window.addEventListener(MEMBER_NOTIFICATIONS_CHANGED_EVENT, onChanged);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener(MEMBER_NOTIFICATIONS_CHANGED_EVENT, onChanged);
+    };
   }, [loadUnread]);
 
   const badgeText = formatNavUnreadBadge(unreadCount);
@@ -112,9 +126,12 @@ export function MemberNav({ displayName = null }: MemberNavProps) {
                       <span className="eyebrow">{item.index}</span>
                       <span className="member-nav__label">{item.label}</span>
                       {showBadge ? (
-                        <span className="member-nav__badge" aria-label={badgeAria}>
-                          {badgeText}
-                        </span>
+                        <>
+                          <span className="member-nav__badge" aria-hidden="true">
+                            {badgeText}
+                          </span>
+                          <span className="sr-only">{badgeAria}</span>
+                        </>
                       ) : null}
                     </Link>
                   </li>

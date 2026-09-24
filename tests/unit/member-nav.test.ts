@@ -2,7 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { communityCopy } from "../../src/config/community";
-import { formatNavUnreadBadge, memberNav } from "../../src/config/member";
+import {
+  formatNavUnreadBadge,
+  MEMBER_NOTIFICATIONS_CHANGED_EVENT,
+  memberNav,
+} from "../../src/config/member";
 
 /**
  * MemberNav 未读角标（T-P2-2）的纯逻辑契约。
@@ -10,7 +14,8 @@ import { formatNavUnreadBadge, memberNav } from "../../src/config/member";
  * 组件本身依赖 `next/navigation`，这里只锁：
  * - 侧栏配置含「消息通知」入口；
  * - 角标展示规则（隐藏 / 数字 / 99+）；
- * - 读屏文案模板仍走 communityCopy，不另造一套。
+ * - 读屏文案模板仍走 communityCopy，不另造一套；
+ * - 标记已读后侧栏刷新事件名稳定。
  */
 
 test("memberNav 含消息通知入口且指向 /member/notifications", () => {
@@ -37,10 +42,20 @@ test("formatNavUnreadBadge：正数展示，≥100 封顶 99+", () => {
   assert.equal(formatNavUnreadBadge(1.9), "1");
 });
 
-test("未读角标读屏文案复用 communityCopy.notifications.unreadCount", () => {
+test("未读角标读屏文案复用 communityCopy.notifications.unreadCount（全量 N，含 ≥100）", () => {
   assert.match(communityCopy.notifications.unreadCount, /\{count\}/);
   assert.equal(
     communityCopy.notifications.unreadCount.replace("{count}", "3"),
     "未读 3 条",
   );
+  assert.equal(
+    communityCopy.notifications.unreadCount.replace("{count}", "150"),
+    "未读 150 条",
+  );
+  // 可视封顶 99+，读屏仍报真实 N
+  assert.equal(formatNavUnreadBadge(150), "99+");
+});
+
+test("标记已读后刷新事件名为 member:notifications-changed", () => {
+  assert.equal(MEMBER_NOTIFICATIONS_CHANGED_EVENT, "member:notifications-changed");
 });
