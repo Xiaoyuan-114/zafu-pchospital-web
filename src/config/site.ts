@@ -52,15 +52,17 @@ export const siteConfig = {
    * `icp` 必须原样展示 —— 备案号里的每一个字符（含连字符与序号）都是备案信息的一部分，
    * 不要改写大小写、不要插空格、不要换行拆断。
    *
-   * 公安联网备案号尚未下发，因此这里没有 mps / mpsUrl。
-   * 下发后在 `record` 内追加这两项，并在 `components/layout/Footer.tsx` 的
-   * 展示列表里加一行即可 —— 标记结构与样式都不需要改。
+   * 公安联网备案号与图标已经下发，在页脚同 ICP 编号一起公示。
    */
   record: {
     /** 工业和信息化部 ICP 备案号（浙ICP备2026077959号-1） */
     icp: "浙ICP备2026077959号-1",
     /** 工信部备案系统，供公众查询核对 */
     icpUrl: "https://beian.miit.gov.cn",
+    /** 公安机关联网备案号及查询页 */
+    mps: "浙公网安备33018502002686号",
+    mpsUrl: "https://beian.mps.gov.cn/#/query/webSearch?code=33018502002686",
+    mpsIcon: "/public-security-filing.png",
   },
 } as const;
 

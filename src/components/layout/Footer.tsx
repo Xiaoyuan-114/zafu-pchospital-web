@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { Container } from "@/components/layout/Container";
 import { siteConfig } from "@/config/site";
 
@@ -10,16 +12,16 @@ import { siteConfig } from "@/config/site";
 /**
  * 页脚底部公示的备案号列表。
  *
- * 《非经营性互联网信息服务备案管理办法》第十三条要求主页底部标明备案编号，
- * 并提供链接供公众查询核对。这里按列表渲染（而不是写死一个 <a>），
- * 是为了将来公安联网备案号下发时只需追加一行：
- *
- *   { id: "mps", text: siteConfig.record.mps, href: siteConfig.record.mpsUrl }
- *
- * 样式已按多项并排处理，不需要改 CSS。
+ * 工信部与公安备案号都在全站页脚展示，数据来自同一份站点配置。
  */
 const filingRecords = [
-  { id: "icp", text: siteConfig.record.icp, href: siteConfig.record.icpUrl },
+  {
+    id: "mps",
+    text: siteConfig.record.mps,
+    href: siteConfig.record.mpsUrl,
+    icon: siteConfig.record.mpsIcon,
+  },
+  { id: "icp", text: siteConfig.record.icp, href: siteConfig.record.icpUrl, icon: null },
 ];
 
 export function Footer() {
@@ -43,6 +45,16 @@ export function Footer() {
         <p className="footer__record">
           {filingRecords.map((item) => (
             <a key={item.id} href={item.href} target="_blank" rel="noopener noreferrer">
+              {item.icon && (
+                <Image
+                  src={item.icon}
+                  width={18}
+                  height={20}
+                  alt=""
+                  aria-hidden="true"
+                  unoptimized
+                />
+              )}
               {item.text}
             </a>
           ))}
