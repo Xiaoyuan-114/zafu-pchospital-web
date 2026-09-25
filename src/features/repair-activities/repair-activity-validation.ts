@@ -156,3 +156,71 @@ export function assertValidIssueType(value: unknown): RepairActivityIssueType {
 export function remainingCapacity(capacity: number, effectiveCount: number): number {
   return Math.max(0, capacity - effectiveCount);
 }
+
+/** 接待落单的故障分类 code 映射（seed 已有）。 */
+export const ISSUE_TYPE_CATEGORY_CODE: Record<RepairActivityIssueType, string> = {
+  CLEAN_PASTE: "COOLING_CLEANING",
+  CLEAN_ONLY: "COOLING_CLEANING",
+  OTHER: "OTHER_FAULT",
+};
+
+export function mapIssueTypeToCategoryCode(issueType: RepairActivityIssueType): string {
+  return ISSUE_TYPE_CATEGORY_CODE[issueType];
+}
+
+/** 仅 REGISTERED 可签到入队。 */
+export function canCheckInRegistration(status: string): boolean {
+  return status === "REGISTERED";
+}
+
+/** 仅 CHECKED_IN 可撤回；SERVED 不可撤回。 */
+export function canWithdrawRegistration(status: string): boolean {
+  return status === "CHECKED_IN";
+}
+
+/** 仅 CHECKED_IN 可接待落单。 */
+export function canServeRegistration(status: string): boolean {
+  return status === "CHECKED_IN";
+}
+
+/**
+ * 排队序：CHECKED_IN 按 checkedInAt ASC；null 排最后（防御）。
+ * 返回新数组，不改原数组。
+ */
+export function sortQueueByCheckedInAt<T extends { checkedInAt: Date | string | null }>(
+  rows: readonly T[],
+): T[] {
+  return [...rows].sort((a, b) => {
+    const ta = a.checkedInAt ? new Date(a.checkedInAt).getTime() : Number.POSITIVE_INFINITY;
+    const tb = b.checkedInAt ? new Date(b.checkedInAt).getTime() : Number.POSITIVE_INFINITY;
+    return ta - tb;
+  });
+}
+
+/** activityAt → Asia/Shanghai 日历日 `YYYY-MM-DD`（与 repairDate 存储约定一致）。 */
+export function shanghaiCalendarDay(activityAt: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(activityAt);
+}
+
+/** 活动接待自动落单的维修内容模板。 */
+export function buildActivityServeContent(input: {
+  activityTitle: string;
+  customerName: string;
+  phoneMasked: string;
+  issueTypeLabel: string;
+}): string {
+  return [
+    `【维修活动接待】${input.activityTitle}`,
+    `客户：${input.customerName}`,
+    `电话：${input.phoneMasked}`,
+    `故障类型：${input.issueTypeLabel}`,
+  ].join("\n");
+}
+
+export const ACTIVITY_SERVE_REMARK = "活动接待自动落单";
+export const ACTIVITY_SERVE_DURATION_MINUTES = 1;
