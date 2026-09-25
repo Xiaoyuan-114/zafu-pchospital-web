@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   assertActivityTimeRules,
+  assertValidIssueType,
   canAcceptNewRegistration,
   canEditIssueType,
   deriveRepairActivityStatus,
@@ -150,10 +151,7 @@ test("改类型：REGISTERED 且未 ENDED 才允许（截止后活动前仍可�
     canEditIssueType({ registrationStatus: "CHECKED_IN", activityStatus: "OPEN" }),
     false,
   );
-  assert.equal(
-    canEditIssueType({ registrationStatus: "SERVED", activityStatus: "CLOSED" }),
-    false,
-  );
+  assert.equal(canEditIssueType({ registrationStatus: "SERVED", activityStatus: "CLOSED" }), false);
 });
 
 test("时间校验：opens < closes <= activityAt", () => {
@@ -188,4 +186,25 @@ test("剩余名额不为负", () => {
   assert.equal(remainingCapacity(10, 3), 7);
   assert.equal(remainingCapacity(10, 10), 0);
   assert.equal(remainingCapacity(10, 12), 0);
+});
+
+test("软删除有效报名后，活动窗口内 FULL 恢复为 OPEN；成员撤回仍不释放名额", () => {
+  const now = new Date("2026-09-25T00:00:00.000Z");
+  assert.equal(
+    deriveRepairActivityStatus({ ...base, capacity: 2, now, effectiveRegistrationCount: 2 }),
+    "FULL",
+  );
+  // 管理软删除使有效报名数从 2 降为 1；成员撤回不在有效状态集合中，也同样不增加有效数。
+  assert.equal(
+    deriveRepairActivityStatus({ ...base, capacity: 2, now, effectiveRegistrationCount: 1 }),
+    "OPEN",
+  );
+});
+
+test("管理报名 PATCH 使用同一 issueType 白名单", () => {
+  assert.doesNotThrow(() => assertValidIssueType("CLEAN_ONLY"));
+  assert.throws(
+    () => assertValidIssueType("INVALID"),
+    (error) => error instanceof AppError && error.code === "VALIDATION_FAILED",
+  );
 });
