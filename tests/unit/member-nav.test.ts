@@ -13,8 +13,8 @@ import {
  * 成员端侧栏与足部「设置」菜单的配置契约。
  *
  * 组件本身依赖 `next/navigation`，这里只锁配置层：
- * - 侧栏常驻分组不再含消息通知 / 我的收藏 / 排行榜；
- * - 这三个入口收在 `memberSettingsNav`，编号沿用 08–10 不重排
+ * - 侧栏常驻分组含工作台 / 维修记录 / 维修活动 / 个人资料，不含消息通知 / 我的收藏 / 排行榜；
+ * - 这三个入口收在 `memberSettingsNav`，编号按实际导航顺序为 09–11
  *   （页面标题里的编号与菜单里的一致）；
  * - 入口位置变了，页面与接口不变，所以三个 href 必须仍然可达；
  * - 撤掉未读角标后，`communityCopy.notifications.unreadCount` 仍归页面与工作台摘要使用，
@@ -23,11 +23,11 @@ import {
 
 const SETTINGS_HREFS = ["/member/notifications", "/member/favorites", "/member/rankings"];
 
-test("侧栏常驻分组只留工作台 / 维修记录 / 个人资料", () => {
+test("侧栏常驻分组含工作台 / 维修记录 / 维修活动 / 个人资料", () => {
   const resident = memberNav.flatMap((group) => group.items);
   assert.deepEqual(
     resident.map((item) => item.href),
-    ["/member", "/member/repairs", "/member/profile"],
+    ["/member", "/member/repair-activities", "/member/repairs", "/member/profile"],
   );
   for (const href of SETTINGS_HREFS) {
     assert.equal(
@@ -38,7 +38,7 @@ test("侧栏常驻分组只留工作台 / 维修记录 / 个人资料", () => {
   }
 });
 
-test("memberSettingsNav 收住三个入口且编号沿用 08–10", () => {
+test("memberSettingsNav 收住三个入口且编号按顺序为 09–11", () => {
   assert.deepEqual(
     memberSettingsNav.map((item) => item.href),
     SETTINGS_HREFS,
@@ -49,7 +49,7 @@ test("memberSettingsNav 收住三个入口且编号沿用 08–10", () => {
   );
   assert.deepEqual(
     memberSettingsNav.map((item) => item.index),
-    ["08", "09", "10"],
+    ["09", "10", "11"],
   );
 });
 

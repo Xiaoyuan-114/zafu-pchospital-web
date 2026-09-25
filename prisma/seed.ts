@@ -39,6 +39,7 @@ async function main(): Promise<void> {
       ["10000000-0000-4000-8000-000000000007", "STORAGE", "磁盘 / 存储"],
       ["10000000-0000-4000-8000-000000000008", "PERIPHERAL", "外设问题"],
       ["10000000-0000-4000-8000-000000000009", "OTHER", "其他"],
+      ["10000000-0000-4000-8000-000000000010", "OTHER_FAULT", "其他故障"],
     ] as const;
     for (const [index, [id, code, name]] of categories.entries()) {
       await prisma.repairCategory.upsert({

@@ -32,23 +32,30 @@ export const memberNav: readonly MemberNavGroup[] = [
     title: "工作",
     items: [
       { index: "05", label: "工作台", shortLabel: "工作台", labelEn: "Workspace", href: "/member" },
-      { index: "06", label: "维修记录", shortLabel: "维修", labelEn: "Repairs", href: "/member/repairs" },
+      {
+        index: "06",
+        label: "维修活动",
+        shortLabel: "活动",
+        labelEn: "Activities",
+        href: "/member/repair-activities",
+      },
+      { index: "07", label: "维修记录", shortLabel: "维修", labelEn: "Repairs", href: "/member/repairs" },
     ],
   },
   {
     id: "me",
     title: "我",
     items: [
-      { index: "07", label: "个人资料", shortLabel: "资料", labelEn: "Profile", href: "/member/profile" },
+      { index: "08", label: "个人资料", shortLabel: "资料", labelEn: "Profile", href: "/member/profile" },
     ],
   },
 ] as const;
 
-/** 收进侧栏足部「设置」菜单的成员端入口，编号沿用成员页既有的 05–10 序列。 */
+/** 收进侧栏足部「设置」菜单的成员端入口，编号沿用成员页既有序列。 */
 export const memberSettingsNav: readonly NavItem[] = [
-  { index: "08", label: "消息通知", shortLabel: "通知", labelEn: "Notifications", href: "/member/notifications" },
-  { index: "09", label: "我的收藏", shortLabel: "收藏", labelEn: "Favorites", href: "/member/favorites" },
-  { index: "10", label: "排行榜", shortLabel: "排行", labelEn: "Rankings", href: "/member/rankings" },
+  { index: "09", label: "消息通知", shortLabel: "通知", labelEn: "Notifications", href: "/member/notifications" },
+  { index: "10", label: "我的收藏", shortLabel: "收藏", labelEn: "Favorites", href: "/member/favorites" },
+  { index: "11", label: "排行榜", shortLabel: "排行", labelEn: "Rankings", href: "/member/rankings" },
 ] as const;
 
 export const memberCopy = {

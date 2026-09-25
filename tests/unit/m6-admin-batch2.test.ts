@@ -188,11 +188,18 @@ test("后台低频入口收在设置菜单，侧栏只留常驻模块", () => {
   for (const href of ["/admin/skills", "/admin/comments", "/admin/audit", "/admin/settings"]) {
     assert.ok(settingsHrefs.includes(href), `设置菜单缺少 ${href}`);
   }
-  // 侧栏常驻：成员与账号（成员管理 / 邀请码 / 招募审核）+ 维修业务（维修审核）。
+  // 侧栏常驻：成员与账号 + 维修业务（维修审核 / 维修活动）。
   assert.deepEqual(
     adminNav.map((item) => item.href),
-    ["/admin/members", "/admin/invite-codes", "/admin/join-applications", "/admin/repairs"],
+    [
+      "/admin/members",
+      "/admin/invite-codes",
+      "/admin/join-applications",
+      "/admin/repairs",
+      "/admin/repair-activities",
+    ],
   );
+  assert.equal(ADMIN_SECTION_INDEX.repairActivities, "19");
   // 编号沿用原值（11–14、17、18），不重排 —— `ADMIN_SECTION_INDEX` 同时被各页
   // `SectionHead` 使用，改号会让菜单里的编号与页面标题对不上。
   const indexes = adminSettingsNav.map((item) => item.index);

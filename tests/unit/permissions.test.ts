@@ -60,3 +60,13 @@ test("未登录、禁用账号与普通成员均不能读取报名", () => {
 function hasCode(error: unknown, code: string): boolean {
   return error instanceof AppError && error.code === code;
 }
+
+
+test("维修活动权限：管理员可管，成员仅 staff", () => {
+  const member = permissionsForRoles(["MEMBER"]);
+  const admin = permissionsForRoles(["ADMIN"]);
+  assert.equal(member.includes("activity:admin"), false);
+  assert.equal(member.includes("activity:staff"), true);
+  assert.equal(admin.includes("activity:admin"), true);
+  assert.equal(admin.includes("activity:staff"), true);
+});

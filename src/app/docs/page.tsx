@@ -22,7 +22,7 @@ export default function DocsPage() {
   return (
     <Section variant="page-head" labelledBy="docs-page-title">
       <div className="mb-s-5 gap-x-s-5 gap-y-s-2 flex flex-wrap items-center">
-        <SectionHead className="mb-0 min-w-0 flex-1" index="04" label={docsPage.label} />
+        <SectionHead className="mb-0 min-w-0 flex-1" index="06" label={docsPage.label} />
         <Reveal className="ml-auto" index={1}>
           <Button variant="ghost" icon="github" href={docsPage.repositoryAction.href} external>
             {docsPage.repositoryAction.label}

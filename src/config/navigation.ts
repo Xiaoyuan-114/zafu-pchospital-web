@@ -1,7 +1,7 @@
 /**
  * 站点导航配置
  *
- * 第一阶段的公开页面只有四个。Header（桌面左侧索引栏 / 移动端索引浮层）
+ * 公开站主索引。Header（桌面左侧索引栏 / 移动端索引浮层）
  * 全部从这里读取，新增页面时只改这里。
  */
 
@@ -21,13 +21,20 @@ export const mainNav: readonly NavItem[] = [
   { index: "01", label: "首页", shortLabel: "首页", labelEn: "Home", href: "/" },
   { index: "02", label: "关于我们", shortLabel: "关于", labelEn: "About", href: "/about" },
   { index: "03", label: "加入我们", shortLabel: "加入", labelEn: "Join", href: "/join" },
-  { index: "04", label: "技术文档", shortLabel: "文档", labelEn: "Docs", href: "/docs" },
+  {
+    index: "05",
+    label: "维修活动",
+    shortLabel: "活动",
+    labelEn: "Activities",
+    href: "/repair-activities",
+  },
+  { index: "06", label: "技术文档", shortLabel: "文档", labelEn: "Docs", href: "/docs" },
 ] as const;
 
 /**
  * 公开站「成员登录」入口（T-P0-1 / T-P2-4）
  *
- * 故意不进 `mainNav`：索引栏编号只服务公开四页；账号入口挂在 Header
+ * 故意不进 `mainNav`：索引栏编号只服务公开主栏目；账号入口挂在 Header
  * 足部 / 移动端浮层底部，以及 Footer 次要文字链（T-P2-4），避免把 `/login`
  * （更别说 `/admin`）混进公开导航主 CTA。
  *

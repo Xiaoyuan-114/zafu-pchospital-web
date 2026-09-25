@@ -188,3 +188,85 @@ export async function timeline(
     data: { id: randomUUID(), repairRecordId, actorUserId, eventType, summary, createdAt },
   });
 }
+
+/**
+ * 活动接待内部落单通道（仅供维修活动 serve 在同一可序列化事务内调用）。
+ * 跳过照片必填；仍写 timeline（CREATED + SUBMITTED）与审计；直接落 PENDING。
+ */
+export type CreateSubmittedForActivityInput = {
+  memberProfileId: string;
+  categoryId: string;
+  repairDate: string; // YYYY-MM-DD（上海日历日）
+  content: string;
+  remark: string;
+  durationMinutes: number;
+  /** 幂等键；建议 `activity-serve:{registrationId}` */
+  createRequestKey: string;
+  registrationId: string;
+  activityId: string;
+};
+
+export async function createSubmittedForActivity(
+  tx: Prisma.TransactionClient,
+  input: CreateSubmittedForActivityInput,
+  actor: import("@/types/contracts").AuthorizedActor,
+  now: Date,
+): Promise<{ repairRecordId: string }> {
+  const existing = await tx.repairRecord.findUnique({
+    where: { createRequestKey: input.createRequestKey },
+  });
+  if (existing && !existing.deletedAt) {
+    return { repairRecordId: existing.id };
+  }
+
+  const repairDate = parseRepairDate(input.repairDate);
+  if (!repairDate) {
+    throw new AppError("VALIDATION_FAILED", "维修日期无效");
+  }
+
+  const recordId = randomUUID();
+  await tx.repairRecord.create({
+    data: {
+      id: recordId,
+      memberProfileId: input.memberProfileId,
+      status: "PENDING",
+      createRequestKey: input.createRequestKey,
+      repairDate,
+      durationMinutes: input.durationMinutes,
+      categoryId: input.categoryId,
+      content: input.content,
+      result: defaultRepairResult,
+      remark: input.remark,
+      submittedAt: now,
+      createdAt: now,
+    },
+  });
+  await timeline(tx, recordId, actor.userId, "CREATED", {
+    status: "PENDING",
+    source: "repair_activity_serve",
+    activityId: input.activityId,
+    registrationId: input.registrationId,
+  }, now);
+  await timeline(tx, recordId, actor.userId, "SUBMITTED", {
+    from: "DRAFT",
+    to: "PENDING",
+    source: "repair_activity_serve",
+    idempotencyKey: input.createRequestKey,
+  }, now);
+  await appendAuditLog(tx, {
+    actor,
+    actorType: "USER",
+    actorUserId: actor.userId,
+    action: "repair.created_from_activity_serve",
+    targetType: "RepairRecord",
+    targetId: recordId,
+    result: "SUCCESS",
+    after: {
+      activityId: input.activityId,
+      registrationId: input.registrationId,
+      categoryId: input.categoryId,
+      status: "PENDING",
+    },
+  });
+  return { repairRecordId: recordId };
+}

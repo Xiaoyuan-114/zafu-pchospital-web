@@ -170,6 +170,9 @@ export const Permission = [
   "skill:manage",
   // 公开统计展示策略决定官网对外展示什么，与站内管理操作分开。
   "settings:manage",
+  // 维修活动：管理 CRUD / 报名管理 vs 成员出勤签到接待。
+  "activity:admin",
+  "activity:staff",
 ] as const;
 export type Permission = ValueOf<typeof Permission>;
 
