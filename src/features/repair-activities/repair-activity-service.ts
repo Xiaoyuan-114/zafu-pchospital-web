@@ -19,6 +19,7 @@ import {
   type RepairActivityIssueType,
   type RepairActivityStatus,
 } from "@/features/repair-activities/repair-activity-validation";
+import { sortRepairActivitiesForPublicList } from "@/features/repair-activities/repair-activity-sort";
 import { AppError } from "@/lib/api/errors";
 import { appendAuditLog } from "@/lib/audit/audit-service";
 import { requirePermission } from "@/lib/auth/permissions";
@@ -460,7 +461,22 @@ export const repairActivityService = {
       orderBy: [{ activityAt: "asc" }, { createdAt: "asc" }],
     });
     const counts = await loadCounts(rows.map((r) => r.id));
-    return rows.map((row) => toPublicView(row, counts.get(row.id) ?? 0, now));
+    // DB orderBy 仅粗排；方案 B 最终顺序由内存纯函数决定（已结束整段后置且组内降序）。
+    const views = rows.map((row) => ({
+      ...toPublicView(row, counts.get(row.id) ?? 0, now),
+      createdAt: row.createdAt.toISOString(),
+    }));
+    return sortRepairActivitiesForPublicList(views).map((item) => ({
+      id: item.id,
+      title: item.title,
+      activityAt: item.activityAt,
+      capacity: item.capacity,
+      signupOpensAt: item.signupOpensAt,
+      signupClosesAt: item.signupClosesAt,
+      status: item.status,
+      registeredCount: item.registeredCount,
+      remaining: item.remaining,
+    }));
   },
 
   async getPublic(activityId: string): Promise<RepairActivityPublicView> {
