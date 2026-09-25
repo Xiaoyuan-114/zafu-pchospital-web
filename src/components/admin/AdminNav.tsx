@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
 import { AccountMenu } from "@/components/layout/AccountMenu";
-import { adminCopy, adminNavGroups } from "@/config/admin";
+import { NavSettingsMenu } from "@/components/layout/NavSettingsMenu";
+import { adminCopy, adminNavGroups, adminSettingsNav } from "@/config/admin";
 
 /**
  * 后台内部导航（左侧栏）。
@@ -25,7 +26,9 @@ import { adminCopy, adminNavGroups } from "@/config/admin";
  * （实测 `/admin` 首页必现，公开页不会）。改成鼠标悬停 / 键盘聚焦时才预取：
  * 既省掉无用请求，也把「点下去已经是成品」这件事保留下来。
  *
- * T-P1-3：侧栏按 `adminNavGroups` 渲染「成员与账号 / 维修业务 / 配置与审计」。
+ * T-P1-3：侧栏按 `adminNavGroups` 渲染「成员与账号 / 维修业务」两个分组；低频入口
+ * （故障分类 / 数据导出 / 技能标签 / 评论管理 / 审计记录 / 公开统计）收在足部
+ * `NavSettingsMenu` 里，与账号菜单同一处。
  */
 export type AdminNavProps = {
   /** 服务端已认证的展示名，交给账号菜单做首屏乐观渲染 */
@@ -70,6 +73,11 @@ export function AdminNav({ displayName = null }: AdminNavProps) {
         ))}
       </div>
       <div className="admin-nav__foot">
+        <NavSettingsMenu
+          items={adminSettingsNav}
+          label={adminCopy.settingsLabel}
+          menuLabel={adminCopy.settingsMenuLabel}
+        />
         <AccountMenu variant="nav" initialDisplayName={displayName ?? null} />
       </div>
     </nav>

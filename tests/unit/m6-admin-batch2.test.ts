@@ -4,7 +4,7 @@ import test from "node:test";
 import { ApiErrorCode, AppError } from "../../src/lib/api/errors";
 import { permissionsForRoles, requirePermission } from "../../src/lib/auth/permissions";
 import { parseUtcDateFilter, dateRangeWhere } from "../../src/lib/api/date-filter";
-import { ADMIN_SECTION_INDEX, adminNav } from "../../src/config/admin";
+import { ADMIN_SECTION_INDEX, adminNav, adminSettingsNav } from "../../src/config/admin";
 import { mainNav } from "../../src/config/navigation";
 import { APPLICATION_EXPORT_COLUMNS } from "../../src/features/admin/join-application-export-service";
 import { EXPORT_COLUMNS, escapeCsvField, toCsvWith } from "../../src/features/admin/export-csv";
@@ -182,22 +182,32 @@ test("报名 CSV 复用同一套转义：BOM、CRLF、公式注入防护", () =>
 
 /* ------------------------------------------------------------------ 导航 */
 
-test("后台导航覆盖批次 2 的六个模块且编号从 13 起连续不重复", () => {
-  const hrefs = adminNav.map((item) => item.href);
-  for (const href of [
-    "/admin/skills",
-    "/admin/comments",
-    "/admin/invite-codes",
-    "/admin/join-applications",
-    "/admin/audit",
-    "/admin/settings",
-  ]) {
-    assert.ok(hrefs.includes(href), `后台导航缺少 ${href}`);
+test("后台低频入口收在设置菜单，侧栏只留常驻模块", () => {
+  // 六个批次 2 模块仍然可达：入口从侧栏挪进足部「设置」，页面与权限都没变。
+  const settingsHrefs = adminSettingsNav.map((item) => item.href);
+  for (const href of ["/admin/skills", "/admin/comments", "/admin/audit", "/admin/settings"]) {
+    assert.ok(settingsHrefs.includes(href), `设置菜单缺少 ${href}`);
   }
-  const indexes = adminNav.map((item) => item.index);
-  assert.equal(new Set(indexes).size, indexes.length, "后台导航编号重复");
-  assert.deepEqual(indexes, ["09", "10", "11", "12", "13", "14", "15", "16", "17", "18"]);
+  // 侧栏常驻：成员与账号（成员管理 / 邀请码 / 招募审核）+ 维修业务（维修审核）。
+  assert.deepEqual(
+    adminNav.map((item) => item.href),
+    ["/admin/members", "/admin/invite-codes", "/admin/join-applications", "/admin/repairs"],
+  );
+  // 编号沿用原值（11–14、17、18），不重排 —— `ADMIN_SECTION_INDEX` 同时被各页
+  // `SectionHead` 使用，改号会让菜单里的编号与页面标题对不上。
+  const indexes = adminSettingsNav.map((item) => item.index);
+  assert.deepEqual(indexes, ["11", "12", "13", "14", "17", "18"]);
   assert.equal(ADMIN_SECTION_INDEX.settings, "18");
+});
+
+test("侧栏常驻与设置菜单互不重叠，两处的编号全局唯一", () => {
+  const resident = new Set(adminNav.map((item) => item.href));
+  for (const item of adminSettingsNav) {
+    assert.equal(resident.has(item.href), false, `${item.href} 在两个入口里各出现一次`);
+    assert.ok(item.href.startsWith("/admin/"), `${item.href} 不是后台路由`);
+  }
+  const indexes = [...adminNav, ...adminSettingsNav].map((item) => item.index);
+  assert.equal(new Set(indexes).size, indexes.length, "后台入口编号重复");
 });
 
 test("后台导航不进入公开索引栏（mainNav）", () => {

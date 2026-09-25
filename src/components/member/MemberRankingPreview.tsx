@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { RankingRow } from "@/components/rankings/RankingRow";
 import { memberCopy } from "@/config/member";
 import type { MemberRankingPreview } from "@/types/contracts";
@@ -11,7 +9,10 @@ import type { MemberRankingPreview } from "@/types/contracts";
  * - `available: false`（区块加载失败）→ 由外层按 `degraded` 渲染局部错误，
  *   本组件返回 `null`，**不在这里把失败画成空榜**；
  * - `status: "UNCONFIGURED"`（学期未配置）→ 明确提示「待配置」；
- * - 正常 → 前 3 名 + 「我的排名」，并提供进入完整排行榜的链接。
+ * - 正常 → 前 3 名 + 「我的排名」。
+ *
+ * 这里只做预览，不再带「查看完整排行榜」的入口：榜单页收在侧栏足部的「设置」里，
+ * 预览区块保持原样（数据、字段、`degraded` 语义都不变）。
  *
  * 预览与完整榜单**共用同一个 `RankingRow`**，保证同一份数据在两处呈现一致。
  */
@@ -47,10 +48,6 @@ export function MemberRankingPreviewView({ preview }: { preview: MemberRankingPr
         ) : (
           <span className="ranking-preview__mine-value">{copy.rankingNoRank}</span>
         )}
-      </p>
-
-      <p className="member-section__foot">
-        <Link href="/member/rankings">{copy.rankingMore}</Link>
       </p>
     </div>
   );

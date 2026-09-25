@@ -37,8 +37,13 @@ export const ADMIN_SECTION_INDEX = {
 /**
  * 管理侧栏分组（T-P1-3）
  *
- * 扁平 `adminNav` 保留为派生列表，供首页「全部模块」等仍按条目遍历的地方使用；
- * 侧栏渲染以 `adminNavGroups` 为准。不新增路由，只重排既有 10 项。
+ * 扁平 `adminNav` 保留为派生列表，供首页「其余模块」等仍按条目遍历的地方使用；
+ * 侧栏渲染以 `adminNavGroups` 为准。不新增路由。
+ *
+ * 分组里只放**常驻**入口：故障分类、数据导出、技能标签、评论管理、审计记录与公开统计
+ * 属于低频管理动作，收在侧栏足部的 `adminSettingsNav` 里（权限与页面都不变，
+ * 只是不再占侧栏位）。编号沿用原值，不重排 —— `ADMIN_SECTION_INDEX` 同时被各页
+ * `SectionHead` 使用，改号会让页面标题与导航对不上。
  */
 export type AdminNavGroup = {
   id: string;
@@ -85,59 +90,57 @@ export const adminNavGroups: readonly AdminNavGroup[] = [
         labelEn: "Repairs",
         href: "/admin/repairs",
       },
-      {
-        index: ADMIN_SECTION_INDEX.categories,
-        label: "故障分类",
-        shortLabel: "分类",
-        labelEn: "Categories",
-        href: "/admin/categories",
-      },
-      {
-        index: ADMIN_SECTION_INDEX.comments,
-        label: "评论管理",
-        shortLabel: "评论",
-        labelEn: "Comments",
-        href: "/admin/comments",
-      },
-      {
-        index: ADMIN_SECTION_INDEX.export,
-        label: "数据导出",
-        shortLabel: "导出",
-        labelEn: "Export",
-        href: "/admin/export",
-      },
-    ],
-  },
-  {
-    id: "config-audit",
-    title: "配置与审计",
-    items: [
-      {
-        index: ADMIN_SECTION_INDEX.skills,
-        label: "技能标签",
-        shortLabel: "技能",
-        labelEn: "Skills",
-        href: "/admin/skills",
-      },
-      {
-        index: ADMIN_SECTION_INDEX.settings,
-        label: "公开统计",
-        shortLabel: "设置",
-        labelEn: "Settings",
-        href: "/admin/settings",
-      },
-      {
-        index: ADMIN_SECTION_INDEX.audit,
-        label: "审计记录",
-        shortLabel: "审计",
-        labelEn: "Audit",
-        href: "/admin/audit",
-      },
     ],
   },
 ] as const;
 
-/** 扁平派生：与分组内条目同一引用顺序。 */
+/** 收进侧栏足部「设置」菜单的后台入口，按编号升序排列。 */
+export const adminSettingsNav: readonly NavItem[] = [
+  {
+    index: ADMIN_SECTION_INDEX.categories,
+    label: "故障分类",
+    shortLabel: "分类",
+    labelEn: "Categories",
+    href: "/admin/categories",
+  },
+  {
+    index: ADMIN_SECTION_INDEX.export,
+    label: "数据导出",
+    shortLabel: "导出",
+    labelEn: "Export",
+    href: "/admin/export",
+  },
+  {
+    index: ADMIN_SECTION_INDEX.skills,
+    label: "技能标签",
+    shortLabel: "技能",
+    labelEn: "Skills",
+    href: "/admin/skills",
+  },
+  {
+    index: ADMIN_SECTION_INDEX.comments,
+    label: "评论管理",
+    shortLabel: "评论",
+    labelEn: "Comments",
+    href: "/admin/comments",
+  },
+  {
+    index: ADMIN_SECTION_INDEX.audit,
+    label: "审计记录",
+    shortLabel: "审计",
+    labelEn: "Audit",
+    href: "/admin/audit",
+  },
+  {
+    index: ADMIN_SECTION_INDEX.settings,
+    label: "公开统计",
+    shortLabel: "统计",
+    labelEn: "Public Stats",
+    href: "/admin/settings",
+  },
+] as const;
+
+/** 扁平派生：只含侧栏常驻条目，顺序与分组内一致。 */
 export const adminNav: readonly NavItem[] = adminNavGroups.flatMap((group) => [...group.items]);
 
 export const memberStatusLabels: Record<MemberStatus, string> = {
@@ -261,9 +264,12 @@ export const adminCopy = {
   /** 侧栏品牌区的英文小字（与站点其它地方的 `eyebrow` 同一处理）。 */
   titleEn: "Admin Console",
   navLabel: "管理后台导航",
+  /** 侧栏足部「设置」菜单：收起低频入口，按钮文案保持单字，避免挤占窄侧栏 */
+  settingsLabel: "设置",
+  settingsMenuLabel: "设置与更多入口",
   home: {
     label: "Admin",
-    lead: "常用入口快速进入高频管理动作；完整模块见左侧分组导航。所有操作在服务端鉴权，并写入审计记录。",
+    lead: "常用入口快速进入高频管理动作；其余入口收在左侧「设置」里。所有操作在服务端鉴权，并写入审计记录。",
     /** 首页只放 3–4 个常用入口，避免再铺满 10 张入口卡（T-P1-3）。不附统计数字。 */
     commonTitle: "常用入口",
     common: [
@@ -292,8 +298,8 @@ export const adminCopy = {
         href: "/admin/members",
       },
     ],
-    allModulesTitle: "全部模块",
-    allModulesHint: "其余入口请从左侧「成员与账号 / 维修业务 / 配置与审计」进入。",
+    allModulesTitle: "模块入口",
+    allModulesHint: "其余入口收在左侧「设置」里。",
   },
   members: {
     label: "Members",

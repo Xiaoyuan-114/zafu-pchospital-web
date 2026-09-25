@@ -61,7 +61,6 @@ export const communityCopy = {
     filterAll: "全部",
     filterUnread: "未读",
     filterRead: "已读",
-    more: "查看全部通知",
     unreadCount: "未读 {count} 条",
     types: {
       MENTIONED: "在评论中提及了你",
@@ -78,7 +77,6 @@ export const communityCopy = {
     loading: "正在加载收藏…",
     loadError: "收藏加载失败，请稍后重试。",
     reload: "重新加载",
-    more: "查看全部收藏",
     count: "共 {count} 条",
     open: "查看记录",
     remove: "取消收藏",

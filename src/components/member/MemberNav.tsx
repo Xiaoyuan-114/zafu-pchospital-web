@@ -2,19 +2,13 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
 
 import { AccountMenu } from "@/components/layout/AccountMenu";
-import { communityCopy } from "@/config/community";
-import {
-  formatNavUnreadBadge,
-  MEMBER_NOTIFICATIONS_CHANGED_EVENT,
-  memberCopy,
-  memberNav,
-} from "@/config/member";
+import { NavSettingsMenu } from "@/components/layout/NavSettingsMenu";
+import { memberCopy, memberNav, memberSettingsNav } from "@/config/member";
 
 /**
- * 成员端二级导航（T-P0-3 / T-P2-2）
+ * 成员端二级导航（T-P0-3）
  *
  * 行为对齐 `AdminNav`：
  * - `usePathname()` + `aria-current="page"`；
@@ -24,18 +18,15 @@ import {
  * `/member` 精确匹配；其余项用 `href` 前缀匹配（如 `/member/repairs/new` 高亮「维修记录」）。
  * 账号区挂同一 `AccountMenu`（variant=`nav`），子页也能 ≤2 次点击退出。
  *
- * 未读角标（T-P2-2）：从已有 `GET /api/v1/member/notifications` 的 `unreadCount`
- * 取值（与工作台 dashboard 摘要同源字段，不新增接口）。≤0 / 失败不展示；
- * 可视数字封顶 `99+`，读屏用完整「未读 N 条」（`sr-only` 兄弟节点，角标本身 `aria-hidden`）。
- * 标记已读后由 `member:notifications-changed` 事件立刻刷新，不必等切页 / 聚焦。
+ * 消息通知 / 我的收藏 / 排行榜不占导航位，收在足部 `NavSettingsMenu` 里；页面、接口与
+ * 权限都没变，只是入口位置变了。原先挂在「消息通知」条目上的未读角标随之撤掉 ——
+ * 它装饰的入口已经不在侧栏，留着会变成一处没有归属的请求。
  */
 
 export type MemberNavProps = {
   /** 服务端已认证的展示名，交给账号菜单做首屏乐观渲染 */
   displayName?: string | null;
 };
-
-const NOTIFICATIONS_HREF = "/member/notifications";
 
 function isCurrent(pathname: string, href: string): boolean {
   if (href === "/member") return pathname === "/member";
@@ -46,57 +37,6 @@ export function MemberNav({ displayName = null }: MemberNavProps) {
   const pathname = usePathname();
   const router = useRouter();
   const shell = memberCopy.shell;
-  const [unreadCount, setUnreadCount] = useState<number | null>(null);
-
-  const loadUnread = useCallback(async (signal?: AbortSignal) => {
-    try {
-      const params = new URLSearchParams({ page: "1", pageSize: "1" });
-      const response = await fetch(`/api/v1/member/notifications?${params}`, {
-        cache: "no-store",
-        signal,
-      });
-      const json = (await response.json()) as {
-        success?: boolean;
-        data?: { unreadCount?: number };
-      };
-      if (!json.success || typeof json.data?.unreadCount !== "number") {
-        setUnreadCount(null);
-        return;
-      }
-      setUnreadCount(json.data.unreadCount);
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") return;
-      // 与 AccountMenu 一致：失败静默，不把「查不出来」画成 0。
-      setUnreadCount(null);
-    }
-  }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    void loadUnread(controller.signal);
-    return () => controller.abort();
-  }, [loadUnread, pathname]);
-
-  useEffect(() => {
-    const onFocus = () => {
-      void loadUnread();
-    };
-    const onChanged = () => {
-      void loadUnread();
-    };
-    window.addEventListener("focus", onFocus);
-    window.addEventListener(MEMBER_NOTIFICATIONS_CHANGED_EVENT, onChanged);
-    return () => {
-      window.removeEventListener("focus", onFocus);
-      window.removeEventListener(MEMBER_NOTIFICATIONS_CHANGED_EVENT, onChanged);
-    };
-  }, [loadUnread]);
-
-  const badgeText = formatNavUnreadBadge(unreadCount);
-  const badgeAria =
-    unreadCount != null && unreadCount > 0
-      ? communityCopy.notifications.unreadCount.replace("{count}", String(unreadCount))
-      : null;
 
   return (
     <nav className="member-nav" aria-label={shell.navLabel}>
@@ -112,7 +52,6 @@ export function MemberNav({ displayName = null }: MemberNavProps) {
             <ul className="member-nav__list">
               {group.items.map((item) => {
                 const current = isCurrent(pathname, item.href);
-                const showBadge = item.href === NOTIFICATIONS_HREF && badgeText && badgeAria;
                 return (
                   <li key={item.href}>
                     <Link
@@ -125,14 +64,6 @@ export function MemberNav({ displayName = null }: MemberNavProps) {
                     >
                       <span className="eyebrow">{item.index}</span>
                       <span className="member-nav__label">{item.label}</span>
-                      {showBadge ? (
-                        <>
-                          <span className="member-nav__badge" aria-hidden="true">
-                            {badgeText}
-                          </span>
-                          <span className="sr-only">{badgeAria}</span>
-                        </>
-                      ) : null}
                     </Link>
                   </li>
                 );
@@ -143,6 +74,11 @@ export function MemberNav({ displayName = null }: MemberNavProps) {
       </div>
 
       <div className="member-nav__foot">
+        <NavSettingsMenu
+          items={memberSettingsNav}
+          label={shell.settingsLabel}
+          menuLabel={shell.settingsMenuLabel}
+        />
         <AccountMenu variant="nav" initialDisplayName={displayName ?? null} />
       </div>
     </nav>

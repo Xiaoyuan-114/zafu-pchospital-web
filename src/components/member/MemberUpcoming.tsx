@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 import { FavoriteRow } from "@/components/community/FavoriteList";
 import { NotificationRow } from "@/components/community/NotificationInbox";
 import { Button } from "@/components/ui/Button";
@@ -25,6 +23,9 @@ import type { MemberFavoriteSummary, MemberNotificationSummary } from "@/types/c
  *
  * `degraded` 也不传进来：通知/收藏的失败状态由摘要自身表达，
  * 留两处判断会变成双重事实来源。
+ *
+ * 两块的「查看全部…」链接已撤掉：通知页与收藏页收在侧栏足部的「设置」里。
+ * 这里继续把最近的几条原样展示 —— 摘要是「瞥一眼」，不是入口。
  *
  * 失败语义的纯逻辑与单测见 `src/features/member-dashboard/community-summary.ts`。
  */
@@ -69,11 +70,6 @@ export function MemberUpcoming({ notifications, favorites, onRetry }: MemberUpco
           ) : (
             <SectionError onRetry={onRetry} />
           )}
-          {notifications.available ? (
-            <p className="member-section__foot">
-              <Link href="/member/notifications">{notice.more}</Link>
-            </p>
-          ) : null}
         </section>
 
         <section className="community-summary__panel" aria-labelledby="member-upcoming-favorites">
@@ -100,11 +96,6 @@ export function MemberUpcoming({ notifications, favorites, onRetry }: MemberUpco
           ) : (
             <SectionError onRetry={onRetry} />
           )}
-          {favorites.available ? (
-            <p className="member-section__foot">
-              <Link href="/member/favorites">{fav.more}</Link>
-            </p>
-          ) : null}
         </section>
       </div>
     </div>
