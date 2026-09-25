@@ -8,10 +8,15 @@ export const repairActivitiesPage = {
   empty: "暂时没有可展示的维修活动。",
   loadFailed: "活动列表加载失败，请稍后重试。",
   remaining: "剩余名额 {count}",
+  /** 公开列表卡片用更短的「剩余 N」。 */
+  remainingShort: "剩余 {count}",
   capacity: "名额 {registered} / {capacity}",
   activityAt: "活动时间",
   window: "报名时间",
   endedHint: "活动已结束",
+  previousPage: "上一页",
+  nextPage: "下一页",
+  paginationLabel: "分页",
   detail: {
     signupTitle: "报名参加",
     lookupTitle: "查询 / 修改故障类型",
