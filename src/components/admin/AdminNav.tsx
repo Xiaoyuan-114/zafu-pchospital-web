@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
-import { adminCopy, adminNav } from "@/config/admin";
+import { AccountMenu } from "@/components/layout/AccountMenu";
+import { adminCopy, adminNavGroups } from "@/config/admin";
 
 /**
  * 后台内部导航（左侧栏）。
@@ -18,13 +19,20 @@ import { adminCopy, adminNav } from "@/config/admin";
  *
  * **预取按意图触发，不是挂载即全量预取。**
  * 后台路由都是动态渲染（`ƒ`），Next 默认不会预取它们的 RSC 载荷，每次点击都要等一次
- * 服务端往返，所以需要预取。但 `prefetch` 直接写在 10 个链接上会让整站一进后台就并发
- * 拉 10 个页面，而且预取完成时路由器会重新渲染当前页面 —— 页面上的 `.reveal` 元素
+ * 服务端往返，所以需要预取。但 `prefetch` 直接写在全部链接上会让整站一进后台就并发
+ * 拉多个页面，而且预取完成时路由器会重新渲染当前页面 —— 页面上的 `.reveal` 元素
  * 已被 `SiteEffects` 加上 `is-in`，于是 React 报 hydration 不匹配警告
  * （实测 `/admin` 首页必现，公开页不会）。改成鼠标悬停 / 键盘聚焦时才预取：
- * 既省掉 10 个无用请求，也把「点下去已经是成品」这件事保留下来。
+ * 既省掉无用请求，也把「点下去已经是成品」这件事保留下来。
+ *
+ * T-P1-3：侧栏按 `adminNavGroups` 渲染「成员与账号 / 维修业务 / 配置与审计」。
  */
-export function AdminNav() {
+export type AdminNavProps = {
+  /** 服务端已认证的展示名，交给账号菜单做首屏乐观渲染 */
+  displayName?: string | null;
+};
+
+export function AdminNav({ displayName = null }: AdminNavProps) {
   const pathname = usePathname();
   const router = useRouter();
   return (
@@ -33,26 +41,37 @@ export function AdminNav() {
         <span className="admin-nav__brand-en">{adminCopy.titleEn}</span>
         <span className="admin-nav__brand-cn">{adminCopy.title}</span>
       </p>
-      <ul className="admin-nav__list">
-        {adminNav.map((item) => {
-          const current = pathname === item.href || pathname.startsWith(`${item.href}/`);
-          return (
-            <li key={item.href}>
-              <Link
-                className="admin-nav__link"
-                href={item.href}
-                prefetch={false}
-                onMouseEnter={() => router.prefetch(item.href)}
-                onFocus={() => router.prefetch(item.href)}
-                aria-current={current ? "page" : undefined}
-              >
-                <span className="eyebrow">{item.index}</span>
-                <span className="admin-nav__label">{item.label}</span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      <div className="admin-nav__groups">
+        {adminNavGroups.map((group) => (
+          <div key={group.id} className="admin-nav__group">
+            <p className="admin-nav__group-title">{group.title}</p>
+            <ul className="admin-nav__list">
+              {group.items.map((item) => {
+                const current =
+                  pathname === item.href || pathname.startsWith(`${item.href}/`);
+                return (
+                  <li key={item.href}>
+                    <Link
+                      className="admin-nav__link"
+                      href={item.href}
+                      prefetch={false}
+                      onMouseEnter={() => router.prefetch(item.href)}
+                      onFocus={() => router.prefetch(item.href)}
+                      aria-current={current ? "page" : undefined}
+                    >
+                      <span className="eyebrow">{item.index}</span>
+                      <span className="admin-nav__label">{item.label}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+      </div>
+      <div className="admin-nav__foot">
+        <AccountMenu variant="nav" initialDisplayName={displayName ?? null} />
+      </div>
     </nav>
   );
 }

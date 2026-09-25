@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { MEMBER_NOTIFICATIONS_CHANGED_EVENT } from "@/config/member";
 import { communityCopy } from "@/config/community";
 import type { NotificationStatus, NotificationView, PaginationMeta } from "@/types/contracts";
 
@@ -39,22 +40,35 @@ export function NotificationInbox() {
     void load();
   }, [load]);
 
+  function notifyNavUnreadChanged() {
+    window.dispatchEvent(new CustomEvent(MEMBER_NOTIFICATIONS_CHANGED_EVENT));
+  }
+
   async function markRead(id: string) {
     const response = await fetch(`/api/v1/member/notifications/${id}/read`, { method: "POST" });
     const json = await response.json();
-    if (json.success) await load();
+    if (json.success) {
+      await load();
+      notifyNavUnreadChanged();
+    }
   }
 
   async function markAll() {
     const response = await fetch("/api/v1/member/notifications/read-all", { method: "POST" });
     const json = await response.json();
-    if (json.success) await load();
+    if (json.success) {
+      await load();
+      notifyNavUnreadChanged();
+    }
   }
 
   async function remove(id: string) {
     const response = await fetch(`/api/v1/member/notifications/${id}`, { method: "DELETE" });
     const json = await response.json();
-    if (json.success) await load();
+    if (json.success) {
+      await load();
+      notifyNavUnreadChanged();
+    }
   }
 
   if (state === "error") {

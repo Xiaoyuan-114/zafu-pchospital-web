@@ -24,10 +24,10 @@ export const metadata: Metadata = {
  * 页面的 `<Section>` 仍在各自 page 里（它承载每页自己的 `aria-labelledby`）。
  */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  await requireAdminPage();
+  const principal = await requireAdminPage();
   return (
     <div className="admin-shell">
-      <AdminNav />
+      <AdminNav displayName={principal.displayName} />
       <div className="admin-shell__main">{children}</div>
     </div>
   );

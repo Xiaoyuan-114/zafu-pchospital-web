@@ -1,30 +1,68 @@
 import Link from "next/link";
 
+import { InviteRegistrationForm } from "@/components/auth/InviteRegistrationForm";
 import { LoginForm } from "@/components/auth/LoginForm";
-import { loginCopy } from "@/config/auth";
+import { loginCopy, registerCopy } from "@/config/auth";
+import { cn } from "@/lib/utils";
 
-export function LoginPanel() {
+export type AuthPanelMode = "login" | "register";
+
+type LoginPanelProps = {
+  mode?: AuthPanelMode;
+};
+
+/**
+ * 同一 Auth 壳：登录 ↔ 邀请码注册仅换标题与表单，不跳公开营销布局。
+ * `mode` 由 `/login?mode=register` 驱动；切换用 Link.replace，保证返回键合理。
+ */
+export function LoginPanel({ mode = "login" }: LoginPanelProps) {
+  const isRegister = mode === "register";
+  const shell = isRegister ? registerCopy : loginCopy;
+
   return (
-    <div className="auth-login__panel">
-      <Link className="auth-login__brand" href="/" aria-label={`${loginCopy.brandName} · 返回首页`}>
-        <b>{loginCopy.brandMark}</b>
-        <span>{loginCopy.brandName}</span>
+    <div className={cn("auth-login__panel", isRegister && "auth-login__panel--register")}>
+      <Link className="auth-login__brand" href="/" aria-label={`${shell.brandName} · 返回首页`}>
+        <b>{shell.brandMark}</b>
+        <span>{shell.brandName}</span>
       </Link>
 
       <header className="auth-login__header">
-        <p className="eyebrow">{loginCopy.eyebrow}</p>
-        <h1 id="login-title">{loginCopy.title}</h1>
-        <p>{loginCopy.lead}</p>
+        <p className="eyebrow">{shell.eyebrow}</p>
+        <h1 id="login-title">{shell.title}</h1>
+        <p>{shell.lead}</p>
       </header>
 
-      <LoginForm />
+      {isRegister ? <InviteRegistrationForm /> : <LoginForm />}
 
       <div className="auth-login__links">
-        <p>
-          {loginCopy.registerPrompt} <Link href="/register/member">{loginCopy.registerAction}</Link>
-        </p>
+        {isRegister ? (
+          <>
+            <p>
+              <Link href="/login" replace scroll={false}>
+                {registerCopy.loginAction}
+              </Link>
+            </p>
+            <p>
+              {registerCopy.joinPrompt}{" "}
+              <Link href="/join">{registerCopy.joinAction}</Link>
+            </p>
+          </>
+        ) : (
+          <>
+            <p>
+              {loginCopy.registerPrompt}{" "}
+              <Link href="/login?mode=register" replace scroll={false}>
+                {loginCopy.registerAction}
+              </Link>
+            </p>
+            <p>
+              {loginCopy.joinPrompt}{" "}
+              <Link href="/join">{loginCopy.joinAction}</Link>
+            </p>
+          </>
+        )}
         <Link className="auth-login__home" href="/">
-          {loginCopy.backHome}
+          {shell.backHome}
         </Link>
       </div>
     </div>

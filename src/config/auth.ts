@@ -13,7 +13,65 @@ export const loginCopy = {
   submit: "登录",
   submitting: "登录中",
   failed: "登录失败",
-  registerPrompt: "尚未加入成员系统？",
+  /** 有邀请码：在本页切换到注册 */
+  registerPrompt: "已有邀请码？",
   registerAction: "使用邀请码注册",
+  /** 无邀请码：走公开招新，不嵌入 /join 表单 */
+  joinPrompt: "没有邀请码？",
+  joinAction: "去加入我们",
   backHome: "返回首页",
+} as const;
+
+export const registerCopy = {
+  brandMark: "PC",
+  brandName: "ZAFU PC HOSPITAL",
+  eyebrow: "Invite Register",
+  title: "邀请码注册",
+  lead: "持有效邀请码登记成员身份并设置登录密码。没有邀请码请走公开招新。",
+  groupInvite: "① 邀请码",
+  groupIdentity: "② 身份信息",
+  groupPassword: "③ 设置密码",
+  codeLabel: "邀请码",
+  codePlaceholder: "请输入邀请码",
+  realNameLabel: "姓名",
+  realNamePlaceholder: "请输入真实姓名",
+  qqLabel: "QQ 号",
+  qqPlaceholder: "请输入 QQ 号",
+  phoneLabel: "手机号",
+  phonePlaceholder: "请输入手机号",
+  studentIdLabel: "学号（选填）",
+  studentIdPlaceholder: "选填",
+  classNameLabel: "班级（选填）",
+  classNamePlaceholder: "选填",
+  passwordLabel: "密码",
+  passwordPlaceholder: "设置登录密码",
+  passwordConfirmLabel: "确认密码",
+  passwordConfirmPlaceholder: "再次输入密码",
+  showPassword: "显示密码",
+  hidePassword: "隐藏密码",
+  passwordMismatch: "两次输入的密码不一致",
+  requiredMark: "必填",
+  submit: "注册成员账号",
+  submitting: "注册中",
+  failed: "注册失败",
+  /** 注册态切回登录 */
+  loginAction: "已有账号？去登录",
+  joinPrompt: "没有邀请码？",
+  joinAction: "去加入我们",
+  backHome: "返回首页",
+} as const;
+
+/** T-P0-2 账号菜单：挂在成员 / 管理侧栏足部。T-P1-4 增加双角色壳层切换。 */
+export const accountMenuCopy = {
+  /** `displayName` 为空时的降级展示名 */
+  fallbackName: "成员",
+  /** 触发按钮无障碍名称 */
+  menuLabel: "账号菜单",
+  changePassword: "修改密码",
+  /** 双角色：从管理壳切到成员工作台 */
+  switchToMember: "进入成员工作台",
+  /** 双角色：从成员壳切到管理后台 */
+  switchToAdmin: "进入管理后台",
+  logout: "退出登录",
+  loggingOut: "退出中…",
 } as const;

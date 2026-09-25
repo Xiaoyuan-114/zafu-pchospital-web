@@ -1,12 +1,17 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import { Container } from "@/components/layout/Container";
+import { memberLoginLink } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
 
 /**
  * Footer —— 全站统一页脚
  *
  * 对应设计基准的 `.footer`。首页与其他页面共用，不重复实现。
+ *
+ * 「成员登录」是次要账号入口（T-P2-4）：文案与 Header 共用 `memberLoginLink`，
+ * 仅作低权重文字链，不进 `mainNav`、不做 solid 主按钮。文案已定为「成员登录」，与 Header 一致。
  */
 
 /**
@@ -35,6 +40,9 @@ export function Footer() {
           <span>{siteConfig.nameEn}</span>
           <span>{year}</span>
         </div>
+        <p className="footer__entry">
+          <Link href={memberLoginLink.href}>{memberLoginLink.label}</Link>
+        </p>
         <p className="footer__note">
           本站为浙江农林大学电脑医院社团官方站点，页面中涉及的文档目录与正文均来自公开文档仓库{" "}
           <a href={siteConfig.docRepo.url} target="_blank" rel="noopener noreferrer">

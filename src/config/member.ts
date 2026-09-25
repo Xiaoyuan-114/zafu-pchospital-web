@@ -7,7 +7,55 @@
  * - 时长底层始终是整数分钟，展示时统一用下面的格式化函数。
  */
 
+/**
+ * 成员端二级导航（T-P0-3）
+ *
+ * 分组：工作 / 我；账号区（改密 + 退出）由 `AccountMenu` 挂在侧栏足部，
+ * 不在此列表里重复「修改密码」。勿把「新建维修」放进侧栏——主 CTA 留给工作台 / 列表顶栏。
+ *
+ * `/member` 必须精确匹配高亮，否则所有子页都会把「工作台」标成当前页。
+ */
+export type MemberNavGroup = {
+  id: string;
+  title: string;
+  items: readonly {
+    index: string;
+    label: string;
+    shortLabel: string;
+    labelEn: string;
+    href: string;
+  }[];
+};
+
+export const memberNav: readonly MemberNavGroup[] = [
+  {
+    id: "work",
+    title: "工作",
+    items: [
+      { index: "05", label: "工作台", shortLabel: "工作台", labelEn: "Workspace", href: "/member" },
+      { index: "06", label: "维修记录", shortLabel: "维修", labelEn: "Repairs", href: "/member/repairs" },
+    ],
+  },
+  {
+    id: "me",
+    title: "我",
+    items: [
+      { index: "07", label: "个人资料", shortLabel: "资料", labelEn: "Profile", href: "/member/profile" },
+      { index: "08", label: "消息通知", shortLabel: "通知", labelEn: "Notifications", href: "/member/notifications" },
+      { index: "09", label: "我的收藏", shortLabel: "收藏", labelEn: "Favorites", href: "/member/favorites" },
+      { index: "10", label: "排行榜", shortLabel: "排行", labelEn: "Rankings", href: "/member/rankings" },
+    ],
+  },
+] as const;
+
 export const memberCopy = {
+  /** 成员壳品牌与导航无障碍名（T-P0-3） */
+  shell: {
+    title: "成员空间",
+    titleEn: "Member",
+    navLabel: "成员导航",
+  },
+
   common: {
     /** 无昵称也无实名时的兜底展示名 */
     fallbackName: "成员",
@@ -48,9 +96,12 @@ export const memberCopy = {
   dashboard: {
     title: "成员工作台",
     label: "Member Workspace",
-    lead: "查看个人维修概览、处理待办，并进入维修记录与个人主页。",    welcome: "欢迎回来",
+    lead: "查看个人维修概览、处理待办，并进入维修记录与个人主页。",
+    welcome: "欢迎回来",
     joinedAtLabel: "加入时间",
     skillsLabel: "技能标签",
+    skillsTag: "Skills",
+    skillsEditLink: "编辑技能标签",
     noSkills: "尚未选择技能标签",
     settingsAction: "编辑个人资料",
 
@@ -73,6 +124,7 @@ export const memberCopy = {
 
     quickTitle: "快捷操作",
     quickTag: "Shortcuts",
+    /** hero 唯一 solid 主 CTA；不进侧栏（侧栏保留「维修记录」） */
     quickNew: "新增维修记录",
     quickAll: "查看全部记录",
     quickProfile: "编辑个人资料",
@@ -188,6 +240,25 @@ export const memberCopy = {
     visibilityNote: "仅展示已通过的维修记录；草稿、待审核与已退回记录不可见。",
   },
 } as const;
+
+/** 通知列表标记已读 / 全部已读 / 删除成功后派发；MemberNav 监听并 refetch 未读角标（T-P2-2） */
+export const MEMBER_NOTIFICATIONS_CHANGED_EVENT = "member:notifications-changed";
+
+/**
+ * 侧栏通知未读角标展示（T-P2-2）。
+ *
+ * - `null` / `undefined` / ≤0 / 非有限数 → 不展示（调用方应隐藏角标）；
+ * - 1–99 → 原样数字；
+ * - ≥100 → `99+`（避免宽数字撑破窄侧栏）。
+ *
+ * 可见角标 `aria-hidden`；真实计数由调用方放进 `sr-only` 的「未读 N 条」，读屏读完整数字。
+ */
+export function formatNavUnreadBadge(count: number | null | undefined): string | null {
+  if (count == null || !Number.isFinite(count)) return null;
+  const n = Math.floor(count);
+  if (n <= 0) return null;
+  return n > 99 ? "99+" : String(n);
+}
 
 /** 把整数分钟格式化为「x 小时 y 分钟」。底层仍存整数分钟，这里只做展示。 */
 export function formatDurationMinutes(minutes: number): string {

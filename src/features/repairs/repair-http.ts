@@ -1,7 +1,18 @@
 import { REPAIR_SORTABLE } from "@/features/repairs/repair-sort";
 import { AppError } from "@/lib/api/errors";
 import { sortRules } from "@/lib/api/list-query";
-import type { RepairListInput, RepairResult, RepairStatus } from "@/types/contracts";
+import { RepairStatus, type RepairListInput, type RepairResult } from "@/types/contracts";
+
+/**
+ * 维修列表 URL `status` 查询参数（客户端 / 深链共用）。
+ *
+ * 白名单与 `RepairStatus` 一致；非法或空值返回空串（表示「全部」），
+ * 不抛错 —— 工作台队列深链与列表页预选共用这一口径。
+ */
+export function parseRepairListStatus(value: string | null | undefined): "" | RepairStatus {
+  if (!value) return "";
+  return (RepairStatus as readonly string[]).includes(value) ? (value as RepairStatus) : "";
+}
 
 export function repairListInput(
   params: URLSearchParams,

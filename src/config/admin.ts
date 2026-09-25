@@ -34,78 +34,111 @@ export const ADMIN_SECTION_INDEX = {
   settings: "18",
 } as const;
 
-export const adminNav: readonly NavItem[] = [
+/**
+ * 管理侧栏分组（T-P1-3）
+ *
+ * 扁平 `adminNav` 保留为派生列表，供首页「全部模块」等仍按条目遍历的地方使用；
+ * 侧栏渲染以 `adminNavGroups` 为准。不新增路由，只重排既有 10 项。
+ */
+export type AdminNavGroup = {
+  id: string;
+  title: string;
+  items: readonly NavItem[];
+};
+
+export const adminNavGroups: readonly AdminNavGroup[] = [
   {
-    index: ADMIN_SECTION_INDEX.members,
-    label: "成员管理",
-    shortLabel: "成员",
-    labelEn: "Members",
-    href: "/admin/members",
+    id: "members-accounts",
+    title: "成员与账号",
+    items: [
+      {
+        index: ADMIN_SECTION_INDEX.members,
+        label: "成员管理",
+        shortLabel: "成员",
+        labelEn: "Members",
+        href: "/admin/members",
+      },
+      {
+        index: ADMIN_SECTION_INDEX.inviteCodes,
+        label: "邀请码",
+        shortLabel: "邀请码",
+        labelEn: "Invite",
+        href: "/admin/invite-codes",
+      },
+      {
+        index: ADMIN_SECTION_INDEX.recruitment,
+        label: "招募审核",
+        shortLabel: "招募",
+        labelEn: "Recruitment",
+        href: "/admin/join-applications",
+      },
+    ],
   },
   {
-    index: ADMIN_SECTION_INDEX.repairs,
-    label: "维修审核",
-    shortLabel: "审核",
-    labelEn: "Repairs",
-    href: "/admin/repairs",
+    id: "repairs",
+    title: "维修业务",
+    items: [
+      {
+        index: ADMIN_SECTION_INDEX.repairs,
+        label: "维修审核",
+        shortLabel: "审核",
+        labelEn: "Repairs",
+        href: "/admin/repairs",
+      },
+      {
+        index: ADMIN_SECTION_INDEX.categories,
+        label: "故障分类",
+        shortLabel: "分类",
+        labelEn: "Categories",
+        href: "/admin/categories",
+      },
+      {
+        index: ADMIN_SECTION_INDEX.comments,
+        label: "评论管理",
+        shortLabel: "评论",
+        labelEn: "Comments",
+        href: "/admin/comments",
+      },
+      {
+        index: ADMIN_SECTION_INDEX.export,
+        label: "数据导出",
+        shortLabel: "导出",
+        labelEn: "Export",
+        href: "/admin/export",
+      },
+    ],
   },
   {
-    index: ADMIN_SECTION_INDEX.categories,
-    label: "故障分类",
-    shortLabel: "分类",
-    labelEn: "Categories",
-    href: "/admin/categories",
-  },
-  {
-    index: ADMIN_SECTION_INDEX.export,
-    label: "数据导出",
-    shortLabel: "导出",
-    labelEn: "Export",
-    href: "/admin/export",
-  },
-  {
-    index: ADMIN_SECTION_INDEX.skills,
-    label: "技能标签",
-    shortLabel: "技能",
-    labelEn: "Skills",
-    href: "/admin/skills",
-  },
-  {
-    index: ADMIN_SECTION_INDEX.comments,
-    label: "评论管理",
-    shortLabel: "评论",
-    labelEn: "Comments",
-    href: "/admin/comments",
-  },
-  {
-    index: ADMIN_SECTION_INDEX.inviteCodes,
-    label: "邀请码",
-    shortLabel: "邀请码",
-    labelEn: "Invite",
-    href: "/admin/invite-codes",
-  },
-  {
-    index: ADMIN_SECTION_INDEX.recruitment,
-    label: "招募审核",
-    shortLabel: "招募",
-    labelEn: "Recruitment",
-    href: "/admin/join-applications",
-  },
-  {
-    index: ADMIN_SECTION_INDEX.audit,
-    label: "审计记录",
-    shortLabel: "审计",
-    labelEn: "Audit",
-    href: "/admin/audit",
-  },
-  {
-    index: ADMIN_SECTION_INDEX.settings,
-    label: "公开统计",
-    shortLabel: "设置",
-    labelEn: "Settings",
-    href: "/admin/settings",
+    id: "config-audit",
+    title: "配置与审计",
+    items: [
+      {
+        index: ADMIN_SECTION_INDEX.skills,
+        label: "技能标签",
+        shortLabel: "技能",
+        labelEn: "Skills",
+        href: "/admin/skills",
+      },
+      {
+        index: ADMIN_SECTION_INDEX.settings,
+        label: "公开统计",
+        shortLabel: "设置",
+        labelEn: "Settings",
+        href: "/admin/settings",
+      },
+      {
+        index: ADMIN_SECTION_INDEX.audit,
+        label: "审计记录",
+        shortLabel: "审计",
+        labelEn: "Audit",
+        href: "/admin/audit",
+      },
+    ],
   },
 ] as const;
+
+/** 扁平派生：与分组内条目同一引用顺序。 */
+export const adminNav: readonly NavItem[] = adminNavGroups.flatMap((group) => [...group.items]);
 
 export const memberStatusLabels: Record<MemberStatus, string> = {
   ACTIVE: "在册",
@@ -230,69 +263,37 @@ export const adminCopy = {
   navLabel: "管理后台导航",
   home: {
     label: "Admin",
-    lead: "成员、维修审核、分类、技能、评论、邀请码、招募、导出、审计与公开统计的统一入口。所有操作在服务端鉴权，并写入审计记录。",
-    sections: [
-      {
-        index: ADMIN_SECTION_INDEX.members,
-        title: "成员管理",
-        description: "新增与编辑成员、设置角色与技能标签、禁用启用、重置密码、批量操作。",
-        href: "/admin/members",
-      },
+    lead: "常用入口快速进入高频管理动作；完整模块见左侧分组导航。所有操作在服务端鉴权，并写入审计记录。",
+    /** 首页只放 3–4 个常用入口，避免再铺满 10 张入口卡（T-P1-3）。不附统计数字。 */
+    commonTitle: "常用入口",
+    common: [
       {
         index: ADMIN_SECTION_INDEX.repairs,
         title: "维修审核",
-        description: "查看与筛选全部记录、审核通过与退回、修改异常数据、软删除、标记案例。",
+        description: "查看与筛选维修记录，审核通过或退回。",
         href: "/admin/repairs",
-      },
-      {
-        index: ADMIN_SECTION_INDEX.categories,
-        title: "故障分类",
-        description: "新增、修改、停用与恢复故障分类；有历史记录的分类只停用不删除。",
-        href: "/admin/categories",
-      },
-      {
-        index: ADMIN_SECTION_INDEX.export,
-        title: "数据导出",
-        description: "按与列表相同的筛选条件导出维修记录，支持 CSV 与 Excel。",
-        href: "/admin/export",
-      },
-      {
-        index: ADMIN_SECTION_INDEX.skills,
-        title: "技能标签",
-        description: "维护成员可选的技能标签库；已被选用的标签只停用不删除。",
-        href: "/admin/skills",
-      },
-      {
-        index: ADMIN_SECTION_INDEX.comments,
-        title: "评论管理",
-        description: "查看全部维修记录的内部评论，确认评论所属记录，删除违规内容。",
-        href: "/admin/comments",
-      },
-      {
-        index: ADMIN_SECTION_INDEX.inviteCodes,
-        title: "邀请码",
-        description: "创建、调整有效期与使用次数、撤销邀请码；完整邀请码只在创建时显示一次。",
-        href: "/admin/invite-codes",
       },
       {
         index: ADMIN_SECTION_INDEX.recruitment,
         title: "招募审核",
-        description: "查看与筛选报名、登记面试结果、跟进账号发放、导出报名数据。",
+        description: "跟进报名、登记面试结果与账号发放。",
         href: "/admin/join-applications",
       },
       {
-        index: ADMIN_SECTION_INDEX.audit,
-        title: "审计记录",
-        description: "按动作、目标、操作者与时间检索重要操作留痕；审计只读，不可修改或删除。",
-        href: "/admin/audit",
+        index: ADMIN_SECTION_INDEX.inviteCodes,
+        title: "邀请码",
+        description: "创建与管理成员注册邀请码。",
+        href: "/admin/invite-codes",
       },
       {
-        index: ADMIN_SECTION_INDEX.settings,
-        title: "公开统计",
-        description: "配置官网首页公开的维修统计、排行榜开关与排行榜展示名策略。",
-        href: "/admin/settings",
+        index: ADMIN_SECTION_INDEX.members,
+        title: "成员管理",
+        description: "检索成员、设置角色与账号状态。",
+        href: "/admin/members",
       },
     ],
+    allModulesTitle: "全部模块",
+    allModulesHint: "其余入口请从左侧「成员与账号 / 维修业务 / 配置与审计」进入。",
   },
   members: {
     label: "Members",

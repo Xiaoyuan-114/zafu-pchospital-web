@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { repairCopy } from "@/config/repairs";
+import { parseRepairListStatus } from "@/features/repairs/repair-http";
 import type {
   PaginationMeta,
   RepairCategoryView,
@@ -38,7 +40,10 @@ export function RepairList({ statusLabels, resultLabels }: Props) {
   const [page, setPage] = useState(1);
   const [queryInput, setQueryInput] = useState("");
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [status, setStatus] = useState(() => parseRepairListStatus(searchParams.get("status")));
   const [categoryId, setCategoryId] = useState("");
   const [memberId, setMemberId] = useState("");
   const [result, setResult] = useState("");
@@ -48,6 +53,11 @@ export function RepairList({ statusLabels, resultLabels }: Props) {
   const [typical, setTypical] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
+
+  // 浏览器前进/后退或外链深链变化时，把 URL 白名单状态同步回本地筛选。
+  useEffect(() => {
+    setStatus(parseRepairListStatus(searchParams.get("status")));
+  }, [searchParams]);
 
   const advancedFilterCount = [result, from, to, difficult, typical].filter(Boolean).length;
   const hasFilters = Boolean(query || status || categoryId || memberId || advancedFilterCount);
@@ -123,8 +133,14 @@ export function RepairList({ statusLabels, resultLabels }: Props) {
   );
 
   function selectStatus(nextStatus: string) {
-    setStatus(nextStatus);
+    const normalized = nextStatus === "" ? "" : parseRepairListStatus(nextStatus);
+    setStatus(normalized);
     setPage(1);
+    const params = new URLSearchParams(searchParams.toString());
+    if (normalized) params.set("status", normalized);
+    else params.delete("status");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
 
   function submitSearch() {
@@ -137,7 +153,6 @@ export function RepairList({ statusLabels, resultLabels }: Props) {
   function resetFilters() {
     setQueryInput("");
     setQuery("");
-    setStatus("");
     setCategoryId("");
     setMemberId("");
     setResult("");
@@ -145,7 +160,8 @@ export function RepairList({ statusLabels, resultLabels }: Props) {
     setTo("");
     setDifficult(false);
     setTypical(false);
-    setPage(1);
+    // 走 selectStatus 清掉 status 查询参数，保持深链可分享。
+    selectStatus("");
   }
 
   return (

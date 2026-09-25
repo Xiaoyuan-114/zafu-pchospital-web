@@ -205,5 +205,10 @@ test("后台导航不进入公开导航，且编号从 09 起、互不重复", (
   assert.equal(new Set(indexes).size, indexes.length);
   for (const index of indexes) assert.equal(Number(index) >= 9, true, index);
   assert.equal(ADMIN_SECTION_INDEX.home, "00");
-  assert.equal(adminCopy.home.sections.length, adminNav.length);
+  // T-P1-3：首页只放常用入口，完整模块走侧栏 / 「全部模块」
+  assert.equal(adminCopy.home.common.length >= 3 && adminCopy.home.common.length <= 4, true);
+  assert.equal(adminCopy.home.common.length <= adminNav.length, true);
+  for (const entry of adminCopy.home.common) {
+    assert.equal(adminNav.some((item) => item.href === entry.href), true, entry.href);
+  }
 });
