@@ -423,6 +423,8 @@
   --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
   --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
   --d-fast: 140ms;
+  /* UX R3 / R6：壳层短交互（按钮 hover、侧栏、标签）统一 150–200ms */
+  --d-ui: 170ms;
   --d-mid: 260ms;
   --d-slow: 420ms;
   --d-enter: 760ms;
@@ -4860,8 +4862,8 @@ html[data-theme="black-yellow"] {
     font-size: var(--t-sm);
     font-weight: 650;
     transition:
-      background var(--d-fast) var(--ease-quart),
-      color var(--d-fast) var(--ease-quart);
+      background var(--d-ui) var(--ease-quart),
+      color var(--d-ui) var(--ease-quart);
   }
   .member-nav__link:hover,
   .member-nav__link:focus-visible {
@@ -4999,8 +5001,8 @@ html[data-theme="black-yellow"] {
     font-size: var(--t-sm);
     font-weight: 650;
     transition:
-      background var(--d-fast) var(--ease-quart),
-      color var(--d-fast) var(--ease-quart);
+      background var(--d-ui) var(--ease-quart),
+      color var(--d-ui) var(--ease-quart);
   }
   .admin-nav__link:hover,
   .admin-nav__link:focus-visible {
@@ -5048,9 +5050,9 @@ html[data-theme="black-yellow"] {
     font-size: var(--t-sm);
     font-weight: 650;
     transition:
-      background var(--d-fast) var(--ease-quart),
-      color var(--d-fast) var(--ease-quart),
-      border-color var(--d-fast) var(--ease-quart);
+      background var(--d-ui) var(--ease-quart),
+      color var(--d-ui) var(--ease-quart),
+      border-color var(--d-ui) var(--ease-quart);
   }
   .admin-home-modules__link:hover,
   .admin-home-modules__link:focus-visible {
@@ -6780,6 +6782,37 @@ html[data-theme="black-yellow"] {
 .activity-detail {
   display: grid;
   gap: var(--s-4);
+}
+.activity-detail__actions {
+  display: grid;
+  gap: var(--s-4);
+  align-items: start;
+}
+@media (min-width: 760px) {
+  .activity-detail__actions {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.admin-capacity {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.activity-board__attend-banner {
+  display: grid;
+  gap: var(--s-3);
+  padding: var(--s-4);
+}
+.activity-board__attend-banner p {
+  margin: 0;
+}
+.activity-board__empty {
+  margin: 0;
+  padding-block: var(--s-2);
+}
+.activity-board--loading {
+  min-block-size: 8rem;
+  align-content: start;
 }
 .admin-status--success {
   color: var(--status-success-deep);
