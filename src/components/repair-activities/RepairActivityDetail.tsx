@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
+import { formatShanghaiDateTime } from "@/components/repair-activities/activity-format";
+import { repairActivityStatusBadgeClass } from "@/components/repair-activities/activity-status-badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { repairActivitiesPage } from "@/config/repair-activities";
@@ -167,14 +169,18 @@ export function RepairActivityDetail({ activityId }: Props) {
     }
   }
 
-  if (state === "loading") return <p className="muted">正在加载…</p>;
+  if (state === "loading") return <p className="muted">正在加载活动…</p>;
   if (state === "missing") {
     return (
       <Card className="admin-panel">
-        <p role="alert">{problem || "活动已结束"}</p>
-        <Button variant="ghost" href="/repair-activities">
-          返回活动列表
-        </Button>
+        <p className="muted" role="alert">
+          {problem || "活动已结束"}
+        </p>
+        <div className="signup__actions">
+          <Button variant="ghost" href="/repair-activities">
+            返回活动列表
+          </Button>
+        </div>
       </Card>
     );
   }
@@ -203,19 +209,19 @@ export function RepairActivityDetail({ activityId }: Props) {
           <h1 className="activity-card__title" id="repair-activity-detail-title">
             {activity.title}
           </h1>
-          <span className={statusTagClass(activity.status)}>
+          <span className={repairActivityStatusBadgeClass(activity.status)}>
             {repairActivityStatusLabels[activity.status as RepairActivityStatus]}
           </span>
         </div>
         <dl className="activity-card__meta">
           <div>
             <dt>{repairActivitiesPage.activityAt}</dt>
-            <dd>{formatDateTime(activity.activityAt)}</dd>
+            <dd>{formatShanghaiDateTime(activity.activityAt)}</dd>
           </div>
           <div>
             <dt>{repairActivitiesPage.window}</dt>
             <dd>
-              {formatDateTime(activity.signupOpensAt)} — {formatDateTime(activity.signupClosesAt)}
+              {formatShanghaiDateTime(activity.signupOpensAt)} — {formatShanghaiDateTime(activity.signupClosesAt)}
             </dd>
           </div>
           <div>
@@ -358,31 +364,3 @@ export function RepairActivityDetail({ activityId }: Props) {
   );
 }
 
-function statusTagClass(status: string): string {
-  switch (status) {
-    case "OPEN":
-      return "repair-tag repair-tag--approved";
-    case "FULL":
-      return "admin-tag admin-tag--accent";
-    case "UPCOMING":
-      return "admin-tag";
-    case "CLOSED":
-      return "admin-tag admin-tag--muted";
-    case "ENDED":
-      return "admin-tag admin-tag--muted";
-    default:
-      return "admin-tag";
-  }
-}
-
-function formatDateTime(iso: string): string {
-  return new Intl.DateTimeFormat("zh-CN", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(new Date(iso));
-}

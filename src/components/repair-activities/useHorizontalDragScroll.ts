@@ -4,6 +4,9 @@ import { useCallback, useRef } from "react";
 
 const DRAG_THRESHOLD_PX = 6;
 
+/** 与 globals.css `--breakpoint-md`（760px）对齐；窄屏竖列不挂拖拽。 */
+const WIDE_RAIL_MQ = "(min-width: 760px)";
+
 type DragState = {
   pointerId: number;
   startX: number;
@@ -14,7 +17,8 @@ type DragState = {
 
 /**
  * 宽屏横滑轨道：指针拖拽滚动；位移超过阈值时抑制随后的 click，避免误开链接。
- * 触控原生横向滑动不拦截。使用 callback ref，以便列表从 loading 切到 ready 后仍能绑定。
+ * 触控原生横向滑动不拦截。窄屏（< md）不绑定监听。
+ * 使用 callback ref，以便列表从 loading 切到 ready 后仍能绑定，并随断点变化启停。
  */
 export function useHorizontalDragScroll<T extends HTMLElement>() {
   const drag = useRef<DragState | null>(null);
@@ -25,72 +29,97 @@ export function useHorizontalDragScroll<T extends HTMLElement>() {
     cleanupRef.current = null;
     if (!el) return;
 
-    const onPointerDown = (event: PointerEvent) => {
-      if (event.button !== 0) return;
-      // 触控交给原生 overflow 滑动，避免与浏览器手势抢事件。
-      if (event.pointerType === "touch") return;
-      drag.current = {
-        pointerId: event.pointerId,
-        startX: event.clientX,
-        startScroll: el.scrollLeft,
-        moved: false,
-        capturing: false,
+    const mq = window.matchMedia(WIDE_RAIL_MQ);
+
+    const bind = () => {
+      const onPointerDown = (event: PointerEvent) => {
+        if (event.button !== 0) return;
+        // 触控交给原生 overflow 滑动，避免与浏览器手势抢事件。
+        if (event.pointerType === "touch") return;
+        drag.current = {
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startScroll: el.scrollLeft,
+          moved: false,
+          capturing: false,
+        };
+      };
+
+      const onPointerMove = (event: PointerEvent) => {
+        const state = drag.current;
+        if (!state || state.pointerId !== event.pointerId) return;
+        const dx = event.clientX - state.startX;
+        if (!state.moved && Math.abs(dx) < DRAG_THRESHOLD_PX) return;
+        if (!state.moved) {
+          state.moved = true;
+          el.classList.add("is-dragging");
+          try {
+            el.setPointerCapture(event.pointerId);
+            state.capturing = true;
+          } catch {
+            /* ignore */
+          }
+        }
+        el.scrollLeft = state.startScroll - dx;
+        event.preventDefault();
+      };
+
+      const endDrag = (event: PointerEvent) => {
+        const state = drag.current;
+        if (!state || state.pointerId !== event.pointerId) return;
+        if (state.capturing) {
+          try {
+            el.releasePointerCapture(event.pointerId);
+          } catch {
+            /* ignore */
+          }
+        }
+        el.classList.remove("is-dragging");
+        // 拖过阈值：吞掉紧随其后的 click，以免激活卡片 Link。
+        if (state.moved) {
+          const suppress = (clickEvent: MouseEvent) => {
+            clickEvent.preventDefault();
+            clickEvent.stopPropagation();
+            el.removeEventListener("click", suppress, true);
+          };
+          el.addEventListener("click", suppress, true);
+          window.setTimeout(() => el.removeEventListener("click", suppress, true), 0);
+        }
+        drag.current = null;
+      };
+
+      el.addEventListener("pointerdown", onPointerDown);
+      el.addEventListener("pointermove", onPointerMove);
+      el.addEventListener("pointerup", endDrag);
+      el.addEventListener("pointercancel", endDrag);
+
+      return () => {
+        el.removeEventListener("pointerdown", onPointerDown);
+        el.removeEventListener("pointermove", onPointerMove);
+        el.removeEventListener("pointerup", endDrag);
+        el.removeEventListener("pointercancel", endDrag);
+        el.classList.remove("is-dragging");
+        drag.current = null;
       };
     };
 
-    const onPointerMove = (event: PointerEvent) => {
-      const state = drag.current;
-      if (!state || state.pointerId !== event.pointerId) return;
-      const dx = event.clientX - state.startX;
-      if (!state.moved && Math.abs(dx) < DRAG_THRESHOLD_PX) return;
-      if (!state.moved) {
-        state.moved = true;
-        el.classList.add("is-dragging");
-        try {
-          el.setPointerCapture(event.pointerId);
-          state.capturing = true;
-        } catch {
-          /* ignore */
-        }
+    let unbindListeners: (() => void) | null = null;
+
+    const sync = () => {
+      unbindListeners?.();
+      unbindListeners = null;
+      if (mq.matches) {
+        unbindListeners = bind();
       }
-      el.scrollLeft = state.startScroll - dx;
-      event.preventDefault();
     };
 
-    const endDrag = (event: PointerEvent) => {
-      const state = drag.current;
-      if (!state || state.pointerId !== event.pointerId) return;
-      if (state.capturing) {
-        try {
-          el.releasePointerCapture(event.pointerId);
-        } catch {
-          /* ignore */
-        }
-      }
-      el.classList.remove("is-dragging");
-      // 拖过阈值：吞掉紧随其后的 click，以免激活卡片 Link。
-      if (state.moved) {
-        const suppress = (clickEvent: MouseEvent) => {
-          clickEvent.preventDefault();
-          clickEvent.stopPropagation();
-          el.removeEventListener("click", suppress, true);
-        };
-        el.addEventListener("click", suppress, true);
-        window.setTimeout(() => el.removeEventListener("click", suppress, true), 0);
-      }
-      drag.current = null;
-    };
-
-    el.addEventListener("pointerdown", onPointerDown);
-    el.addEventListener("pointermove", onPointerMove);
-    el.addEventListener("pointerup", endDrag);
-    el.addEventListener("pointercancel", endDrag);
+    sync();
+    mq.addEventListener("change", sync);
 
     cleanupRef.current = () => {
-      el.removeEventListener("pointerdown", onPointerDown);
-      el.removeEventListener("pointermove", onPointerMove);
-      el.removeEventListener("pointerup", endDrag);
-      el.removeEventListener("pointercancel", endDrag);
+      mq.removeEventListener("change", sync);
+      unbindListeners?.();
+      unbindListeners = null;
       el.classList.remove("is-dragging");
       drag.current = null;
     };

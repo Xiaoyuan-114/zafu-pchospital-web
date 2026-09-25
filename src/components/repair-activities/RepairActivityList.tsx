@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { formatShanghaiDateTime } from "@/components/repair-activities/activity-format";
+import { repairActivityStatusBadgeClass } from "@/components/repair-activities/activity-status-badge";
 import { useHorizontalDragScroll } from "@/components/repair-activities/useHorizontalDragScroll";
 import { Card } from "@/components/ui/Card";
 import { repairActivitiesPage } from "@/config/repair-activities";
@@ -70,14 +72,14 @@ export function RepairActivityList() {
           <Card className={`activity-card${ended ? " activity-card--ended" : ""}`}>
             <div className="activity-card__head">
               <h2 className="activity-card__title">{item.title}</h2>
-              <span className={statusTagClass(item.status)}>
+              <span className={repairActivityStatusBadgeClass(item.status)}>
                 {repairActivityStatusLabels[item.status as RepairActivityStatus]}
               </span>
             </div>
             <dl className="activity-card__meta">
               <div>
                 <dt>{repairActivitiesPage.activityAt}</dt>
-                <dd>{formatDateTime(item.activityAt)}</dd>
+                <dd>{formatShanghaiDateTime(item.activityAt)}</dd>
               </div>
               <div>
                 <dt>名额</dt>
@@ -121,33 +123,4 @@ function formatCapacityLine(item: RepairActivityPublicView, ended: boolean): str
     String(item.remaining),
   );
   return `${remaining} · ${capacity}`;
-}
-
-function statusTagClass(status: string): string {
-  switch (status) {
-    case "OPEN":
-      return "repair-tag repair-tag--approved";
-    case "FULL":
-      return "repair-tag repair-tag--pending";
-    case "UPCOMING":
-      return "repair-tag repair-tag--draft";
-    case "CLOSED":
-      return "repair-tag repair-tag--draft";
-    case "ENDED":
-      return "repair-tag repair-tag--result";
-    default:
-      return "repair-tag repair-tag--draft";
-  }
-}
-
-function formatDateTime(iso: string): string {
-  return new Intl.DateTimeFormat("zh-CN", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(new Date(iso));
 }

@@ -6645,7 +6645,8 @@ html[data-theme="black-yellow"] {
 
 
 /* 维修活动公开列表 / 详情（M1） */
-/* 窄屏：竖列；≥ --breakpoint-md（760px）：横滑卡片带 */
+/* 窄屏：竖列；≥ --breakpoint-md（760px）：横滑卡片带。
+   注：@media 不能解析 CSS 变量，故断点字面量与 --breakpoint-md 对齐。 */
 .activity-list {
   list-style: none;
   margin: 0;
@@ -6667,6 +6668,7 @@ html[data-theme="black-yellow"] {
     -webkit-overflow-scrolling: touch;
     cursor: grab;
     overscroll-behavior-x: contain;
+    scrollbar-color: var(--line) transparent;
   }
   .activity-list.is-dragging {
     cursor: grabbing;
@@ -6703,6 +6705,7 @@ html[data-theme="black-yellow"] {
   margin: 0;
   font-size: 1.125rem;
   font-weight: 600;
+  color: var(--ink);
 }
 .activity-card__meta {
   display: grid;
@@ -6711,10 +6714,11 @@ html[data-theme="black-yellow"] {
 }
 .activity-card__meta dt {
   font-size: 0.75rem;
-  color: var(--ink-muted);
+  color: var(--ink-3);
 }
 .activity-card__meta dd {
   margin: 0;
+  color: var(--ink);
 }
 .activity-detail {
   display: grid;
