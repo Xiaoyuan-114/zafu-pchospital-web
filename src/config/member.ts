@@ -7,6 +7,8 @@
  * - 时长底层始终是整数分钟，展示时统一用下面的格式化函数。
  */
 
+import type { NavItem } from "@/config/navigation";
+
 /**
  * 成员端二级导航（T-P0-3）
  *
@@ -14,17 +16,14 @@
  * 不在此列表里重复「修改密码」。勿把「新建维修」放进侧栏——主 CTA 留给工作台 / 列表顶栏。
  *
  * `/member` 必须精确匹配高亮，否则所有子页都会把「工作台」标成当前页。
+ *
+ * 只放**常驻**入口。消息通知 / 我的收藏 / 排行榜属于低频功能，收在侧栏足部的
+ * `memberSettingsNav` 里（页面与会话不受影响，只是不再占导航位）。
  */
 export type MemberNavGroup = {
   id: string;
   title: string;
-  items: readonly {
-    index: string;
-    label: string;
-    shortLabel: string;
-    labelEn: string;
-    href: string;
-  }[];
+  items: readonly NavItem[];
 };
 
 export const memberNav: readonly MemberNavGroup[] = [
@@ -41,11 +40,15 @@ export const memberNav: readonly MemberNavGroup[] = [
     title: "我",
     items: [
       { index: "07", label: "个人资料", shortLabel: "资料", labelEn: "Profile", href: "/member/profile" },
-      { index: "08", label: "消息通知", shortLabel: "通知", labelEn: "Notifications", href: "/member/notifications" },
-      { index: "09", label: "我的收藏", shortLabel: "收藏", labelEn: "Favorites", href: "/member/favorites" },
-      { index: "10", label: "排行榜", shortLabel: "排行", labelEn: "Rankings", href: "/member/rankings" },
     ],
   },
+] as const;
+
+/** 收进侧栏足部「设置」菜单的成员端入口，编号沿用成员页既有的 05–10 序列。 */
+export const memberSettingsNav: readonly NavItem[] = [
+  { index: "08", label: "消息通知", shortLabel: "通知", labelEn: "Notifications", href: "/member/notifications" },
+  { index: "09", label: "我的收藏", shortLabel: "收藏", labelEn: "Favorites", href: "/member/favorites" },
+  { index: "10", label: "排行榜", shortLabel: "排行", labelEn: "Rankings", href: "/member/rankings" },
 ] as const;
 
 export const memberCopy = {
@@ -54,6 +57,9 @@ export const memberCopy = {
     title: "成员空间",
     titleEn: "Member",
     navLabel: "成员导航",
+    /** 侧栏足部「设置」菜单：收起低频入口，按钮文案保持单字，避免挤占窄侧栏 */
+    settingsLabel: "设置",
+    settingsMenuLabel: "设置与更多入口",
   },
 
   common: {
@@ -152,7 +158,6 @@ export const memberCopy = {
     /** 我的名次展示模板，`{rank}` 会被替换成名次数值 */
     rankingMyRankValue: "第 {rank} 名",
     rankingNoRank: "当前范围暂无上榜记录。",
-    rankingMore: "查看完整排行榜",
     rankingFootnote: "仅统计审核已通过的维修记录，按维修数量排名。",
   },
 
@@ -241,24 +246,8 @@ export const memberCopy = {
   },
 } as const;
 
-/** 通知列表标记已读 / 全部已读 / 删除成功后派发；MemberNav 监听并 refetch 未读角标（T-P2-2） */
+/** 通知列表标记已读 / 全部已读 / 删除成功后派发；成员端页面据此刷新自身状态（T-P2-2） */
 export const MEMBER_NOTIFICATIONS_CHANGED_EVENT = "member:notifications-changed";
-
-/**
- * 侧栏通知未读角标展示（T-P2-2）。
- *
- * - `null` / `undefined` / ≤0 / 非有限数 → 不展示（调用方应隐藏角标）；
- * - 1–99 → 原样数字；
- * - ≥100 → `99+`（避免宽数字撑破窄侧栏）。
- *
- * 可见角标 `aria-hidden`；真实计数由调用方放进 `sr-only` 的「未读 N 条」，读屏读完整数字。
- */
-export function formatNavUnreadBadge(count: number | null | undefined): string | null {
-  if (count == null || !Number.isFinite(count)) return null;
-  const n = Math.floor(count);
-  if (n <= 0) return null;
-  return n > 99 ? "99+" : String(n);
-}
 
 /** 把整数分钟格式化为「x 小时 y 分钟」。底层仍存整数分钟，这里只做展示。 */
 export function formatDurationMinutes(minutes: number): string {

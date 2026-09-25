@@ -4681,7 +4681,9 @@ html[data-theme="black-yellow"] {
 
 
   /* ---------------------------------------------------------- 账号菜单（T-P0-2）
-     挂在成员 hero 行动区与管理侧栏足部。无投影；面板用描边 + surface 底色。 */
+     挂在成员 hero 行动区，以及成员 / 管理两侧侧栏足部。
+     侧栏足部的「设置」菜单（NavSettingsMenu）复用同一组类，只多一条 `.nav-settings__item`。
+     无投影；面板用描边 + surface 底色。 */
   .account-menu {
     position: relative;
     display: inline-flex;
@@ -4755,6 +4757,12 @@ html[data-theme="black-yellow"] {
   }
   .account-menu__item--danger {
     color: var(--ink-2);
+  }
+  /* 设置菜单条目：编号与名称同一行，读法与侧栏条目一致。 */
+  .nav-settings__item {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-2);
   }
 
   /* ---------------------------------------------------------- 成员外壳（T-P0-3，对标 admin-shell） */
@@ -4872,25 +4880,6 @@ html[data-theme="black-yellow"] {
   .member-nav__label {
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  /* 通知未读角标（T-P2-2）：文字 + 描边双通道，令牌对齐 admin-tag--accent */
-  .member-nav__badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-inline-size: 1.25rem;
-    min-block-size: 1.25rem;
-    padding: 0 0.35rem;
-    border: 1px solid var(--accent-line);
-    border-radius: var(--r-full);
-    background: var(--accent-wash);
-    color: var(--accent-deep);
-    font-size: var(--t-micro);
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.02em;
-    line-height: 1;
     white-space: nowrap;
   }
   .member-nav__foot {

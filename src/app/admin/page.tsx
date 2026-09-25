@@ -10,7 +10,8 @@ import { ADMIN_SECTION_INDEX, adminCopy, adminNav } from "@/config/admin";
 export const metadata: Metadata = { title: adminCopy.title };
 
 /**
- * 后台首页（T-P1-3）：常用入口 3–4 卡 + 全部模块次级链接。
+ * 后台首页（T-P1-3）：常用入口卡 + 常驻模块次级链接。
+ * 「模块入口」只列侧栏常驻的条目；低频入口收在侧栏足部「设置」里，不在首页另开一份。
  * 不做任何统计数字（避免与 M5 正式口径重复或漂移）。
  */
 export default function AdminHomePage() {
