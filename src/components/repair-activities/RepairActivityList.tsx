@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { formatShanghaiDateTime } from "@/components/repair-activities/activity-format";
 import { repairActivityStatusBadgeClass } from "@/components/repair-activities/activity-status-badge";
-import { useHorizontalDragScroll } from "@/components/repair-activities/useHorizontalDragScroll";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { repairActivitiesPage } from "@/config/repair-activities";
 import {
@@ -14,11 +14,13 @@ import {
 } from "@/features/repair-activities/repair-activity-validation";
 import type { RepairActivityPublicView } from "@/features/repair-activities/repair-activity-service";
 
+const PAGE_SIZE = 4;
+
 export function RepairActivityList() {
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [items, setItems] = useState<RepairActivityPublicView[]>([]);
   const [message, setMessage] = useState("");
-  const railRef = useHorizontalDragScroll<HTMLUListElement>();
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     let cancelled = false;
@@ -37,6 +39,7 @@ export function RepairActivityList() {
           return;
         }
         setItems(json.data);
+        setPage(1);
         setState("ready");
       } catch {
         if (!cancelled) {
@@ -49,6 +52,13 @@ export function RepairActivityList() {
       cancelled = true;
     };
   }, []);
+
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const safePage = Math.min(Math.max(1, page), totalPages);
+  const pageItems = useMemo(
+    () => items.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [items, safePage],
+  );
 
   if (state === "loading") {
     return <p className="muted">正在加载活动…</p>;
@@ -65,57 +75,82 @@ export function RepairActivityList() {
   }
 
   return (
-    <ul ref={railRef} className="activity-list">
-      {items.map((item) => {
-        const ended = item.status === "ENDED";
-        const body = (
-          <Card className={`activity-card${ended ? " activity-card--ended" : ""}`}>
-            <div className="activity-card__head">
-              <h2 className="activity-card__title">{item.title}</h2>
-              <span className={repairActivityStatusBadgeClass(item.status)}>
-                {repairActivityStatusLabels[item.status as RepairActivityStatus]}
-              </span>
-            </div>
-            <dl className="activity-card__meta">
-              <div>
-                <dt>{repairActivitiesPage.activityAt}</dt>
-                <dd>{formatShanghaiDateTime(item.activityAt)}</dd>
+    <div className="activity-list-block">
+      <ul className="activity-list activity-list--paged">
+        {pageItems.map((item) => {
+          const ended = item.status === "ENDED";
+          const body = (
+            <Card className={`activity-card${ended ? " activity-card--ended" : ""}`}>
+              <div className="activity-card__head">
+                <h2 className="activity-card__title">{item.title}</h2>
+                <span className={repairActivityStatusBadgeClass(item.status)}>
+                  {repairActivityStatusLabels[item.status as RepairActivityStatus]}
+                </span>
               </div>
-              <div>
-                <dt>名额</dt>
-                <dd>{formatCapacityLine(item, ended)}</dd>
+              <dl className="activity-card__meta">
+                <div>
+                  <dt>{repairActivitiesPage.activityAt}</dt>
+                  <dd>{formatShanghaiDateTime(item.activityAt)}</dd>
+                </div>
+                <div>
+                  <dt>名额</dt>
+                  <dd>{formatCapacityLine(item, ended)}</dd>
+                </div>
+              </dl>
+              <div className="activity-card__footer">
+                <p
+                  className={`muted${ended ? "" : " activity-card__footer-slot"}`}
+                  aria-hidden={ended ? undefined : true}
+                >
+                  {repairActivitiesPage.endedHint}
+                </p>
               </div>
-            </dl>
-            <div className="activity-card__footer">
-              <p
-                className={`muted${ended ? "" : " activity-card__footer-slot"}`}
-                aria-hidden={ended ? undefined : true}
-              >
-                {repairActivitiesPage.endedHint}
-              </p>
-            </div>
-          </Card>
-        );
+            </Card>
+          );
 
-        if (ended) {
+          if (ended) {
+            return (
+              <li key={item.id}>
+                <div aria-disabled="true" className="activity-card__ended-wrap">
+                  {body}
+                </div>
+              </li>
+            );
+          }
+
           return (
             <li key={item.id}>
-              <div aria-disabled="true" className="activity-card__ended-wrap">
+              <Link href={`/repair-activities/${item.id}`} className="activity-card__link">
                 {body}
-              </div>
+              </Link>
             </li>
           );
-        }
-
-        return (
-          <li key={item.id}>
-            <Link href={`/repair-activities/${item.id}`} className="activity-card__link">
-              {body}
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
+        })}
+      </ul>
+      {totalPages > 1 ? (
+        <nav className="repair-pagination" aria-label={repairActivitiesPage.paginationLabel}>
+          <Button
+            type="button"
+            icon="chevronLeft"
+            disabled={safePage <= 1}
+            onClick={() => setPage(safePage - 1)}
+          >
+            {repairActivitiesPage.previousPage}
+          </Button>
+          <span>
+            {safePage} / {totalPages}
+          </span>
+          <Button
+            type="button"
+            trailingIcon="chevronRight"
+            disabled={safePage >= totalPages}
+            onClick={() => setPage(safePage + 1)}
+          >
+            {repairActivitiesPage.nextPage}
+          </Button>
+        </nav>
+      ) : null}
+    </div>
   );
 }
 

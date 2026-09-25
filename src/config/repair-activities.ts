@@ -14,6 +14,9 @@ export const repairActivitiesPage = {
   activityAt: "活动时间",
   window: "报名时间",
   endedHint: "活动已结束",
+  previousPage: "上一页",
+  nextPage: "下一页",
+  paginationLabel: "分页",
   detail: {
     signupTitle: "报名参加",
     lookupTitle: "查询 / 修改故障类型",

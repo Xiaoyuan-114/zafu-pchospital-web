@@ -6645,9 +6645,15 @@ html[data-theme="black-yellow"] {
 
 
 /* 维修活动公开列表 / 详情（M1） */
-/* 窄屏：竖列；≥ --breakpoint-md（760px）：横滑卡片带。
+/* 窄屏：竖列；≥ --breakpoint-md（760px）：
+   - 成员列表等：横滑卡片带（无拖拽光标）
+   - 公开分页列表（.activity-list--paged）：至多 4 列等宽，无 overflow 横滑
    注：@media 不能解析 CSS 变量，故断点字面量与 --breakpoint-md 对齐。
-   宽屏固定列宽 + 行内等高，避免标题换行 / endedHint 造成卡片参差。 */
+   卡片等高：标题钳制 + endedHint 页脚占位（见下）。 */
+.activity-list-block {
+  display: grid;
+  gap: var(--s-4);
+}
 .activity-list {
   list-style: none;
   margin: 0;
@@ -6662,7 +6668,7 @@ html[data-theme="black-yellow"] {
   min-inline-size: 0;
 }
 @media (min-width: 760px) {
-  .activity-list {
+  .activity-list:not(.activity-list--paged) {
     display: grid;
     grid-auto-flow: column;
     grid-auto-columns: 18rem;
@@ -6673,17 +6679,17 @@ html[data-theme="black-yellow"] {
     padding-block-end: var(--s-2);
     scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
-    cursor: grab;
     overscroll-behavior-x: contain;
     scrollbar-color: var(--line) transparent;
   }
-  .activity-list.is-dragging {
-    cursor: grabbing;
-    scroll-snap-type: none;
-    user-select: none;
-  }
-  .activity-list > li {
+  .activity-list:not(.activity-list--paged) > li {
     scroll-snap-align: start;
+  }
+  .activity-list--paged {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--s-4);
+    overflow: visible;
   }
 }
 .activity-card__link,
