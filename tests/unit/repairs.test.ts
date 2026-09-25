@@ -30,29 +30,37 @@ test("维修状态机只接受任务书规定流转", () => {
   assert.equal(isRepairTransitionAllowed("APPROVED", "DRAFT"), false);
   assert.equal(isRepairTransitionAllowed("DRAFT", "APPROVED"), false);
 });
-test("提交完整性覆盖日期、时长、正文和照片边界", () => {
+test("提交完整性只要求日期、分类、结果和照片，正文与时长不再强制", () => {
   assert.throws(
     () =>
       validateSubmission({
         repairDate: null,
-        durationMinutes: 0,
         categoryId: null,
-        content: "短",
+        content: null,
         result: null,
-        remark: null,
         photoCount: 0,
       }),
     (e) => e instanceof AppError && e.code === "REPAIR_SUBMISSION_INCOMPLETE",
   );
+  // 正文选填、维修时长不参与提交校验：只有日期、分类、结果和一张照片也能提交。
   validateSubmission({
     repairDate: new Date("2026-09-15T00:00:00.000Z"),
-    durationMinutes: 90,
     categoryId: "category",
-    content: "这是一段符合长度要求的维修过程记录",
+    content: "短",
     result: "COMPLETED",
-    remark: null,
     photoCount: 1,
   });
+  assert.throws(
+    () =>
+      validateSubmission({
+        repairDate: new Date("2026-09-15T00:00:00.000Z"),
+        categoryId: "category",
+        content: "字".repeat(10001),
+        result: "COMPLETED",
+        photoCount: 1,
+      }),
+    (e) => e instanceof AppError && e.code === "REPAIR_SUBMISSION_INCOMPLETE",
+  );
   assert.throws(() => validateDraftFields({ durationMinutes: 10081 }), AppError);
 });
 test("图片魔数拒绝伪造 MIME 并识别 JPEG PNG WebP", () => {

@@ -82,6 +82,8 @@ export const repairResultLabels: Record<(typeof RepairResult)[number], string> =
   COMPLETED: "已完成",
   NOT_COMPLETED: "未完成",
 };
+/** 成员端不填写维修结果，缺省按「已完成」记录；管理员仍可在管理端改成「未完成」。 */
+export const defaultRepairResult: RepairResult = "COMPLETED";
 export const repairTimelineLabels = {
   CREATED: "创建草稿",
   UPDATED: "修改记录",
