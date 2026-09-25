@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { defaultRepairResult } from "@/config/repairs";
 import type { Prisma } from "@/generated/prisma/client";
 import { appendAuditLog } from "@/lib/audit/audit-service";
 import { AppError } from "@/lib/api/errors";
@@ -34,6 +35,7 @@ export const repairService: RepairServiceContract = {
     }
     const fields = normalizeDraftFields(input);
     validateDraftFields(fields);
+    const draft = { ...fields, result: fields.result ?? defaultRepairResult };
     const now = new Date();
     const record = await inSerializableTransaction(async (tx) => {
       const created = await tx.repairRecord.create({
@@ -42,7 +44,7 @@ export const repairService: RepairServiceContract = {
           memberProfileId: member.id,
           status: "DRAFT",
           createRequestKey: key,
-          ...dataFields(fields),
+          ...dataFields(draft),
           createdAt: now,
         },
         include: repairDetailInclude,

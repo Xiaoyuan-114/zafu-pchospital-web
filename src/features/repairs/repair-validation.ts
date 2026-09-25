@@ -33,28 +33,18 @@ export function validateDraftFields(input: RepairDraftFields): void {
 
 export function validateSubmission(record: {
   repairDate: Date | null;
-  durationMinutes: number | null;
   categoryId: string | null;
   content: string | null;
   result: string | null;
-  remark: string | null;
   photoCount: number;
 }): void {
   const errors: Record<string, string[]> = {};
   if (!record.repairDate) errors.repairDate = ["请填写维修日期"];
   else if (formatShanghaiDate(record.repairDate) > currentShanghaiDate())
     errors.repairDate = ["维修日期不能晚于今天"];
-  if (
-    !Number.isInteger(record.durationMinutes) ||
-    record.durationMinutes! < 1 ||
-    record.durationMinutes! > 10080
-  )
-    errors.durationMinutes = ["维修时长须为 1–10080 分钟"];
   if (!record.categoryId) errors.categoryId = ["请选择故障分类"];
-  const content = record.content?.trim() ?? "";
-  if (content.length < 10 || content.length > 10000) errors.content = ["维修内容须为 10–10000 字"];
-  if (!isRepairResult(record.result)) errors.result = ["请选择维修结果"];
-  if ((record.remark?.trim().length ?? 0) > 2000) errors.remark = ["备注不能超过 2000 字"];
+  if ((record.content?.trim().length ?? 0) > 10000) errors.content = ["维修内容不能超过 10000 字"];
+  if (!isRepairResult(record.result)) errors.result = ["维修结果缺失"];
   if (record.photoCount < 1) errors.photos = ["至少上传一张维修照片"];
   if (Object.keys(errors).length)
     throw new AppError("REPAIR_SUBMISSION_INCOMPLETE", "请补全维修记录后再提交", {
