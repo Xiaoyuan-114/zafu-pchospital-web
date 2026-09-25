@@ -199,12 +199,15 @@ test("后台低频入口收在设置菜单，侧栏只留常驻模块", () => {
       "/admin/repair-activities",
     ],
   );
-  assert.equal(ADMIN_SECTION_INDEX.repairActivities, "19");
-  // 编号沿用原值（11–14、17、18），不重排 —— `ADMIN_SECTION_INDEX` 同时被各页
-  // `SectionHead` 使用，改号会让菜单里的编号与页面标题对不上。
+  assert.equal(ADMIN_SECTION_INDEX.repairActivities, "05");
+  // UX R3 / C3：按侧栏展示顺序连续编号（常驻 01–05，设置 06–11）。
   const indexes = adminSettingsNav.map((item) => item.index);
-  assert.deepEqual(indexes, ["11", "12", "13", "14", "17", "18"]);
-  assert.equal(ADMIN_SECTION_INDEX.settings, "18");
+  assert.deepEqual(indexes, ["06", "07", "08", "09", "10", "11"]);
+  assert.equal(ADMIN_SECTION_INDEX.settings, "11");
+  assert.deepEqual(
+    adminNav.map((item) => item.index),
+    ["01", "02", "03", "04", "05"],
+  );
 });
 
 test("侧栏常驻与设置菜单互不重叠，两处的编号全局唯一", () => {

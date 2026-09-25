@@ -195,7 +195,7 @@ test("批量入参：字符串数组去重、拒绝空元素与非数组", () =>
   assert.throws(() => requiredString({ reason: "  " }, "reason"), /不能为空/);
 });
 
-test("后台导航不进入公开导航，且编号从 09 起、互不重复", () => {
+test("后台导航不进入公开导航，且侧栏编号按展示顺序连续、互不重复", () => {
   const publicHrefs = new Set(mainNav.map((item) => item.href));
   for (const item of adminNav) {
     assert.equal(item.href.startsWith("/admin/"), true, item.href);
@@ -203,7 +203,7 @@ test("后台导航不进入公开导航，且编号从 09 起、互不重复", (
   }
   const indexes = adminNav.map((item) => item.index);
   assert.equal(new Set(indexes).size, indexes.length);
-  for (const index of indexes) assert.equal(Number(index) >= 9, true, index);
+  assert.deepEqual(indexes, ["01", "02", "03", "04", "05"]);
   assert.equal(ADMIN_SECTION_INDEX.home, "00");
   // T-P1-3：首页只放常用入口，完整模块走侧栏 / 「全部模块」
   assert.equal(adminCopy.home.common.length >= 3 && adminCopy.home.common.length <= 4, true);

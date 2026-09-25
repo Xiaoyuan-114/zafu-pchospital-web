@@ -28,6 +28,15 @@ export const repairActivityStatusLabels: Record<RepairActivityStatus, string> = 
   ENDED: "已结束",
 };
 
+/** 管理列表短标签（UX R3 / C8）：将开 / 开放 / 已满 / 截止 / 结束 */
+export const repairActivityStatusShortLabels: Record<RepairActivityStatus, string> = {
+  UPCOMING: "将开",
+  OPEN: "开放",
+  FULL: "已满",
+  CLOSED: "截止",
+  ENDED: "结束",
+};
+
 export const repairActivityIssueTypeLabels: Record<RepairActivityIssueType, string> = {
   CLEAN_PASTE: "清灰换硅脂",
   CLEAN_ONLY: "清灰",
