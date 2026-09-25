@@ -6753,14 +6753,16 @@ html[data-theme="black-yellow"] {
   margin: 0;
   color: var(--ink);
 }
-/* 页脚槽位：所有列表卡等高预留 endedHint / CTA 一行 */
+/* 页脚槽位：所有列表卡等高预留 endedHint；非结束卡用同文案占位并隐藏 */
 .activity-card__footer {
   margin-top: auto;
-  min-height: calc(1em * 1.5);
   padding-top: var(--s-3);
 }
 .activity-card__footer > :first-child {
   margin: 0;
+}
+.activity-card__footer-slot {
+  visibility: hidden;
 }
 .activity-detail {
   display: grid;

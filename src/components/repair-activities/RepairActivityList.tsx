@@ -87,9 +87,12 @@ export function RepairActivityList() {
               </div>
             </dl>
             <div className="activity-card__footer">
-              {ended ? (
-                <p className="muted">{repairActivitiesPage.endedHint}</p>
-              ) : null}
+              <p
+                className={`muted${ended ? "" : " activity-card__footer-slot"}`}
+                aria-hidden={ended ? undefined : true}
+              >
+                {repairActivitiesPage.endedHint}
+              </p>
             </div>
           </Card>
         );
