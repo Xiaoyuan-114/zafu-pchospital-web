@@ -27,6 +27,7 @@ export function RepairActivityDetail({ activityId }: Props) {
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [lookup, setLookup] = useState<RegistrationLookupView | null>(null);
+  const [lookupPhone, setLookupPhone] = useState("");
 
   const load = useCallback(async () => {
     setProblem("");
@@ -99,16 +100,14 @@ export function RepairActivityDetail({ activityId }: Props) {
     setProblem("");
     setNotice("");
     setLookup(null);
+    setLookupPhone("");
     const data = Object.fromEntries(new FormData(event.currentTarget)) as Record<string, string>;
     try {
-      const response = await fetch(
-        `/api/v1/repair-activities/${activityId}/registrations/lookup`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone: data.phone ?? "" }),
-        },
-      );
+      const response = await fetch(`/api/v1/repair-activities/${activityId}/registrations/lookup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: data.phone ?? "" }),
+      });
       const json = (await response.json()) as {
         success: boolean;
         data?: RegistrationLookupView;
@@ -118,6 +117,7 @@ export function RepairActivityDetail({ activityId }: Props) {
         setProblem(json.error?.message ?? "查询失败");
       } else {
         setLookup(json.data);
+        setLookupPhone(data.phone ?? "");
         setNotice(copy.lookupSuccess);
       }
     } catch {
@@ -142,6 +142,7 @@ export function RepairActivityDetail({ activityId }: Props) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             issueType: data.issueType ?? "",
+            phone: lookupPhone,
             editToken: lookup.editToken,
           }),
         },
@@ -248,15 +249,35 @@ export function RepairActivityDetail({ activityId }: Props) {
           <div className="admin-form__grid">
             <label className="field">
               <span className="field__label">{copy.name}</span>
-              <input className="field__input" name="name" required minLength={2} maxLength={40} disabled={!open || busy} />
+              <input
+                className="field__input"
+                name="name"
+                required
+                minLength={2}
+                maxLength={40}
+                disabled={!open || busy}
+              />
             </label>
             <label className="field">
               <span className="field__label">{copy.phone}</span>
-              <input className="field__input" name="phone" required inputMode="numeric" maxLength={11} disabled={!open || busy} />
+              <input
+                className="field__input"
+                name="phone"
+                required
+                inputMode="numeric"
+                maxLength={11}
+                disabled={!open || busy}
+              />
             </label>
             <label className="field">
               <span className="field__label">{copy.issueType}</span>
-              <select className="field__input" name="issueType" required disabled={!open || busy} defaultValue="CLEAN_PASTE">
+              <select
+                className="field__input"
+                name="issueType"
+                required
+                disabled={!open || busy}
+                defaultValue="CLEAN_PASTE"
+              >
                 {repairActivitiesPage.issueTypes.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
@@ -278,7 +299,14 @@ export function RepairActivityDetail({ activityId }: Props) {
         <form className="admin-form" onSubmit={doLookup} aria-label={copy.lookupTitle}>
           <label className="field">
             <span className="field__label">{copy.phone}</span>
-            <input className="field__input" name="phone" required inputMode="numeric" maxLength={11} disabled={busy} />
+            <input
+              className="field__input"
+              name="phone"
+              required
+              inputMode="numeric"
+              maxLength={11}
+              disabled={busy}
+            />
           </label>
           <div className="signup__actions">
             <Button type="submit" variant="ghost" disabled={busy}>
@@ -329,7 +357,6 @@ export function RepairActivityDetail({ activityId }: Props) {
     </div>
   );
 }
-
 
 function statusTagClass(status: string): string {
   switch (status) {

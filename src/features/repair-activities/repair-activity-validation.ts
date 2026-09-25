@@ -1,21 +1,17 @@
 import { AppError } from "@/lib/api/errors";
 
 /** 对外五态。优先级：ENDED > CLOSED > FULL/OPEN > UPCOMING。 */
-export const RepairActivityStatus = [
-  "UPCOMING",
-  "OPEN",
-  "FULL",
-  "CLOSED",
-  "ENDED",
-] as const;
+export const RepairActivityStatus = ["UPCOMING", "OPEN", "FULL", "CLOSED", "ENDED"] as const;
 export type RepairActivityStatus = (typeof RepairActivityStatus)[number];
 
 export const RepairActivityIssueType = ["CLEAN_PASTE", "CLEAN_ONLY", "OTHER"] as const;
 export type RepairActivityIssueType = (typeof RepairActivityIssueType)[number];
 
+/** Capacity lower bound shared by server validation and admin form HTML min. */
+export const REPAIR_ACTIVITY_CAPACITY_MIN = 1;
+
 export const RepairActivityRegistrationStatus = ["REGISTERED", "CHECKED_IN", "SERVED"] as const;
-export type RepairActivityRegistrationStatus =
-  (typeof RepairActivityRegistrationStatus)[number];
+export type RepairActivityRegistrationStatus = (typeof RepairActivityRegistrationStatus)[number];
 
 /** 占用名额的有效报名状态（撤回排队不减名额；仅软删释放）。 */
 export const EFFECTIVE_REGISTRATION_STATUSES: readonly RepairActivityRegistrationStatus[] = [
@@ -117,7 +113,7 @@ export function canEditIssueType(params: {
 }
 
 export function assertValidCapacity(capacity: number): void {
-  if (!Number.isInteger(capacity) || capacity < 1 || capacity > 10_000) {
+  if (!Number.isInteger(capacity) || capacity < REPAIR_ACTIVITY_CAPACITY_MIN || capacity > 10_000) {
     throw new AppError("VALIDATION_FAILED", "人数上限须为 1–10000 的整数", {
       fieldErrors: { capacity: ["请输入 1–10000 的整数"] },
     });
@@ -145,7 +141,10 @@ export function assertValidRegistrantName(name: string): string {
 }
 
 export function assertValidIssueType(value: unknown): RepairActivityIssueType {
-  if (typeof value !== "string" || !(RepairActivityIssueType as readonly string[]).includes(value)) {
+  if (
+    typeof value !== "string" ||
+    !(RepairActivityIssueType as readonly string[]).includes(value)
+  ) {
     throw new AppError("VALIDATION_FAILED", "故障类型无效", {
       fieldErrors: { issueType: ["请选择有效的故障类型"] },
     });

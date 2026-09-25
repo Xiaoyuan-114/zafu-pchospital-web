@@ -1,6 +1,9 @@
 import { randomUUID } from "node:crypto";
 
-import { issueRegistrationEditToken, verifyRegistrationEditToken } from "@/features/repair-activities/edit-token";
+import {
+  issueRegistrationEditToken,
+  verifyRegistrationEditToken,
+} from "@/features/repair-activities/edit-token";
 import { maskActivityPhone } from "@/features/repair-activities/phone-mask";
 import {
   assertActivityTimeRules,
@@ -73,6 +76,23 @@ export type RegistrationLookupView = RegistrationPublicView & {
   editTokenExpiresAt: string;
 };
 
+export type RegistrationAdminView = {
+  id: string;
+  activityId: string;
+  name: string;
+  phone: string;
+  issueType: RepairActivityIssueType;
+  status: string;
+  createdAt: string;
+  deletedAt: string | null;
+};
+
+export type UpdateRegistrationInput = {
+  name?: string;
+  phone?: string;
+  issueType?: unknown;
+};
+
 type ActivityRow = {
   id: string;
   title: string;
@@ -123,12 +143,38 @@ function toPublicView(
   };
 }
 
-function toAdminView(row: ActivityRow, registeredCount: number, now: Date): RepairActivityAdminView {
+function toAdminView(
+  row: ActivityRow,
+  registeredCount: number,
+  now: Date,
+): RepairActivityAdminView {
   return {
     ...toPublicView(row, registeredCount, now),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     createdBy: row.createdBy,
+  };
+}
+
+function toRegistrationAdminView(row: {
+  id: string;
+  activityId: string;
+  name: string;
+  phone: string;
+  issueType: string;
+  status: string;
+  createdAt: Date;
+  deletedAt: Date | null;
+}): RegistrationAdminView {
+  return {
+    id: row.id,
+    activityId: row.activityId,
+    name: row.name,
+    phone: row.phone,
+    issueType: assertValidIssueType(row.issueType),
+    status: row.status,
+    createdAt: row.createdAt.toISOString(),
+    deletedAt: row.deletedAt?.toISOString() ?? null,
   };
 }
 
@@ -155,7 +201,128 @@ export const repairActivityService = {
     return rows.map((row) => toAdminView(row, counts.get(row.id) ?? 0, now));
   },
 
-  async create(input: CreateRepairActivityInput, actor: AuthorizedActor): Promise<RepairActivityAdminView> {
+  async listRegistrations(
+    activityId: string,
+    actor: AuthorizedActor,
+  ): Promise<RegistrationAdminView[]> {
+    requirePermission(actor, "activity:admin");
+    const activity = await getDb().repairActivity.findFirst({
+      where: { id: activityId, deletedAt: null },
+    });
+    if (!activity) throw new AppError("ACTIVITY_NOT_FOUND", "活动不存在");
+    const rows = await getDb().repairActivityRegistration.findMany({
+      where: { activityId },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    });
+    return rows.map(toRegistrationAdminView);
+  },
+
+  async updateRegistration(
+    activityId: string,
+    registrationId: string,
+    input: UpdateRegistrationInput,
+    actor: AuthorizedActor,
+  ): Promise<RegistrationAdminView> {
+    requirePermission(actor, "activity:admin");
+    return inSerializableTransaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM repair_activities WHERE id = ${activityId} FOR UPDATE`;
+      const activity = await tx.repairActivity.findUnique({ where: { id: activityId } });
+      if (!activity || activity.deletedAt) {
+        throw new AppError("ACTIVITY_NOT_FOUND", "活动不存在");
+      }
+      if (new Date().getTime() >= activity.activityAt.getTime()) {
+        throw new AppError("ACTIVITY_ENDED", "活动已结束");
+      }
+      const before = await tx.repairActivityRegistration.findFirst({
+        where: { id: registrationId, activityId },
+      });
+      if (!before || before.deletedAt) {
+        throw new AppError("ACTIVITY_REGISTRATION_NOT_FOUND", "报名记录不存在或已删除");
+      }
+      const name = input.name !== undefined ? assertValidRegistrantName(input.name) : before.name;
+      const phone = input.phone !== undefined ? normalizePhone(input.phone) : before.phone;
+      const issueType =
+        input.issueType !== undefined
+          ? assertValidIssueType(input.issueType)
+          : assertValidIssueType(before.issueType);
+      if (phone !== before.phone) {
+        const duplicate = await tx.repairActivityRegistration.findFirst({
+          where: { activityId, phone, deletedAt: null, id: { not: registrationId } },
+        });
+        if (duplicate)
+          throw new AppError("ACTIVITY_REGISTRATION_DUPLICATE", "该手机号已报名本场活动");
+      }
+      const updated = await tx.repairActivityRegistration.update({
+        where: { id: registrationId },
+        data: { name, phone, phoneLast4: phone.slice(-4), issueType },
+      });
+      await appendAuditLog(tx, {
+        actor,
+        actorType: "USER",
+        actorUserId: actor.userId,
+        action: "repair_activity.registration_updated",
+        targetType: "RepairActivityRegistration",
+        targetId: registrationId,
+        result: "SUCCESS",
+        before: {
+          activityId,
+          name: before.name,
+          phoneMasked: maskActivityPhone(before.phone),
+          issueType: before.issueType,
+        },
+        after: { activityId, name, phoneMasked: maskActivityPhone(phone), issueType },
+      });
+      return toRegistrationAdminView(updated);
+    });
+  },
+
+  async softDeleteRegistration(
+    activityId: string,
+    registrationId: string,
+    actor: AuthorizedActor,
+  ): Promise<void> {
+    requirePermission(actor, "activity:admin");
+    await inSerializableTransaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM repair_activities WHERE id = ${activityId} FOR UPDATE`;
+      const activity = await tx.repairActivity.findUnique({ where: { id: activityId } });
+      if (!activity || activity.deletedAt) {
+        throw new AppError("ACTIVITY_NOT_FOUND", "活动不存在");
+      }
+      const current = await tx.repairActivityRegistration.findFirst({
+        where: { id: registrationId, activityId },
+      });
+      if (!current || current.deletedAt) {
+        throw new AppError("ACTIVITY_REGISTRATION_NOT_FOUND", "报名记录不存在或已删除");
+      }
+      const now = new Date();
+      await tx.repairActivityRegistration.update({
+        where: { id: registrationId },
+        data: { deletedAt: now },
+      });
+      await appendAuditLog(tx, {
+        actor,
+        actorType: "USER",
+        actorUserId: actor.userId,
+        action: "repair_activity.registration_deleted",
+        targetType: "RepairActivityRegistration",
+        targetId: registrationId,
+        result: "SUCCESS",
+        before: {
+          activityId,
+          name: current.name,
+          phoneMasked: maskActivityPhone(current.phone),
+          issueType: current.issueType,
+          status: current.status,
+        },
+        after: { deletedAt: now.toISOString() },
+      });
+    });
+  },
+
+  async create(
+    input: CreateRepairActivityInput,
+    actor: AuthorizedActor,
+  ): Promise<RepairActivityAdminView> {
     requirePermission(actor, "activity:admin");
     const title = assertValidTitle(input.title);
     assertValidCapacity(input.capacity);
@@ -432,10 +599,11 @@ export const repairActivityService = {
   async updateIssueType(
     activityId: string,
     registrationId: string,
-    input: { issueType: unknown; editToken: string },
+    input: { issueType: unknown; phone: string; editToken: string },
     context: PublicRequestContext,
   ): Promise<RegistrationPublicView> {
     const issueType = assertValidIssueType(input.issueType);
+    normalizePhone(input.phone);
     if (typeof input.editToken !== "string" || !input.editToken.trim()) {
       throw new AppError("ACTIVITY_EDIT_TOKEN_INVALID", "改类型凭证无效或已过期");
     }

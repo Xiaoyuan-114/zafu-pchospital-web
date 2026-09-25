@@ -10,10 +10,15 @@ import { Card } from "@/components/ui/Card";
 import { adminCopy, adminShared } from "@/config/admin";
 import { adminFetch } from "@/features/admin/admin-client";
 import {
+  repairActivityIssueTypeLabels,
   repairActivityStatusLabels,
+  REPAIR_ACTIVITY_CAPACITY_MIN,
   type RepairActivityStatus,
 } from "@/features/repair-activities/repair-activity-validation";
-import type { RepairActivityAdminView } from "@/features/repair-activities/repair-activity-service";
+import type {
+  RegistrationAdminView,
+  RepairActivityAdminView,
+} from "@/features/repair-activities/repair-activity-service";
 
 /**
  * 维修活动管理（M1）：列表 + 新建/编辑表单 + 软删确认。
@@ -28,6 +33,18 @@ export function RepairActivityAdminPanel() {
   const [editing, setEditing] = useState<RepairActivityAdminView | null>(null);
   const [removing, setRemoving] = useState<RepairActivityAdminView | null>(null);
   const [busy, setBusy] = useState(false);
+  const [registrationActivity, setRegistrationActivity] = useState<RepairActivityAdminView | null>(
+    null,
+  );
+  const [registrations, setRegistrations] = useState<RegistrationAdminView[]>([]);
+  const [registrationState, setRegistrationState] = useState<"idle" | "loading" | "ready">("idle");
+  const [registrationProblem, setRegistrationProblem] = useState("");
+  const [editingRegistration, setEditingRegistration] = useState<RegistrationAdminView | null>(
+    null,
+  );
+  const [removingRegistration, setRemovingRegistration] = useState<RegistrationAdminView | null>(
+    null,
+  );
 
   const load = useCallback(async () => {
     setState((current) => (current === "ready" ? "ready" : "loading"));
@@ -103,6 +120,76 @@ export function RepairActivityAdminPanel() {
     await load();
   }
 
+  async function openRegistrations(activity: RepairActivityAdminView) {
+    setRegistrationActivity(activity);
+    setEditingRegistration(null);
+    setRemovingRegistration(null);
+    setRegistrationState("loading");
+    setRegistrationProblem("");
+    const result = await adminFetch<RegistrationAdminView[]>(
+      `/api/v1/admin/repair-activities/${activity.id}/registrations`,
+    );
+    if (!result.ok) {
+      setRegistrationState("ready");
+      setRegistrationProblem(result.message);
+      return;
+    }
+    setRegistrations(result.data);
+    setRegistrationState("ready");
+  }
+
+  async function saveRegistration(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!registrationActivity || !editingRegistration) return;
+    setBusy(true);
+    const data = Object.fromEntries(new FormData(event.currentTarget)) as Record<string, string>;
+    const result = await adminFetch<RegistrationAdminView>(
+      `/api/v1/admin/repair-activities/${registrationActivity.id}/registrations/${editingRegistration.id}`,
+      {
+        method: "PATCH",
+        body: {
+          name: data.name ?? "",
+          phone: data.phone ?? "",
+          issueType: data.issueType ?? "",
+        },
+      },
+    );
+    setBusy(false);
+    if (!result.ok) {
+      setRegistrationProblem(result.message);
+      return;
+    }
+    setRegistrations((items) =>
+      items.map((item) => (item.id === result.data.id ? result.data : item)),
+    );
+    setEditingRegistration(null);
+    setRegistrationProblem("");
+  }
+
+  async function confirmRegistrationRemove() {
+    if (!registrationActivity || !removingRegistration) return;
+    setBusy(true);
+    const result = await adminFetch<{ deleted: boolean }>(
+      `/api/v1/admin/repair-activities/${registrationActivity.id}/registrations/${removingRegistration.id}`,
+      { method: "DELETE" },
+    );
+    setBusy(false);
+    if (!result.ok) {
+      setRegistrationProblem(result.message);
+      return;
+    }
+    setRegistrations((items) =>
+      items.map((item) =>
+        item.id === removingRegistration.id
+          ? { ...item, deletedAt: new Date().toISOString() }
+          : item,
+      ),
+    );
+    setRemovingRegistration(null);
+    setRegistrationProblem("");
+    await load();
+  }
+
   async function confirmRemove() {
     if (!removing) return;
     setBusy(true);
@@ -156,7 +243,8 @@ export function RepairActivityAdminPanel() {
                 name="capacity"
                 type="number"
                 required
-                min={1}
+                // Keep browser validation aligned with assertValidCapacity (server lower bound = 1).
+                min={REPAIR_ACTIVITY_CAPACITY_MIN}
                 max={10000}
                 defaultValue={30}
               />
@@ -245,18 +333,17 @@ export function RepairActivityAdminPanel() {
                     </td>
                     <td data-label={copy.table.actions}>
                       <div className="admin-row-actions">
-                        <Button
-                          variant="ghost"
-                          disabled={busy}
-                          onClick={() => setEditing(item)}
-                        >
+                        <Button variant="ghost" disabled={busy} onClick={() => setEditing(item)}>
                           {copy.action.edit}
                         </Button>
                         <Button
                           variant="ghost"
                           disabled={busy}
-                          onClick={() => setRemoving(item)}
+                          onClick={() => void openRegistrations(item)}
                         >
+                          {copy.action.registrations}
+                        </Button>
+                        <Button variant="ghost" disabled={busy} onClick={() => setRemoving(item)}>
                           {copy.action.remove}
                         </Button>
                       </div>
@@ -290,7 +377,7 @@ export function RepairActivityAdminPanel() {
                   name="capacity"
                   type="number"
                   required
-                  min={1}
+                  min={REPAIR_ACTIVITY_CAPACITY_MIN}
                   max={10000}
                   defaultValue={editing.capacity}
                 />
@@ -338,6 +425,147 @@ export function RepairActivityAdminPanel() {
         </AdminModal>
       ) : null}
 
+      {registrationActivity ? (
+        <AdminModal
+          title={copy.registrations.title}
+          subtitle={registrationActivity.title}
+          onClose={() => setRegistrationActivity(null)}
+        >
+          {registrationProblem ? (
+            <p className="admin-status admin-status--error" role="alert">
+              {registrationProblem}
+            </p>
+          ) : null}
+          {registrationState === "loading" ? <p className="muted">{adminShared.loading}</p> : null}
+          {registrationState === "ready" && registrations.length === 0 ? (
+            <p className="muted">{copy.registrations.empty}</p>
+          ) : null}
+          {registrations.length > 0 ? (
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>{copy.registrations.name}</th>
+                    <th>{copy.registrations.phone}</th>
+                    <th>{copy.registrations.issueType}</th>
+                    <th>{copy.registrations.status}</th>
+                    <th>{copy.table.actions}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {registrations.map((registration) => (
+                    <tr key={registration.id}>
+                      <td data-label={copy.registrations.name}>{registration.name}</td>
+                      <td data-label={copy.registrations.phone}>{registration.phone}</td>
+                      <td data-label={copy.registrations.issueType}>
+                        {repairActivityIssueTypeLabels[registration.issueType] ??
+                          registration.issueType}
+                      </td>
+                      <td data-label={copy.registrations.status}>
+                        {registration.deletedAt ? copy.registrations.deleted : registration.status}
+                      </td>
+                      <td data-label={copy.table.actions}>
+                        <div className="admin-row-actions">
+                          <Button
+                            variant="ghost"
+                            disabled={busy || Boolean(registration.deletedAt)}
+                            onClick={() => setEditingRegistration(registration)}
+                          >
+                            {copy.registrations.edit}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            disabled={busy || Boolean(registration.deletedAt)}
+                            onClick={() => setRemovingRegistration(registration)}
+                          >
+                            {copy.registrations.delete}
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
+        </AdminModal>
+      ) : null}
+
+      {editingRegistration && registrationActivity ? (
+        <AdminModal title={copy.registrations.edit} onClose={() => setEditingRegistration(null)}>
+          <form className="admin-form" onSubmit={saveRegistration}>
+            <label className="field">
+              <span className="field__label">{copy.registrations.name}</span>
+              <input
+                className="field__input"
+                name="name"
+                required
+                minLength={2}
+                maxLength={40}
+                defaultValue={editingRegistration.name}
+              />
+            </label>
+            <label className="field">
+              <span className="field__label">{copy.registrations.phone}</span>
+              <input
+                className="field__input"
+                name="phone"
+                required
+                inputMode="numeric"
+                maxLength={11}
+                defaultValue={editingRegistration.phone}
+              />
+            </label>
+            <label className="field">
+              <span className="field__label">{copy.registrations.issueType}</span>
+              <select
+                className="field__input"
+                name="issueType"
+                required
+                defaultValue={editingRegistration.issueType}
+              >
+                {Object.entries(repairActivityIssueTypeLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="signup__actions">
+              <Button type="button" variant="ghost" onClick={() => setEditingRegistration(null)}>
+                {copy.registrations.cancel}
+              </Button>
+              <Button type="submit" variant="solid" disabled={busy}>
+                {busy ? adminShared.submitting : copy.registrations.save}
+              </Button>
+            </div>
+          </form>
+        </AdminModal>
+      ) : null}
+
+      {removingRegistration ? (
+        <AdminModal title={copy.registrations.delete} onClose={() => setRemovingRegistration(null)}>
+          <p>{copy.registrations.deleteHint}</p>
+          <p>
+            <strong>
+              {removingRegistration.name} · {removingRegistration.phone}
+            </strong>
+          </p>
+          <div className="signup__actions">
+            <Button type="button" variant="ghost" onClick={() => setRemovingRegistration(null)}>
+              {copy.registrations.cancel}
+            </Button>
+            <Button
+              variant="solid"
+              disabled={busy}
+              onClick={() => void confirmRegistrationRemove()}
+            >
+              {busy ? adminShared.submitting : copy.registrations.delete}
+            </Button>
+          </div>
+        </AdminModal>
+      ) : null}
+
       {removing ? (
         <AdminModal title={copy.removePanel.title} onClose={() => setRemoving(null)}>
           <p>{copy.removePanel.hint}</p>
@@ -357,7 +585,6 @@ export function RepairActivityAdminPanel() {
     </div>
   );
 }
-
 
 function statusTagClass(status: string): string {
   switch (status) {

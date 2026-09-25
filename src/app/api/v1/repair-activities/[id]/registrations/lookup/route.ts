@@ -1,3 +1,7 @@
+import {
+  repairActivityIpRateLimitKey,
+  repairActivityPhoneRateLimitKey,
+} from "@/features/repair-activities/repair-activity-rate-limit";
 import { repairActivityService } from "@/features/repair-activities/repair-activity-service";
 import { AppError } from "@/lib/api/errors";
 import { enforceRateLimit } from "@/lib/api/rate-limit";
@@ -14,12 +18,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   try {
     assertSameOrigin(request);
     const ip = context.ipAddress ?? "unknown";
-    enforceRateLimit(`activity-signup:${ip}`, 10, 60_000);
+    enforceRateLimit(repairActivityIpRateLimitKey(ip), 10, 60_000);
     const body = (await request.json()) as Record<string, unknown>;
     const phoneRaw = String(body.phone ?? "");
     try {
       const phone = normalizePhone(phoneRaw);
-      enforceRateLimit(`activity-signup-phone:${phone}`, 5, 60_000);
+      enforceRateLimit(repairActivityPhoneRateLimitKey(phone), 5, 60_000);
     } catch (error) {
       if (!(error instanceof AppError) || error.code !== "VALIDATION_FAILED") throw error;
     }
