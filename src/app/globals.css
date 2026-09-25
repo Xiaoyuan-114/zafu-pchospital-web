@@ -6642,3 +6642,58 @@ html[data-theme="black-yellow"] {
     }
   }
 }
+
+
+/* 维修活动公开列表 / 详情（M1） */
+.activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-4);
+}
+.activity-card__link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+.activity-card__link:hover .activity-card,
+.activity-card__link:focus-visible .activity-card {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.activity-card--ended {
+  opacity: 0.72;
+}
+.activity-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-2);
+  margin-bottom: var(--s-3);
+}
+.activity-card__title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+.activity-card__meta {
+  display: grid;
+  gap: var(--s-2);
+  margin: 0;
+}
+.activity-card__meta dt {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+}
+.activity-card__meta dd {
+  margin: 0;
+}
+.activity-detail {
+  display: grid;
+  gap: var(--s-4);
+}
+.admin-status--success {
+  color: var(--status-success-deep);
+}
