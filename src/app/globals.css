@@ -6645,12 +6645,38 @@ html[data-theme="black-yellow"] {
 
 
 /* 维修活动公开列表 / 详情（M1） */
+/* 窄屏：竖列；≥ --breakpoint-md（760px）：横滑卡片带 */
 .activity-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
   gap: var(--s-4);
+}
+@media (min-width: 760px) {
+  .activity-list {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(16rem, 20rem);
+    justify-content: start;
+    gap: var(--s-4);
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-block-end: var(--s-2);
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    cursor: grab;
+    overscroll-behavior-x: contain;
+  }
+  .activity-list.is-dragging {
+    cursor: grabbing;
+    scroll-snap-type: none;
+    user-select: none;
+  }
+  .activity-list > li {
+    scroll-snap-align: start;
+    min-inline-size: 0;
+  }
 }
 .activity-card__link {
   display: block;

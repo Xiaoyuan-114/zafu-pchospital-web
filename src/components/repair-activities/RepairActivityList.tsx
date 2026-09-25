@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { useHorizontalDragScroll } from "@/components/repair-activities/useHorizontalDragScroll";
 import { Card } from "@/components/ui/Card";
 import { repairActivitiesPage } from "@/config/repair-activities";
 import {
@@ -15,6 +16,7 @@ export function RepairActivityList() {
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [items, setItems] = useState<RepairActivityPublicView[]>([]);
   const [message, setMessage] = useState("");
+  const railRef = useHorizontalDragScroll<HTMLUListElement>();
 
   useEffect(() => {
     let cancelled = false;
@@ -61,7 +63,7 @@ export function RepairActivityList() {
   }
 
   return (
-    <ul className="activity-list">
+    <ul ref={railRef} className="activity-list">
       {items.map((item) => {
         const ended = item.status === "ENDED";
         const body = (
@@ -78,24 +80,8 @@ export function RepairActivityList() {
                 <dd>{formatDateTime(item.activityAt)}</dd>
               </div>
               <div>
-                <dt>{repairActivitiesPage.window}</dt>
-                <dd>
-                  {formatDateTime(item.signupOpensAt)} — {formatDateTime(item.signupClosesAt)}
-                </dd>
-              </div>
-              <div>
                 <dt>名额</dt>
-                <dd>
-                  {repairActivitiesPage.capacity
-                    .replace("{registered}", String(item.registeredCount))
-                    .replace("{capacity}", String(item.capacity))}
-                  {ended ? null : (
-                    <>
-                      {" · "}
-                      {repairActivitiesPage.remaining.replace("{count}", String(item.remaining))}
-                    </>
-                  )}
-                </dd>
+                <dd>{formatCapacityLine(item, ended)}</dd>
               </div>
             </dl>
             {ended ? <p className="muted">{repairActivitiesPage.endedHint}</p> : null}
@@ -124,21 +110,33 @@ export function RepairActivityList() {
   );
 }
 
+/** 未结束优先「剩余 N」，可与已报/上限同行压缩；已结束仅已报/上限。 */
+function formatCapacityLine(item: RepairActivityPublicView, ended: boolean): string {
+  const capacity = repairActivitiesPage.capacity
+    .replace("{registered}", String(item.registeredCount))
+    .replace("{capacity}", String(item.capacity));
+  if (ended) return capacity;
+  const remaining = repairActivitiesPage.remainingShort.replace(
+    "{count}",
+    String(item.remaining),
+  );
+  return `${remaining} · ${capacity}`;
+}
 
 function statusTagClass(status: string): string {
   switch (status) {
     case "OPEN":
       return "repair-tag repair-tag--approved";
     case "FULL":
-      return "admin-tag admin-tag--accent";
+      return "repair-tag repair-tag--pending";
     case "UPCOMING":
-      return "admin-tag";
+      return "repair-tag repair-tag--draft";
     case "CLOSED":
-      return "admin-tag admin-tag--muted";
+      return "repair-tag repair-tag--draft";
     case "ENDED":
-      return "admin-tag admin-tag--muted";
+      return "repair-tag repair-tag--result";
     default:
-      return "admin-tag";
+      return "repair-tag repair-tag--draft";
   }
 }
 
