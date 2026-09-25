@@ -17,6 +17,7 @@ export const rolePermissions: Readonly<Record<RoleCode, readonly Permission[]>> 
     "favorite:manage",
     "notification:read",
     "analytics:read_internal",
+    "activity:staff",
   ],
   ADMIN: [
     "join:read",
@@ -51,6 +52,8 @@ export const rolePermissions: Readonly<Record<RoleCode, readonly Permission[]>> 
     "comment:moderate",
     "skill:manage",
     "settings:manage",
+    "activity:admin",
+    "activity:staff",
   ],
 };
 
