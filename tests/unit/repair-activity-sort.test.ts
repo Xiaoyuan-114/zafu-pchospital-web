@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  pickNonEndedRepairActivitiesForHomePreview,
   sortRepairActivitiesForPublicList,
   type PublicListSortable,
 } from "../../src/features/repair-activities/repair-activity-sort";
@@ -104,3 +105,41 @@ test("空数组 / 单元素", () => {
   ];
   assert.deepEqual(ids(sortRepairActivitiesForPublicList(oneEnded)), ["done"]);
 });
+
+test("首页预览：取前 N 未结束，已结束不进入", () => {
+  const picked = pickNonEndedRepairActivitiesForHomePreview(
+    [
+      item({ id: "ended", status: "ENDED", activityAt: "2026-12-01T00:00:00.000Z" }),
+      item({ id: "open-late", status: "OPEN", activityAt: "2026-11-02T00:00:00.000Z" }),
+      item({ id: "upcoming", status: "UPCOMING", activityAt: "2026-10-01T00:00:00.000Z" }),
+      item({ id: "full", status: "FULL", activityAt: "2026-11-01T00:00:00.000Z" }),
+      item({ id: "closed", status: "CLOSED", activityAt: "2026-11-03T00:00:00.000Z" }),
+    ],
+    3,
+  );
+  assert.deepEqual(ids(picked), ["upcoming", "full", "open-late"]);
+  assert.ok(picked.every((x) => x.status !== "ENDED"));
+});
+
+test("首页预览：无未结束时返回空数组", () => {
+  const picked = pickNonEndedRepairActivitiesForHomePreview(
+    [
+      item({ id: "a", status: "ENDED", activityAt: "2026-09-01T00:00:00.000Z" }),
+      item({ id: "b", status: "ENDED", activityAt: "2026-09-10T00:00:00.000Z" }),
+    ],
+    3,
+  );
+  assert.deepEqual(picked, []);
+});
+
+test("首页预览：未结束不足 N 时全取", () => {
+  const picked = pickNonEndedRepairActivitiesForHomePreview(
+    [
+      item({ id: "only", status: "OPEN", activityAt: "2026-10-01T00:00:00.000Z" }),
+      item({ id: "ended", status: "ENDED", activityAt: "2026-09-01T00:00:00.000Z" }),
+    ],
+    3,
+  );
+  assert.deepEqual(ids(picked), ["only"]);
+});
+

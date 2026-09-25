@@ -12,7 +12,7 @@ export default async function EditRepairPage({ params }: { params: Promise<{ id:
     <>
       <PageHead
         id="edit-repair-title"
-        index="06"
+        index="08"
         label={repairCopy.edit.label}
         title={repairCopy.edit.title}
         lead={repairCopy.edit.lead}

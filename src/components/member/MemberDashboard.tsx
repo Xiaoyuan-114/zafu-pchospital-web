@@ -92,6 +92,9 @@ export function MemberDashboard({ initialDisplayName, roles }: MemberDashboardPr
           <Button href="/member/repairs/new" variant="solid">
             {copy.quickNew}
           </Button>
+          <Button href="/member/repair-activities" variant="ghost">
+            {copy.activityManage}
+          </Button>
           <Button href="/member/profile">{copy.settingsAction}</Button>
         </div>
       </header>

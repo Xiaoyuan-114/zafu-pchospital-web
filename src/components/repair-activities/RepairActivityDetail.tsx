@@ -248,22 +248,62 @@ export function RepairActivityDetail({ activityId }: Props) {
         </p>
       ) : null}
 
-      <Card className="admin-panel">
-        <h2 className="admin-panel__title">{copy.signupTitle}</h2>
-        {!open ? <p className="muted">{signupDisabledReason}</p> : null}
-        <form className="admin-form" onSubmit={signup} aria-label={copy.signupTitle}>
-          <div className="admin-form__grid">
-            <label className="field">
-              <span className="field__label">{copy.name}</span>
-              <input
-                className="field__input"
-                name="name"
-                required
-                minLength={2}
-                maxLength={40}
-                disabled={!open || busy}
-              />
-            </label>
+      <div className="activity-detail__actions">
+        <Card className="admin-panel activity-detail__signup">
+          <h2 className="admin-panel__title">{copy.signupTitle}</h2>
+          {!open ? <p className="muted">{signupDisabledReason}</p> : null}
+          <form className="admin-form" onSubmit={signup} aria-label={copy.signupTitle}>
+            <div className="admin-form__grid">
+              <label className="field">
+                <span className="field__label">{copy.name}</span>
+                <input
+                  className="field__input"
+                  name="name"
+                  required
+                  minLength={2}
+                  maxLength={40}
+                  disabled={!open || busy}
+                />
+              </label>
+              <label className="field">
+                <span className="field__label">{copy.phone}</span>
+                <input
+                  className="field__input"
+                  name="phone"
+                  required
+                  inputMode="numeric"
+                  maxLength={11}
+                  disabled={!open || busy}
+                />
+              </label>
+              <label className="field">
+                <span className="field__label">{copy.issueType}</span>
+                <select
+                  className="field__input"
+                  name="issueType"
+                  required
+                  disabled={!open || busy}
+                  defaultValue="CLEAN_PASTE"
+                >
+                  {repairActivitiesPage.issueTypes.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="signup__actions">
+              <Button type="submit" variant="solid" disabled={!open || busy}>
+                {busy ? "提交中…" : copy.submitSignup}
+              </Button>
+            </div>
+          </form>
+        </Card>
+
+        <Card className="admin-panel activity-detail__lookup">
+          <h2 className="admin-panel__title">{copy.lookupTitle}</h2>
+          <form className="admin-form" onSubmit={doLookup} aria-label={copy.lookupTitle}>
             <label className="field">
               <span className="field__label">{copy.phone}</span>
               <input
@@ -272,94 +312,56 @@ export function RepairActivityDetail({ activityId }: Props) {
                 required
                 inputMode="numeric"
                 maxLength={11}
-                disabled={!open || busy}
+                disabled={busy}
               />
             </label>
-            <label className="field">
-              <span className="field__label">{copy.issueType}</span>
-              <select
-                className="field__input"
-                name="issueType"
-                required
-                disabled={!open || busy}
-                defaultValue="CLEAN_PASTE"
-              >
-                {repairActivitiesPage.issueTypes.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <div className="signup__actions">
-            <Button type="submit" variant="solid" disabled={!open || busy}>
-              {busy ? "提交中…" : copy.submitSignup}
-            </Button>
-          </div>
-        </form>
-      </Card>
-
-      <Card className="admin-panel">
-        <h2 className="admin-panel__title">{copy.lookupTitle}</h2>
-        <form className="admin-form" onSubmit={doLookup} aria-label={copy.lookupTitle}>
-          <label className="field">
-            <span className="field__label">{copy.phone}</span>
-            <input
-              className="field__input"
-              name="phone"
-              required
-              inputMode="numeric"
-              maxLength={11}
-              disabled={busy}
-            />
-          </label>
-          <div className="signup__actions">
-            <Button type="submit" variant="ghost" disabled={busy}>
-              {copy.submitLookup}
-            </Button>
-          </div>
-        </form>
-
-        {lookup ? (
-          <form className="admin-form mt-s-4" onSubmit={updateType}>
-            <p className="muted">
-              {lookup.name} · {lookup.phoneMasked} · 当前：
-              {repairActivityIssueTypeLabels[lookup.issueType as RepairActivityIssueType] ??
-                lookup.issueType}
-              {" · "}
-              {lookup.status}
-            </p>
-            {lookup.status !== "REGISTERED" ? (
-              <p className="muted">{copy.notEditable}</p>
-            ) : (
-              <>
-                <label className="field">
-                  <span className="field__label">{copy.issueType}</span>
-                  <select
-                    className="field__input"
-                    name="issueType"
-                    required
-                    disabled={busy}
-                    defaultValue={lookup.issueType}
-                  >
-                    {repairActivitiesPage.issueTypes.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <div className="signup__actions">
-                  <Button type="submit" variant="solid" disabled={busy}>
-                    {copy.submitUpdate}
-                  </Button>
-                </div>
-              </>
-            )}
+            <div className="signup__actions">
+              <Button type="submit" variant="ghost" disabled={busy}>
+                {copy.submitLookup}
+              </Button>
+            </div>
           </form>
-        ) : null}
-      </Card>
+
+          {lookup ? (
+            <form className="admin-form mt-s-4" onSubmit={updateType}>
+              <p className="muted">
+                {lookup.name} · {lookup.phoneMasked} · 当前：
+                {repairActivityIssueTypeLabels[lookup.issueType as RepairActivityIssueType] ??
+                  lookup.issueType}
+                {" · "}
+                {lookup.status}
+              </p>
+              {lookup.status !== "REGISTERED" ? (
+                <p className="muted">{copy.notEditable}</p>
+              ) : (
+                <>
+                  <label className="field">
+                    <span className="field__label">{copy.issueType}</span>
+                    <select
+                      className="field__input"
+                      name="issueType"
+                      required
+                      disabled={busy}
+                      defaultValue={lookup.issueType}
+                    >
+                      {repairActivitiesPage.issueTypes.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="signup__actions">
+                    <Button type="submit" variant="solid" disabled={busy}>
+                      {copy.submitUpdate}
+                    </Button>
+                  </div>
+                </>
+              )}
+            </form>
+          ) : null}
+        </Card>
+      </div>
     </div>
   );
 }

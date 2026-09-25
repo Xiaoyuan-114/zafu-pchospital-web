@@ -14,7 +14,7 @@ import {
  *
  * 组件本身依赖 `next/navigation`，这里只锁配置层：
  * - 侧栏常驻分组含工作台 / 维修记录 / 维修活动 / 个人资料，不含消息通知 / 我的收藏 / 排行榜；
- * - 这三个入口收在 `memberSettingsNav`，编号按实际导航顺序为 09–11
+ * - 这三个入口收在 `memberSettingsNav`，编号按实际导航顺序为 10–12（UX R3 M-B）
  *   （页面标题里的编号与菜单里的一致）；
  * - 入口位置变了，页面与接口不变，所以三个 href 必须仍然可达；
  * - 撤掉未读角标后，`communityCopy.notifications.unreadCount` 仍归页面与工作台摘要使用，
@@ -38,7 +38,7 @@ test("侧栏常驻分组含工作台 / 维修记录 / 维修活动 / 个人资�
   }
 });
 
-test("memberSettingsNav 收住三个入口且编号按顺序为 09–11", () => {
+test("memberSettingsNav 收住三个入口且编号按顺序为 10–12（M-B）", () => {
   assert.deepEqual(
     memberSettingsNav.map((item) => item.href),
     SETTINGS_HREFS,
@@ -49,7 +49,14 @@ test("memberSettingsNav 收住三个入口且编号按顺序为 09–11", () => 
   );
   assert.deepEqual(
     memberSettingsNav.map((item) => item.index),
-    ["09", "10", "11"],
+    ["10", "11", "12"],
+  );
+});
+
+test("成员常驻导航编号为 06–09（公开 01–05 后整段 +1）", () => {
+  assert.deepEqual(
+    memberNav.flatMap((group) => group.items).map((item) => item.index),
+    ["06", "07", "08", "09"],
   );
 });
 

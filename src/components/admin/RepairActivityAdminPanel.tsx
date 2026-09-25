@@ -5,13 +5,15 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { AdminModal } from "@/components/admin/AdminModal";
 import { AdminToast } from "@/components/admin/AdminToast";
 import type { AdminToastMessage } from "@/components/admin/AdminToast";
+import { repairActivityStatusBadgeClass } from "@/components/repair-activities/activity-status-badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { adminCopy, adminShared } from "@/config/admin";
 import { adminFetch } from "@/features/admin/admin-client";
 import {
   repairActivityIssueTypeLabels,
-  repairActivityStatusLabels,
+  repairActivityStatusShortLabels,
   REPAIR_ACTIVITY_CAPACITY_MIN,
   type RepairActivityStatus,
 } from "@/features/repair-activities/repair-activity-validation";
@@ -318,16 +320,19 @@ export function RepairActivityAdminPanel() {
                       {formatDateTime(item.signupClosesAt)}
                     </td>
                     <td data-label={copy.table.capacity}>
-                      {copy.registered.replace("{count}", String(item.registeredCount))}
-                      <span className="muted"> / {item.capacity}</span>
+                      <span className="admin-capacity">
+                        {copy.capacityLine
+                          .replace("{registered}", String(item.registeredCount))
+                          .replace("{capacity}", String(item.capacity))}
+                      </span>
                       <br />
                       <span className="muted">
                         {copy.remaining.replace("{count}", String(item.remaining))}
                       </span>
                     </td>
                     <td data-label={copy.table.status}>
-                      <span className={statusTagClass(item.status)}>
-                        {repairActivityStatusLabels[item.status as RepairActivityStatus] ??
+                      <span className={repairActivityStatusBadgeClass(item.status)}>
+                        {repairActivityStatusShortLabels[item.status as RepairActivityStatus] ??
                           item.status}
                       </span>
                     </td>
@@ -544,63 +549,44 @@ export function RepairActivityAdminPanel() {
       ) : null}
 
       {removingRegistration ? (
-        <AdminModal title={copy.registrations.delete} onClose={() => setRemovingRegistration(null)}>
+        <ConfirmDialog
+          title={copy.registrations.delete}
+          cancelLabel={copy.registrations.cancel}
+          confirmLabel={busy ? adminShared.submitting : copy.registrations.delete}
+          busy={busy}
+          onClose={() => {
+            if (!busy) setRemovingRegistration(null);
+          }}
+          onConfirm={() => void confirmRegistrationRemove()}
+        >
           <p>{copy.registrations.deleteHint}</p>
           <p>
             <strong>
               {removingRegistration.name} · {removingRegistration.phone}
             </strong>
           </p>
-          <div className="signup__actions">
-            <Button type="button" variant="ghost" onClick={() => setRemovingRegistration(null)}>
-              {copy.registrations.cancel}
-            </Button>
-            <Button
-              variant="solid"
-              disabled={busy}
-              onClick={() => void confirmRegistrationRemove()}
-            >
-              {busy ? adminShared.submitting : copy.registrations.delete}
-            </Button>
-          </div>
-        </AdminModal>
+        </ConfirmDialog>
       ) : null}
 
       {removing ? (
-        <AdminModal title={copy.removePanel.title} onClose={() => setRemoving(null)}>
+        <ConfirmDialog
+          title={copy.removePanel.title}
+          cancelLabel={copy.removePanel.cancel}
+          confirmLabel={busy ? adminShared.submitting : copy.removePanel.submit}
+          busy={busy}
+          onClose={() => {
+            if (!busy) setRemoving(null);
+          }}
+          onConfirm={() => void confirmRemove()}
+        >
           <p>{copy.removePanel.hint}</p>
           <p>
             <strong>{removing.title}</strong>
           </p>
-          <div className="signup__actions">
-            <Button type="button" variant="ghost" onClick={() => setRemoving(null)}>
-              {copy.removePanel.cancel}
-            </Button>
-            <Button variant="solid" disabled={busy} onClick={() => void confirmRemove()}>
-              {busy ? adminShared.submitting : copy.removePanel.submit}
-            </Button>
-          </div>
-        </AdminModal>
+        </ConfirmDialog>
       ) : null}
     </div>
   );
-}
-
-function statusTagClass(status: string): string {
-  switch (status) {
-    case "OPEN":
-      return "repair-tag repair-tag--approved";
-    case "FULL":
-      return "admin-tag admin-tag--accent";
-    case "UPCOMING":
-      return "admin-tag";
-    case "CLOSED":
-      return "admin-tag admin-tag--muted";
-    case "ENDED":
-      return "admin-tag admin-tag--muted";
-    default:
-      return "admin-tag";
-  }
 }
 
 function formatDateTime(iso: string): string {

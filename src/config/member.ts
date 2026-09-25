@@ -26,36 +26,40 @@ export type MemberNavGroup = {
   items: readonly NavItem[];
 };
 
+/**
+ * UX R3 / N1 · 口径 M-B：公开导航扩到 01–05 后，成员整段 +1 → 06–12
+ * （工作 06–09，设置 10–12），延续「公开 / 成员分段」历史约定。
+ */
 export const memberNav: readonly MemberNavGroup[] = [
   {
     id: "work",
     title: "工作",
     items: [
-      { index: "05", label: "工作台", shortLabel: "工作台", labelEn: "Workspace", href: "/member" },
+      { index: "06", label: "工作台", shortLabel: "工作台", labelEn: "Workspace", href: "/member" },
       {
-        index: "06",
+        index: "07",
         label: "维修活动",
         shortLabel: "活动",
         labelEn: "Activities",
         href: "/member/repair-activities",
       },
-      { index: "07", label: "维修记录", shortLabel: "维修", labelEn: "Repairs", href: "/member/repairs" },
+      { index: "08", label: "维修记录", shortLabel: "维修", labelEn: "Repairs", href: "/member/repairs" },
     ],
   },
   {
     id: "me",
     title: "我",
     items: [
-      { index: "08", label: "个人资料", shortLabel: "资料", labelEn: "Profile", href: "/member/profile" },
+      { index: "09", label: "个人资料", shortLabel: "资料", labelEn: "Profile", href: "/member/profile" },
     ],
   },
 ] as const;
 
-/** 收进侧栏足部「设置」菜单的成员端入口，编号沿用成员页既有序列。 */
+/** 收进侧栏足部「设置」菜单的成员端入口，编号沿用成员页既有序列（M-B：10–12）。 */
 export const memberSettingsNav: readonly NavItem[] = [
-  { index: "09", label: "消息通知", shortLabel: "通知", labelEn: "Notifications", href: "/member/notifications" },
-  { index: "10", label: "我的收藏", shortLabel: "收藏", labelEn: "Favorites", href: "/member/favorites" },
-  { index: "11", label: "排行榜", shortLabel: "排行", labelEn: "Rankings", href: "/member/rankings" },
+  { index: "10", label: "消息通知", shortLabel: "通知", labelEn: "Notifications", href: "/member/notifications" },
+  { index: "11", label: "我的收藏", shortLabel: "收藏", labelEn: "Favorites", href: "/member/favorites" },
+  { index: "12", label: "排行榜", shortLabel: "排行", labelEn: "Rankings", href: "/member/rankings" },
 ] as const;
 
 export const memberCopy = {
@@ -117,6 +121,8 @@ export const memberCopy = {
     skillsEditLink: "编辑技能标签",
     noSkills: "尚未选择技能标签",
     settingsAction: "编辑个人资料",
+    /** hero 次要入口（ghost）；solid 只留给「新增维修记录」（C4） */
+    activityManage: "活动管理",
 
     metricsTitle: "维修概览",
     metricsTag: "Repair Metrics",

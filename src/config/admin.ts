@@ -17,22 +17,26 @@ import {
  * `Header` 的桌面索引栏与移动端浮层都以 `mainNav` 为唯一数据源，加进去
  * `/admin/*` 会立刻出现在全站公开导航里。后台入口只在后台内部使用。
  *
- * 章节编号沿用站点既有约定（公开页 01–04、成员页 05–08），后台从 **09** 起。
- * 批 1 占 09–12，批 2 占 13–18。
+ * 章节编号：公开 01–05、成员 06–12（M-B）；管理按侧栏展示顺序 00 / 01–11（C3）。
+ */
+
+/**
+ * UX R3 / C3：按侧栏展示顺序连续编号（常驻 01–05，设置 06–11），home 保留 00。
+ * 接受与旧截图编号漂移；与公开 01–05 / 成员 06–12 为各自列表内连续，不要求跨壳全局唯一。
  */
 export const ADMIN_SECTION_INDEX = {
   home: "00",
-  members: "09",
-  repairs: "10",
-  categories: "11",
-  export: "12",
-  skills: "13",
-  comments: "14",
-  inviteCodes: "15",
-  recruitment: "16",
-  audit: "17",
-  settings: "18",
-  repairActivities: "19",
+  members: "01",
+  inviteCodes: "02",
+  recruitment: "03",
+  repairs: "04",
+  repairActivities: "05",
+  categories: "06",
+  export: "07",
+  skills: "08",
+  comments: "09",
+  audit: "10",
+  settings: "11",
 } as const;
 
 /**
@@ -43,8 +47,7 @@ export const ADMIN_SECTION_INDEX = {
  *
  * 分组里只放**常驻**入口：故障分类、数据导出、技能标签、评论管理、审计记录与公开统计
  * 属于低频管理动作，收在侧栏足部的 `adminSettingsNav` 里（权限与页面都不变，
- * 只是不再占侧栏位）。编号沿用原值，不重排 —— `ADMIN_SECTION_INDEX` 同时被各页
- * `SectionHead` 使用，改号会让页面标题与导航对不上。
+ * 只是不再占侧栏位）。编号按侧栏 + 设置菜单展示顺序连续（UX R3 / C3）。
  */
 export type AdminNavGroup = {
   id: string;
@@ -102,7 +105,7 @@ export const adminNavGroups: readonly AdminNavGroup[] = [
   },
 ] as const;
 
-/** 收进侧栏足部「设置」菜单的后台入口，按编号升序排列。 */
+/** 收进侧栏足部「设置」菜单的后台入口，编号接在常驻侧栏之后（06–11）。 */
 export const adminSettingsNav: readonly NavItem[] = [
   {
     index: ADMIN_SECTION_INDEX.categories,
@@ -541,7 +544,7 @@ export const adminCopy = {
     },
     removePanel: {
       title: "删除活动",
-      hint: "软删除后公开端不再展示；已有报名保留供审计，名额不再占用公开列表。",
+      hint: "删除后公开端不再展示本场活动；已有报名保留供审计，但不再占用公开名额。此操作不可从公开列表恢复。",
       submit: "确认删除",
       done: "活动已删除。",
       cancel: "取消",
@@ -559,7 +562,7 @@ export const adminCopy = {
       edit: "编辑报名",
       save: "保存报名",
       delete: "删除报名",
-      deleteHint: "软删除后该报名不再占用活动名额，且不能恢复。",
+      deleteHint: "删除后该报名不再占用活动名额，且不能恢复；客户如需再参加须重新报名。",
       empty: "暂无报名记录。",
       saved: "报名已更新。",
       deletedDone: "报名已删除。",
@@ -568,6 +571,8 @@ export const adminCopy = {
     count: "共 {count} 场活动",
     remaining: "剩余 {count}",
     registered: "已报 {count}",
+    /** 行内名额主文案（R3）：已报 n / 上限 m */
+    capacityLine: "已报 {registered} / 上限 {capacity}",
   },
   categories: {
     label: "Categories",

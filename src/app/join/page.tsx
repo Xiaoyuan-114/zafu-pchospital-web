@@ -37,7 +37,7 @@ export default function JoinPage() {
     <>
       <PageHead
         id="join-page-title"
-        index="03"
+        index="04"
         label="Join"
         title={joinPage.title}
         lead={joinPage.lead}
