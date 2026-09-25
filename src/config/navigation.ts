@@ -3,6 +3,8 @@
  *
  * 公开站主索引。Header（桌面左侧索引栏 / 移动端索引浮层）
  * 全部从这里读取，新增页面时只改这里。
+ *
+ * UX R3 / N1：公开顺序写死为 首页 → 维修活动 → 关于 → 加入 → 文档（01–05）。
  */
 
 export type NavItem = {
@@ -19,16 +21,16 @@ export type NavItem = {
 
 export const mainNav: readonly NavItem[] = [
   { index: "01", label: "首页", shortLabel: "首页", labelEn: "Home", href: "/" },
-  { index: "02", label: "关于我们", shortLabel: "关于", labelEn: "About", href: "/about" },
-  { index: "03", label: "加入我们", shortLabel: "加入", labelEn: "Join", href: "/join" },
   {
-    index: "05",
+    index: "02",
     label: "维修活动",
     shortLabel: "活动",
     labelEn: "Activities",
     href: "/repair-activities",
   },
-  { index: "06", label: "技术文档", shortLabel: "文档", labelEn: "Docs", href: "/docs" },
+  { index: "03", label: "关于我们", shortLabel: "关于", labelEn: "About", href: "/about" },
+  { index: "04", label: "加入我们", shortLabel: "加入", labelEn: "Join", href: "/join" },
+  { index: "05", label: "技术文档", shortLabel: "文档", labelEn: "Docs", href: "/docs" },
 ] as const;
 
 /**
@@ -45,4 +47,3 @@ export const memberLoginLink = {
   labelEn: "Member Login",
   href: "/login",
 } as const;
-

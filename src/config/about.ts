@@ -107,11 +107,11 @@ export const galleryOptions = {
 /**
  * /about 页内分区编号
  *
- * 页头（PageHead）独占 02 / About，页内三个内容区依次顺延 03 / 04 / 05，
- * 避免同一页面上出现两个 02。分区总览见导航配置中的序号体系。
+ * 页头（PageHead）独占 03 / About，页内三个内容区依次顺延 04 / 05 / 06，
+ * 避免同一页面上出现两个 03。分区总览见导航配置中的序号体系（UX R3 / N1）。
  */
 export const aboutSections = {
-  intro: { index: "03", label: "About", title: "我们是谁" },
-  scope: { index: "04", label: "Scope", title: "服务范围" },
-  contact: { index: "05", label: "Contact", title: "联系方式" },
+  intro: { index: "04", label: "About", title: "我们是谁" },
+  scope: { index: "05", label: "Scope", title: "服务范围" },
+  contact: { index: "06", label: "Contact", title: "联系方式" },
 } as const;

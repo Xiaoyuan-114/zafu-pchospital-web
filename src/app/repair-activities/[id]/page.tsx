@@ -20,7 +20,7 @@ export default async function RepairActivityDetailPage({
     <>
       <PageHead
         id="repair-activity-detail-head"
-        index="05"
+        index="02"
         label={repairActivitiesPage.label}
         title={repairActivitiesPage.title}
         lead={repairActivitiesPage.lead}

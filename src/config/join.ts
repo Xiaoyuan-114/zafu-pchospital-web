@@ -17,14 +17,14 @@ export const joinPage = {
 /**
  * 页内分区编号
  *
- * 页头（PageHead）独占 03 / Join，页内四个内容区依次顺延 04 ~ 07，
- * 避免同一页面上出现两个 03（与 /about 的编号方式一致）。
+ * 页头（PageHead）独占 04 / Join，页内四个内容区依次顺延 05 ~ 08，
+ * 避免同一页面上出现两个 04（与 /about 的编号方式一致；UX R3 / N1）。
  */
 export const joinSections = {
-  signup: { index: "04", label: "Signup", title: "新社员信息登记" },
-  expect: { index: "05", label: "Expect", title: "我们希望你具备" },
-  flow: { index: "06", label: "Flow", title: "加入流程" },
-  notice: { index: "07", label: "Notice", title: "加入须知" },
+  signup: { index: "05", label: "Signup", title: "新社员信息登记" },
+  expect: { index: "06", label: "Expect", title: "我们希望你具备" },
+  flow: { index: "07", label: "Flow", title: "加入流程" },
+  notice: { index: "08", label: "Notice", title: "加入须知" },
 } as const;
 
 /* ------------------------------------------------------- 新社员信息登记 */

@@ -15,7 +15,7 @@ export default function RepairActivitiesPage() {
     <>
       <PageHead
         id="repair-activities-page-title"
-        index="05"
+        index="02"
         label={repairActivitiesPage.label}
         title={repairActivitiesPage.title}
         lead={repairActivitiesPage.lead}

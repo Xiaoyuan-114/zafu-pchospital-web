@@ -17,7 +17,7 @@ export default async function RepairDetailPage({ params }: { params: Promise<{ i
     <>
       <PageHead
         id="repair-detail-title"
-        index="06"
+        index="08"
         label={repairCopy.detail.label}
         title={repairCopy.detail.title}
         lead={repairCopy.detail.lead}

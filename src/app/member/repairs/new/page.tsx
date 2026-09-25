@@ -11,7 +11,7 @@ export default async function NewRepairPage() {
     <>
       <PageHead
         id="new-repair-title"
-        index="06"
+        index="08"
         label={repairCopy.create.label}
         title={repairCopy.create.title}
         lead={repairCopy.create.lead}

@@ -33,7 +33,7 @@ export default function AboutPage() {
     <>
       <PageHead
         id="about-page-title"
-        index="02"
+        index="03"
         label="About"
         title={aboutPage.title}
         lead={aboutPage.lead}
