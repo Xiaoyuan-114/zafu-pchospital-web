@@ -86,7 +86,11 @@ export function RepairActivityList() {
                 <dd>{formatCapacityLine(item, ended)}</dd>
               </div>
             </dl>
-            {ended ? <p className="muted">{repairActivitiesPage.endedHint}</p> : null}
+            <div className="activity-card__footer">
+              {ended ? (
+                <p className="muted">{repairActivitiesPage.endedHint}</p>
+              ) : null}
+            </div>
           </Card>
         );
 
