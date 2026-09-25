@@ -42,3 +42,18 @@ export function sortRepairActivitiesForPublicList<T extends PublicListSortable>(
   });
   return [...active, ...ended];
 }
+
+/**
+ * 首页近场活动（UX R3 / R7）：方案 B 排序后取前 `limit` 条未结束活动。
+ * 已结束不进入预览；调用方可先拿 listPublic 结果再喂入本函数。
+ */
+export function pickNonEndedRepairActivitiesForHomePreview<T extends PublicListSortable>(
+  items: readonly T[],
+  limit = 3,
+): T[] {
+  const n = Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 3;
+  return sortRepairActivitiesForPublicList(items)
+    .filter((item) => item.status !== "ENDED")
+    .slice(0, n);
+}
+

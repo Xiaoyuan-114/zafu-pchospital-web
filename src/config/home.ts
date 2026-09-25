@@ -33,16 +33,32 @@ export type HeroAction = {
 };
 
 /**
- * 首页 Hero 的行动按钮
+ * 首页 Hero 的行动按钮（UX R3 / N3 · 口径 C1）
  *
- * 首页只保留「维修报修」与「查看文档」两个功能入口，其余功能按钮一律不保留。
- * 二者对应哪个是主按钮、哪个是次级按钮，属于呈现方式，写在 Hero.tsx 里。
+ * 主按钮「报名活动」→ `/repair-activities`；次要「维修说明」→ 首页流程锚点 `/#process`。
+ * 文档入口仍走公开导航 05，不占 Hero 次位。呈现主次在 Hero.tsx。
  */
 export const heroActions: Record<"repair" | "docs", HeroAction> = {
-  /* TODO: /repair 页面就绪后填入 "/repair" */
-  repair: { label: "维修报修", href: "" },
-  docs: { label: "查看文档", href: "/handbook/Intro.html" },
+  repair: { label: "报名活动", href: "/repair-activities" },
+  docs: { label: "维修说明", href: "/#process" },
 };
+
+/**
+ * 首页近场活动预览（UX R3 / R7）
+ *
+ * 展示 1–3 场未结束活动；无未结束时整块不渲染（口径 C5）。
+ */
+export const homeActivityPreview = {
+  index: "01",
+  label: "Activities",
+  title: "近期维修活动",
+  viewAll: "查看全部",
+  viewAllHref: "/repair-activities",
+  capacity: "名额 {registered} / {capacity}",
+  remainingShort: "剩余 {count}",
+  activityAt: "活动时间",
+  loadFailedSilent: true,
+} as const;
 
 export const aboutContent = {
   title: "关于电脑医院",
