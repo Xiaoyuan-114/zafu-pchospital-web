@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { formatShanghaiDateTime } from "@/components/repair-activities/activity-format";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { memberRepairActivitiesCopy } from "@/config/repair-activities";
 import type {
   StaffBoardView,
@@ -21,6 +22,7 @@ export function MemberRepairActivityBoard({ activityId }: Props) {
   const [toast, setToast] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | null>(null);
+  const [withdrawTarget, setWithdrawTarget] = useState<StaffRegistrationView | null>(null);
 
   const load = useCallback(async () => {
     setMessage("");
@@ -116,7 +118,9 @@ export function MemberRepairActivityBoard({ activityId }: Props) {
     await load();
   }
 
-  async function withdraw(registrationId: string) {
+  async function confirmWithdraw() {
+    if (!withdrawTarget) return;
+    const registrationId = withdrawTarget.id;
     setBusy(`withdraw:${registrationId}`);
     setToast(null);
     setMessage("");
@@ -129,6 +133,7 @@ export function MemberRepairActivityBoard({ activityId }: Props) {
       setMessage(result.message);
       return;
     }
+    setWithdrawTarget(null);
     setToast(copy.withdrawSuccess);
     await load();
   }
@@ -160,7 +165,11 @@ export function MemberRepairActivityBoard({ activityId }: Props) {
   }
 
   if (state === "loading") {
-    return <p className="muted">正在加载…</p>;
+    return (
+      <div className="activity-board activity-board--loading" role="status">
+        <p className="muted">{copy.loading}</p>
+      </div>
+    );
   }
   if (state === "error" || !board) {
     return (
@@ -176,6 +185,7 @@ export function MemberRepairActivityBoard({ activityId }: Props) {
   }
 
   const opsDisabled = !board.attended || busy !== null;
+  const withdrawBusy = withdrawTarget ? busy === `withdraw:${withdrawTarget.id}` : false;
 
   return (
     <div className="activity-board">
@@ -187,6 +197,7 @@ export function MemberRepairActivityBoard({ activityId }: Props) {
           <span className="admin-tag admin-tag--accent">{copy.attendedBadge}</span>
         ) : (
           <Button
+            className="activity-board__attend-cta"
             variant="solid"
             onClick={() => void attend()}
             disabled={busy !== null}
@@ -197,9 +208,16 @@ export function MemberRepairActivityBoard({ activityId }: Props) {
       </div>
 
       {!board.attended ? (
-        <p className="admin-status" role="status">
-          {copy.attendRequired}
-        </p>
+        <Card className="activity-board__attend-banner" variant="notice">
+          <p role="status">{copy.attendPrompt}</p>
+          <Button
+            variant="solid"
+            onClick={() => void attend()}
+            disabled={busy !== null}
+          >
+            {busy === "attend" ? copy.attending : copy.attendCta}
+          </Button>
+        </Card>
       ) : null}
       {message ? (
         <p className="admin-status admin-status--error" role="alert">
@@ -219,7 +237,7 @@ export function MemberRepairActivityBoard({ activityId }: Props) {
             <span className="member-section__tag">{copy.eligibleTag}</span>
           </header>
           {board.eligible.length === 0 ? (
-            <p className="muted">{copy.eligibleEmpty}</p>
+            <p className="muted activity-board__empty">{copy.eligibleEmpty}</p>
           ) : (
             <ul className="activity-board__list">
               {board.eligible.map((row) => (
@@ -261,7 +279,7 @@ export function MemberRepairActivityBoard({ activityId }: Props) {
             <span className="member-section__tag">{copy.queueTag}</span>
           </header>
           {board.queue.length === 0 ? (
-            <p className="muted">{copy.queueEmpty}</p>
+            <p className="muted activity-board__empty">{copy.queueEmpty}</p>
           ) : (
             <ul className="activity-board__list">
               {board.queue.map((row) => (
@@ -287,7 +305,7 @@ export function MemberRepairActivityBoard({ activityId }: Props) {
                     </Button>
                     <Button
                       variant="ghost"
-                      onClick={() => void withdraw(row.id)}
+                      onClick={() => setWithdrawTarget(row)}
                       disabled={opsDisabled}
                     >
                       {busy === `withdraw:${row.id}` ? copy.withdrawing : copy.withdraw}
@@ -299,6 +317,26 @@ export function MemberRepairActivityBoard({ activityId }: Props) {
           )}
         </Card>
       </div>
+
+      {withdrawTarget ? (
+        <ConfirmDialog
+          title={copy.withdrawConfirmTitle}
+          cancelLabel={copy.withdrawCancel}
+          confirmLabel={withdrawBusy ? copy.withdrawing : copy.withdrawConfirm}
+          busy={withdrawBusy}
+          onClose={() => {
+            if (!withdrawBusy) setWithdrawTarget(null);
+          }}
+          onConfirm={() => void confirmWithdraw()}
+        >
+          <p>{copy.withdrawConfirmHint}</p>
+          <p>
+            <strong>
+              {withdrawTarget.name} · {withdrawTarget.phoneMasked}
+            </strong>
+          </p>
+        </ConfirmDialog>
+      ) : null}
     </div>
   );
 }

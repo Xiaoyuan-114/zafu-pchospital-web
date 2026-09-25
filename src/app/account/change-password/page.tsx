@@ -8,7 +8,7 @@ export default function ChangePasswordPage() {
     <>
       <PageHead
         id="change-password-title"
-        index="05"
+        index="10"
         label="Account"
         title="修改密码"
         lead="首次登录必须先更换初始密码。"

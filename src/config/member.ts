@@ -121,6 +121,8 @@ export const memberCopy = {
     skillsEditLink: "编辑技能标签",
     noSkills: "尚未选择技能标签",
     settingsAction: "编辑个人资料",
+    /** hero 次要入口（ghost）；solid 只留给「新增维修记录」（C4） */
+    activityManage: "活动管理",
 
     metricsTitle: "维修概览",
     metricsTag: "Repair Metrics",
