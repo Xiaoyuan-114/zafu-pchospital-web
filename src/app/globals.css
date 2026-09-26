@@ -4687,15 +4687,29 @@ html[data-theme="black-yellow"] {
      无投影；面板用描边 + surface 底色。 */
   .account-menu {
     position: relative;
-    display: inline-flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--s-2);
-  }
-  .account-menu__trigger {
     inline-size: 100%;
-    justify-content: space-between;
+  }
+  /* 紧凑账号栏触发按钮：头像 + 用户名/角色 + 下箭头，hover 用 surface-2 而非整块 accent 填充。 */
+  .account-menu__trigger {
+    display: flex;
+    align-items: center;
     gap: var(--s-2);
+    inline-size: 100%;
+    padding: var(--s-2);
+    border: 0;
+    border-radius: var(--r-base);
+    background: transparent;
+    color: var(--ink-2);
+    font: inherit;
+    cursor: pointer;
+    transition:
+      background var(--d-ui) var(--ease-quart),
+      color var(--d-ui) var(--ease-quart);
+  }
+  .account-menu__trigger:hover,
+  .account-menu__trigger:focus-visible {
+    background: var(--surface-2);
+    color: var(--ink);
   }
   .account-menu__trigger svg {
     width: 14px;
@@ -4706,30 +4720,59 @@ html[data-theme="black-yellow"] {
   .account-menu[data-open="true"] .account-menu__trigger svg {
     transform: rotate(180deg);
   }
+  /* 头像：展示名首字符的圆形，用 accent 底 + accent-on 文字。 */
+  .account-menu__avatar {
+    display: grid;
+    place-items: center;
+    inline-size: 2rem;
+    block-size: 2rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-on);
+    font-size: var(--t-sm);
+    font-weight: 700;
+    flex: none;
+  }
+  .account-menu__identity {
+    display: grid;
+    gap: 0.1rem;
+    min-inline-size: 0;
+    flex: 1;
+    text-align: start;
+  }
   .account-menu__name {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-inline-size: 12rem;
+    font-size: var(--t-sm);
+    font-weight: 650;
+  }
+  .account-menu__role {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--t-micro);
+    color: var(--ink-3);
   }
   .account-menu__panel {
+    position: absolute;
     display: grid;
     gap: 1px;
     padding: var(--s-1);
     border: 1px solid var(--line);
     border-radius: var(--r-base);
     background: var(--surface-1);
+    z-index: 40;
+    min-inline-size: 12rem;
   }
   .account-menu--hero .account-menu__panel {
-    position: absolute;
     inset-inline-end: 0;
     top: calc(100% + 0.35rem);
-    z-index: 40;
-    min-inline-size: 11rem;
   }
+  /* 侧栏足部：面板向上弹（Popover，不参与布局；侧栏 overflow:hidden 内不会裁切）。 */
   .account-menu--nav .account-menu__panel {
-    /* 侧栏有 overflow，就地展开，不绝对定位。 */
-    position: static;
+    inset-inline: 0;
+    bottom: calc(100% + 0.5rem);
   }
   .account-menu__item {
     display: block;
@@ -4758,6 +4801,15 @@ html[data-theme="black-yellow"] {
   }
   .account-menu__item--danger {
     color: var(--ink-2);
+  }
+
+  /* 窄屏：侧栏收成顶部一条，账号菜单在右侧，面板改为向下右对齐弹出。 */
+  @media (max-width: 1099px) {
+    .account-menu--nav .account-menu__panel {
+      inset-inline: auto 0;
+      top: calc(100% + 0.5rem);
+      bottom: auto;
+    }
   }
 
   /* ---------------------------------------------------------- 成员外壳（T-P0-3，对标 admin-shell） */
@@ -5752,7 +5804,9 @@ html[data-theme="black-yellow"] {
          侧栏回到 0 —— 于是「Admin Console 上方的空白」在切页时忽然变小再弹回来。
          视觉上的那点留白改由侧栏自身的 `padding-block-start` 提供，与页面高度无关。 */
       inset-block-start: 0;
-      max-block-size: calc(100vh - var(--s-7));
+      /* 高度固定为一屏（减 s-7 余量）：内容不足时中间导航列表（1fr 行）拉伸，
+         足部账号栏沉到侧栏最底部；内容超出时由 `__groups` 内部滚动。 */
+      block-size: calc(100vh - var(--s-7));
       /* 滚动交给中间的导航列表，足部账号菜单始终可见、面板不被裁切。 */
       overflow: hidden;
       border-inline-end: 1px solid var(--line);
@@ -5796,7 +5850,8 @@ html[data-theme="black-yellow"] {
     .member-nav {
       position: sticky;
       inset-block-start: 0;
-      max-block-size: calc(100vh - var(--s-7));
+      /* 与 admin-nav 同：高度固定一屏（减 s-7），足部账号栏沉底。 */
+      block-size: calc(100vh - var(--s-7));
       overflow: hidden;
       border-inline-end: 1px solid var(--line);
       padding-inline-end: var(--s-4);
