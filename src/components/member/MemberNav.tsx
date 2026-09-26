@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { ShellTabBar, type ShellTab } from "@/components/layout/ShellTabBar";
+import { Icon } from "@/components/ui/Icon";
 import {
   MEMBER_NOTIFICATIONS_CHANGED_EVENT,
   memberCopy,
@@ -102,7 +103,9 @@ export function MemberNav({ displayName = null }: MemberNavProps) {
                         onFocus={() => router.prefetch(item.href)}
                         aria-current={current ? "page" : undefined}
                       >
-                        <span className="eyebrow">{item.index}</span>
+                        <span className="nav-icon">
+                          <Icon name={item.icon ?? "fileText"} />
+                        </span>
                         <span className="member-nav__label">{item.label}</span>
                         {badge !== null ? (
                           <span className="nav-badge">{badge > 99 ? "99+" : badge}</span>

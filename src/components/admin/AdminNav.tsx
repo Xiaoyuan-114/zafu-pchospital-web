@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { ShellTabBar, type ShellTab } from "@/components/layout/ShellTabBar";
+import { Icon } from "@/components/ui/Icon";
 import { adminCopy, adminNavGroups } from "@/config/admin";
 import type { AdminDashboardSummary } from "@/features/admin/admin-dashboard";
 
@@ -106,7 +107,9 @@ export function AdminNav({ displayName = null }: AdminNavProps) {
                         onFocus={() => router.prefetch(item.href)}
                         aria-current={current ? "page" : undefined}
                       >
-                        <span className="eyebrow">{item.index}</span>
+                        <span className="nav-icon">
+                          <Icon name={item.icon ?? "fileText"} />
+                        </span>
                         <span className="admin-nav__label">{item.label}</span>
                         {badge !== null ? (
                           <span className="nav-badge">{badge > 99 ? "99+" : badge}</span>

@@ -69,6 +69,7 @@ export const adminNavGroups: readonly AdminNavGroup[] = [
         shortLabel: "审核",
         labelEn: "Repairs",
         href: "/admin/repairs",
+        icon: "wrench",
       },
       {
         index: ADMIN_SECTION_INDEX.recruitment,
@@ -76,6 +77,7 @@ export const adminNavGroups: readonly AdminNavGroup[] = [
         shortLabel: "招募",
         labelEn: "Recruitment",
         href: "/admin/join-applications",
+        icon: "clipboard",
       },
     ],
   },
@@ -89,6 +91,7 @@ export const adminNavGroups: readonly AdminNavGroup[] = [
         shortLabel: "活动",
         labelEn: "Activities",
         href: "/admin/repair-activities",
+        icon: "calendar",
       },
     ],
   },
@@ -102,6 +105,7 @@ export const adminNavGroups: readonly AdminNavGroup[] = [
         shortLabel: "成员",
         labelEn: "Members",
         href: "/admin/members",
+        icon: "users",
       },
       {
         index: ADMIN_SECTION_INDEX.inviteCodes,
@@ -109,6 +113,7 @@ export const adminNavGroups: readonly AdminNavGroup[] = [
         shortLabel: "邀请码",
         labelEn: "Invite",
         href: "/admin/invite-codes",
+        icon: "key",
       },
     ],
   },
@@ -122,6 +127,7 @@ export const adminNavGroups: readonly AdminNavGroup[] = [
         shortLabel: "分类",
         labelEn: "Categories",
         href: "/admin/categories",
+        icon: "folder",
       },
       {
         index: ADMIN_SECTION_INDEX.skills,
@@ -129,6 +135,7 @@ export const adminNavGroups: readonly AdminNavGroup[] = [
         shortLabel: "技能",
         labelEn: "Skills",
         href: "/admin/skills",
+        icon: "tag",
       },
       {
         index: ADMIN_SECTION_INDEX.comments,
@@ -136,6 +143,7 @@ export const adminNavGroups: readonly AdminNavGroup[] = [
         shortLabel: "评论",
         labelEn: "Comments",
         href: "/admin/comments",
+        icon: "message",
       },
     ],
   },
@@ -149,6 +157,7 @@ export const adminNavGroups: readonly AdminNavGroup[] = [
         shortLabel: "导出",
         labelEn: "Export",
         href: "/admin/export",
+        icon: "download",
       },
       {
         index: ADMIN_SECTION_INDEX.audit,
@@ -156,6 +165,7 @@ export const adminNavGroups: readonly AdminNavGroup[] = [
         shortLabel: "审计",
         labelEn: "Audit",
         href: "/admin/audit",
+        icon: "shield",
       },
       {
         index: ADMIN_SECTION_INDEX.settings,
@@ -163,6 +173,7 @@ export const adminNavGroups: readonly AdminNavGroup[] = [
         shortLabel: "统计",
         labelEn: "Public Stats",
         href: "/admin/settings",
+        icon: "sliders",
       },
     ],
   },

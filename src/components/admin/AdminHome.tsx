@@ -5,7 +5,6 @@ import { useCallback, useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { DashStat, DashStats, DashTile } from "@/components/ui/dash";
-import type { IconName } from "@/components/ui/Icon";
 import { adminCopy, adminNavGroups } from "@/config/admin";
 import type { AdminDashboardSummary } from "@/features/admin/admin-dashboard";
 
@@ -19,20 +18,6 @@ import type { AdminDashboardSummary } from "@/features/admin/admin-dashboard";
  *
  * 窄屏：数字卡两列、目录砖两列，全部可单手点按。
  */
-
-const MODULE_ICONS: Record<string, IconName> = {
-  "/admin/repairs": "wrench",
-  "/admin/join-applications": "clipboard",
-  "/admin/repair-activities": "calendar",
-  "/admin/members": "users",
-  "/admin/invite-codes": "key",
-  "/admin/categories": "folder",
-  "/admin/skills": "tag",
-  "/admin/comments": "message",
-  "/admin/export": "download",
-  "/admin/audit": "shield",
-  "/admin/settings": "sliders",
-};
 
 export function AdminHome() {
   const copy = adminCopy.home;
@@ -169,7 +154,7 @@ export function AdminHome() {
                 {group.items.map((item) => (
                   <DashTile
                     key={item.href}
-                    icon={MODULE_ICONS[item.href] ?? "fileText"}
+                    icon={item.icon ?? "fileText"}
                     label={item.label}
                     desc={copy.directoryDesc[item.href]}
                     href={item.href}

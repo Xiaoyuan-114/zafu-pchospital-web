@@ -4869,8 +4869,14 @@ html[data-theme="black-yellow"] {
     color: var(--ink);
     font-weight: 750;
   }
-  .member-nav__link .eyebrow {
-    font-size: var(--t-micro);
+  /* 侧栏条目图标（工作台重构：用图标取代章节编号），颜色跟随条目 `currentColor`。 */
+  .nav-icon {
+    display: grid;
+    place-items: center;
+  }
+  .nav-icon svg {
+    inline-size: 1.1rem;
+    block-size: 1.1rem;
   }
   .member-nav__label {
     overflow: hidden;
@@ -5007,9 +5013,6 @@ html[data-theme="black-yellow"] {
     background: var(--surface-2);
     color: var(--ink);
     font-weight: 750;
-  }
-  .admin-nav__link .eyebrow {
-    font-size: var(--t-micro);
   }
   .admin-nav__label {
     overflow: hidden;
