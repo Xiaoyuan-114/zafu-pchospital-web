@@ -4,7 +4,7 @@ import test from "node:test";
 import { ApiErrorCode, AppError } from "../../src/lib/api/errors";
 import { permissionsForRoles, requirePermission } from "../../src/lib/auth/permissions";
 import { parseUtcDateFilter, dateRangeWhere } from "../../src/lib/api/date-filter";
-import { ADMIN_SECTION_INDEX, adminNav, adminSettingsNav } from "../../src/config/admin";
+import { ADMIN_SECTION_INDEX, adminNav, adminNavGroups } from "../../src/config/admin";
 import { mainNav } from "../../src/config/navigation";
 import { APPLICATION_EXPORT_COLUMNS } from "../../src/features/admin/join-application-export-service";
 import { EXPORT_COLUMNS, escapeCsvField, toCsvWith } from "../../src/features/admin/export-csv";
@@ -182,42 +182,39 @@ test("报名 CSV 复用同一套转义：BOM、CRLF、公式注入防护", () =>
 
 /* ------------------------------------------------------------------ 导航 */
 
-test("后台低频入口收在设置菜单，侧栏只留常驻模块", () => {
-  // 六个批次 2 模块仍然可达：入口从侧栏挪进足部「设置」，页面与权限都没变。
-  const settingsHrefs = adminSettingsNav.map((item) => item.href);
-  for (const href of ["/admin/skills", "/admin/comments", "/admin/audit", "/admin/settings"]) {
-    assert.ok(settingsHrefs.includes(href), `设置菜单缺少 ${href}`);
-  }
-  // 侧栏常驻：成员与账号 + 维修业务（维修审核 / 维修活动）。
+test("后台导航按 5 组平铺全部 11 个模块，不再有足部设置菜单", () => {
+  // 工作台重构：入口并回分组，不再收进侧栏足部「设置」菜单。
+  assert.deepEqual(
+    adminNavGroups.map((group) => group.title),
+    ["待办", "维修业务", "成员与账号", "内容配置", "数据"],
+  );
   assert.deepEqual(
     adminNav.map((item) => item.href),
     [
+      "/admin/repairs",
+      "/admin/join-applications",
+      "/admin/repair-activities",
       "/admin/members",
       "/admin/invite-codes",
-      "/admin/join-applications",
-      "/admin/repairs",
-      "/admin/repair-activities",
+      "/admin/categories",
+      "/admin/skills",
+      "/admin/comments",
+      "/admin/export",
+      "/admin/audit",
+      "/admin/settings",
     ],
-  );
-  assert.equal(ADMIN_SECTION_INDEX.repairActivities, "05");
-  // UX R3 / C3：按侧栏展示顺序连续编号（常驻 01–05，设置 06–11）。
-  const indexes = adminSettingsNav.map((item) => item.index);
-  assert.deepEqual(indexes, ["06", "07", "08", "09", "10", "11"]);
-  assert.equal(ADMIN_SECTION_INDEX.settings, "11");
-  assert.deepEqual(
-    adminNav.map((item) => item.index),
-    ["01", "02", "03", "04", "05"],
   );
 });
 
-test("侧栏常驻与设置菜单互不重叠，两处的编号全局唯一", () => {
-  const resident = new Set(adminNav.map((item) => item.href));
-  for (const item of adminSettingsNav) {
-    assert.equal(resident.has(item.href), false, `${item.href} 在两个入口里各出现一次`);
-    assert.ok(item.href.startsWith("/admin/"), `${item.href} 不是后台路由`);
-  }
-  const indexes = [...adminNav, ...adminSettingsNav].map((item) => item.index);
+test("后台入口编号全局唯一，且每条都有 shortLabel", () => {
+  const indexes = adminNav.map((item) => item.index);
   assert.equal(new Set(indexes).size, indexes.length, "后台入口编号重复");
+  for (const item of adminNav) {
+    assert.ok(item.shortLabel.length > 0, `${item.href} 缺 shortLabel`);
+  }
+  assert.equal(ADMIN_SECTION_INDEX.home, "00");
+  assert.equal(ADMIN_SECTION_INDEX.repairActivities, "05");
+  assert.equal(ADMIN_SECTION_INDEX.settings, "11");
 });
 
 test("后台导航不进入公开索引栏（mainNav）", () => {
