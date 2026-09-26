@@ -17,12 +17,15 @@ import {
  * `Header` 的桌面索引栏与移动端浮层都以 `mainNav` 为唯一数据源，加进去
  * `/admin/*` 会立刻出现在全站公开导航里。后台入口只在后台内部使用。
  *
- * 章节编号：公开 01–05、成员 06–12（M-B）；管理按侧栏展示顺序 00 / 01–11（C3）。
+ * 章节编号：公开 01–05、成员 06–13（M-B）；管理按侧栏展示顺序 00 / 01–11（C3）。
  */
 
 /**
- * UX R3 / C3：按侧栏展示顺序连续编号（常驻 01–05，设置 06–11），home 保留 00。
- * 接受与旧截图编号漂移；与公开 01–05 / 成员 06–12 为各自列表内连续，不要求跨壳全局唯一。
+ * UX R3 / C3：按侧栏展示顺序连续编号，home 保留 00。
+ * 接受与旧截图编号漂移；与公开 01–05 / 成员 06–13 为各自列表内连续，不要求跨壳全局唯一。
+ *
+ * 注意：这些编号同时被各页 `SectionHead` 使用（页面标题里的「01 / 02」），
+ * 因此工作台重构**不改号**，只重新分组 —— 分组内的编号不连续是正常的。
  */
 export const ADMIN_SECTION_INDEX = {
   home: "00",
@@ -40,14 +43,14 @@ export const ADMIN_SECTION_INDEX = {
 } as const;
 
 /**
- * 管理侧栏分组（T-P1-3）
+ * 管理侧栏分组（工作台重构版）
  *
- * 扁平 `adminNav` 保留为派生列表，供首页「其余模块」等仍按条目遍历的地方使用；
- * 侧栏渲染以 `adminNavGroups` 为准。不新增路由。
+ * 全部 11 个模块按任务域平铺成 5 组，不再把「低频」入口收进足部菜单 ——
+ * 藏起来的入口等于不存在的入口。窄屏（<1100px）时这 5 组不进顶栏，
+ * 改由底部标签栏（首页 / 审核 / 招募 / 成员）+「更多」抽屉承接其余模块。
  *
- * 分组里只放**常驻**入口：故障分类、数据导出、技能标签、评论管理、审计记录与公开统计
- * 属于低频管理动作，收在侧栏足部的 `adminSettingsNav` 里（权限与页面都不变，
- * 只是不再占侧栏位）。编号按侧栏 + 设置菜单展示顺序连续（UX R3 / C3）。
+ * 编号沿用原值、不重排（`ADMIN_SECTION_INDEX` 同时被各页 `SectionHead` 使用），
+ * 因此分组内的编号不连续是正常的。
  */
 export type AdminNavGroup = {
   id: string;
@@ -56,6 +59,42 @@ export type AdminNavGroup = {
 };
 
 export const adminNavGroups: readonly AdminNavGroup[] = [
+  {
+    id: "todo",
+    title: "待办",
+    items: [
+      {
+        index: ADMIN_SECTION_INDEX.repairs,
+        label: "维修审核",
+        shortLabel: "审核",
+        labelEn: "Repairs",
+        href: "/admin/repairs",
+        icon: "wrench",
+      },
+      {
+        index: ADMIN_SECTION_INDEX.recruitment,
+        label: "招募审核",
+        shortLabel: "招募",
+        labelEn: "Recruitment",
+        href: "/admin/join-applications",
+        icon: "clipboard",
+      },
+    ],
+  },
+  {
+    id: "repairs",
+    title: "维修业务",
+    items: [
+      {
+        index: ADMIN_SECTION_INDEX.repairActivities,
+        label: "维修活动",
+        shortLabel: "活动",
+        labelEn: "Activities",
+        href: "/admin/repair-activities",
+        icon: "calendar",
+      },
+    ],
+  },
   {
     id: "members-accounts",
     title: "成员与账号",
@@ -66,6 +105,7 @@ export const adminNavGroups: readonly AdminNavGroup[] = [
         shortLabel: "成员",
         labelEn: "Members",
         href: "/admin/members",
+        icon: "users",
       },
       {
         index: ADMIN_SECTION_INDEX.inviteCodes,
@@ -73,85 +113,73 @@ export const adminNavGroups: readonly AdminNavGroup[] = [
         shortLabel: "邀请码",
         labelEn: "Invite",
         href: "/admin/invite-codes",
-      },
-      {
-        index: ADMIN_SECTION_INDEX.recruitment,
-        label: "招募审核",
-        shortLabel: "招募",
-        labelEn: "Recruitment",
-        href: "/admin/join-applications",
+        icon: "key",
       },
     ],
   },
   {
-    id: "repairs",
-    title: "维修业务",
+    id: "content",
+    title: "内容配置",
     items: [
       {
-        index: ADMIN_SECTION_INDEX.repairs,
-        label: "维修审核",
-        shortLabel: "审核",
-        labelEn: "Repairs",
-        href: "/admin/repairs",
+        index: ADMIN_SECTION_INDEX.categories,
+        label: "故障分类",
+        shortLabel: "分类",
+        labelEn: "Categories",
+        href: "/admin/categories",
+        icon: "folder",
       },
       {
-        index: ADMIN_SECTION_INDEX.repairActivities,
-        label: "维修活动",
-        shortLabel: "活动",
-        labelEn: "Activities",
-        href: "/admin/repair-activities",
+        index: ADMIN_SECTION_INDEX.skills,
+        label: "技能标签",
+        shortLabel: "技能",
+        labelEn: "Skills",
+        href: "/admin/skills",
+        icon: "tag",
+      },
+      {
+        index: ADMIN_SECTION_INDEX.comments,
+        label: "评论管理",
+        shortLabel: "评论",
+        labelEn: "Comments",
+        href: "/admin/comments",
+        icon: "message",
+      },
+    ],
+  },
+  {
+    id: "data",
+    title: "数据",
+    items: [
+      {
+        index: ADMIN_SECTION_INDEX.export,
+        label: "数据导出",
+        shortLabel: "导出",
+        labelEn: "Export",
+        href: "/admin/export",
+        icon: "download",
+      },
+      {
+        index: ADMIN_SECTION_INDEX.audit,
+        label: "审计记录",
+        shortLabel: "审计",
+        labelEn: "Audit",
+        href: "/admin/audit",
+        icon: "shield",
+      },
+      {
+        index: ADMIN_SECTION_INDEX.settings,
+        label: "公开统计",
+        shortLabel: "统计",
+        labelEn: "Public Stats",
+        href: "/admin/settings",
+        icon: "sliders",
       },
     ],
   },
 ] as const;
 
-/** 收进侧栏足部「设置」菜单的后台入口，编号接在常驻侧栏之后（06–11）。 */
-export const adminSettingsNav: readonly NavItem[] = [
-  {
-    index: ADMIN_SECTION_INDEX.categories,
-    label: "故障分类",
-    shortLabel: "分类",
-    labelEn: "Categories",
-    href: "/admin/categories",
-  },
-  {
-    index: ADMIN_SECTION_INDEX.export,
-    label: "数据导出",
-    shortLabel: "导出",
-    labelEn: "Export",
-    href: "/admin/export",
-  },
-  {
-    index: ADMIN_SECTION_INDEX.skills,
-    label: "技能标签",
-    shortLabel: "技能",
-    labelEn: "Skills",
-    href: "/admin/skills",
-  },
-  {
-    index: ADMIN_SECTION_INDEX.comments,
-    label: "评论管理",
-    shortLabel: "评论",
-    labelEn: "Comments",
-    href: "/admin/comments",
-  },
-  {
-    index: ADMIN_SECTION_INDEX.audit,
-    label: "审计记录",
-    shortLabel: "审计",
-    labelEn: "Audit",
-    href: "/admin/audit",
-  },
-  {
-    index: ADMIN_SECTION_INDEX.settings,
-    label: "公开统计",
-    shortLabel: "统计",
-    labelEn: "Public Stats",
-    href: "/admin/settings",
-  },
-] as const;
-
-/** 扁平派生：只含侧栏常驻条目，顺序与分组内一致。 */
+/** 扁平派生：含全部 11 个模块，顺序与分组内一致，供需要遍历全部入口的地方使用。 */
 export const adminNav: readonly NavItem[] = adminNavGroups.flatMap((group) => [...group.items]);
 
 export const memberStatusLabels: Record<MemberStatus, string> = {
@@ -275,42 +303,46 @@ export const adminCopy = {
   /** 侧栏品牌区的英文小字（与站点其它地方的 `eyebrow` 同一处理）。 */
   titleEn: "Admin Console",
   navLabel: "管理后台导航",
-  /** 侧栏足部「设置」菜单：收起低频入口，按钮文案保持单字，避免挤占窄侧栏 */
-  settingsLabel: "设置",
-  settingsMenuLabel: "设置与更多入口",
+  /** 窄屏底部标签栏与「更多」抽屉。 */
+  tabbarLabel: "管理快捷导航",
+  moreLabel: "更多",
+  moreMenuLabel: "全部模块",
+  moreCloseLabel: "关闭",
   home: {
     label: "Admin",
-    lead: "常用入口快速进入高频管理动作；其余入口收在左侧「设置」里。所有操作在服务端鉴权，并写入审计记录。",
-    /** 首页只放 3–4 个常用入口，避免再铺满 10 张入口卡（T-P1-3）。不附统计数字。 */
-    commonTitle: "常用入口",
-    common: [
-      {
-        index: ADMIN_SECTION_INDEX.repairs,
-        title: "维修审核",
-        description: "查看与筛选维修记录，审核通过或退回。",
-        href: "/admin/repairs",
-      },
-      {
-        index: ADMIN_SECTION_INDEX.recruitment,
-        title: "招募审核",
-        description: "跟进报名、登记面试结果与账号发放。",
-        href: "/admin/join-applications",
-      },
-      {
-        index: ADMIN_SECTION_INDEX.inviteCodes,
-        title: "邀请码",
-        description: "创建与管理成员注册邀请码。",
-        href: "/admin/invite-codes",
-      },
-      {
-        index: ADMIN_SECTION_INDEX.members,
-        title: "成员管理",
-        description: "检索成员、设置角色与账号状态。",
-        href: "/admin/members",
-      },
-    ],
-    allModulesTitle: "模块入口",
-    allModulesHint: "其余入口收在左侧「设置」里。",
+    lead: "所有操作在服务端鉴权，并写入审计记录。",
+    /** 待办数字带：数字来自 `/api/v1/admin/dashboard`，加载失败显示为「—」而不是 0。 */
+    todoTitle: "待办",
+    todoTag: "To-do",
+    todoRepairs: "待审核维修",
+    todoRepairsHint: "前往维修审核",
+    todoRecruitment: "待跟进报名",
+    todoRecruitmentHint: "已提交 + 待面试",
+    todoProvisionFailed: "发放失败",
+    todoProvisionFailedHint: "前往招募审核重试",
+    todoInvites: "可用邀请码",
+    todoInvitesHint: "前往邀请码管理",
+    todoMembers: "成员总数",
+    todoMembersHint: "前往成员管理",
+    todoAllClear: "今天的待办已经清零。",
+    todoLoadFailed: "待办数字加载失败，请稍后重试。",
+    retry: "重新加载",
+    /** 全模块目录：与侧栏同一套分组，首页上每项带一句说明（按 href 取）。 */
+    directoryTitle: "全部模块",
+    directoryTag: "Modules",
+    directoryDesc: {
+      "/admin/repairs": "审核、退回与修正成员提交的维修记录。",
+      "/admin/join-applications": "跟进报名、登记面试结果与账号发放。",
+      "/admin/repair-activities": "创建与管理面向公众的维修活动。",
+      "/admin/members": "检索成员、设置角色与账号状态。",
+      "/admin/invite-codes": "创建与撤销成员注册邀请码。",
+      "/admin/categories": "维护维修记录的故障分类与排序。",
+      "/admin/skills": "维护成员可选择的技能标签库。",
+      "/admin/comments": "查看与删除维修记录的内部评论。",
+      "/admin/export": "按筛选条件导出维修记录。",
+      "/admin/audit": "检索重要操作的留痕（只读）。",
+      "/admin/settings": "决定官网首页对外展示的统计。",
+    } as Record<string, string>,
   },
   members: {
     label: "Members",

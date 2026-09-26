@@ -67,11 +67,18 @@ export const accountMenuCopy = {
   fallbackName: "成员",
   /** 触发按钮无障碍名称 */
   menuLabel: "账号菜单",
+  /** 头像无障碍名（用户名已在文本里，头像用首字符生成） */
+  avatarLabel: "账号头像",
+  /** 角色标签：账号栏在用户名下方显示当前身份 */
+  roleLabels: {
+    MEMBER: "成员",
+    ADMIN: "管理员",
+  } as Record<string, string>,
   changePassword: "修改密码",
   /** 双角色：从管理壳切到成员工作台 */
-  switchToMember: "进入成员工作台",
+  switchToMember: "切换至成员工作台",
   /** 双角色：从成员壳切到管理后台 */
-  switchToAdmin: "进入管理后台",
+  switchToAdmin: "切换至管理后台",
   logout: "退出登录",
   loggingOut: "退出中…",
 } as const;

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { DashGroup, DashStat, DashStats, DashTile } from "@/components/ui/dash";
 import { MemberAvatar } from "@/components/member/MemberAvatar";
 import { MemberMetrics } from "@/components/member/MemberMetrics";
 import { MemberRankingPreviewView } from "@/components/member/MemberRankingPreview";
@@ -11,26 +12,20 @@ import { MemberRecentRepairs } from "@/components/member/MemberRecentRepairs";
 import { MemberSection } from "@/components/member/MemberSection";
 import { MemberSkillList } from "@/components/member/MemberSkillList";
 import { MemberUpcoming } from "@/components/member/MemberUpcoming";
-import { MemberWorkQueueView } from "@/components/member/MemberWorkQueue";
-import { MemberSkeleton } from "@/components/member/MemberSkeleton";
 import { memberCopy, formatShanghaiDate } from "@/config/member";
 import { roleLabels } from "@/components/member/MemberIdentityFields";
 import type { MemberDashboard as MemberDashboardData } from "@/types/contracts";
 
 /**
- * MemberDashboard —— 成员工作台主视图（客户端）
+ * MemberDashboard —— 成员工作台主视图（重构版）
  *
- * 数据来自 `GET /api/v1/member/dashboard`（单一聚合请求，避免多接口串联导致的白屏）。
+ * 信息层次自上而下：问候与主行动 → 待办数字带（可点）→ 快捷入口 →
+ * 双列（维修概览 + 最近已通过 ｜ 排行 / 技能 / 通知收藏）。窄屏单列，
+ * 待办与快捷入口靠前 —— 手机上打开工作台首先回答「有没有要我处理的事」。
  *
- * 布局（T-P0-5）：hero 唯一 solid「新增维修记录」；宽屏主栏队列→最近已通过，
- * 辅栏指标 / 可折叠技能 / 排行 / Upcoming。账号菜单只挂侧栏足部，不在 hero 重复。
- *
- * 降级策略（任务书 §12.1）：**指标加载用稳定骨架，失败时局部错误**。
- * 因此这里把「加载中 / 失败」限制在内容区，欢迎区（来自服务端已知的会话信息）
- * 始终可用，不会因为一次请求失败就整页白屏。
- *
- * 加载骨架（T-P2-5）复用 `member-workspace__content` / `__main` / `__aside`，
- * 与 ready 双列几何对齐，降低 ≥1100px 下的 CLS。
+ * 数据来自 `GET /api/v1/member/dashboard`（单一聚合请求）；欢迎区始终渲染，
+ * 加载 / 失败只影响下方数据区。问候语与日期在挂载后按本地时区计算，
+ * 服务端不渲染（避免时区不一致导致 hydration 分叉）。
  */
 
 export type MemberDashboardProps = {
@@ -43,6 +38,41 @@ export function MemberDashboard({ initialDisplayName, roles }: MemberDashboardPr
   const copy = memberCopy.dashboard;
   const [data, setData] = useState<MemberDashboardData | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
+  const [now, setNow] = useState<{ greeting: string; date: string; weekday: string } | null>(null);
+
+  useEffect(() => {
+    const date = new Date();
+    const hour = Number(
+      new Intl.DateTimeFormat("en-GB", {
+        hour: "2-digit",
+        hour12: false,
+        timeZone: "Asia/Shanghai",
+      }).format(date),
+    );
+    const greeting =
+      hour < 6
+        ? copy.greetings.dawn
+        : hour < 11
+          ? copy.greetings.morning
+          : hour < 14
+            ? copy.greetings.noon
+            : hour < 18
+              ? copy.greetings.afternoon
+              : copy.greetings.evening;
+    const parts = new Intl.DateTimeFormat("zh-CN", {
+      month: "long",
+      day: "numeric",
+      weekday: "long",
+      timeZone: "Asia/Shanghai",
+    }).formatToParts(date);
+    setNow({
+      greeting,
+      date: formatShanghaiDate(date.toISOString()),
+      weekday: parts.find((part) => part.type === "weekday")?.value ?? "",
+    });
+    // copy 是构建期常量，不需要进依赖
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const load = useCallback(async () => {
     setState("loading");
@@ -66,36 +96,48 @@ export function MemberDashboard({ initialDisplayName, roles }: MemberDashboardPr
   const joinedAt = profile ? formatShanghaiDate(profile.joinedAt) : null;
   const roleText = roleLabels(profile?.roles ?? roles);
 
+  const queueFailed = data?.degraded.includes("workQueue") ?? false;
+  const queue = queueFailed ? null : (data?.workQueue ?? null);
+  const unread = data
+    ? data.notifications.available
+      ? data.notifications.unreadCount
+      : null
+    : null;
+  const allClear =
+    queue !== null &&
+    queue.draftCount === 0 &&
+    queue.pendingCount === 0 &&
+    queue.rejectedCount === 0 &&
+    (unread === null || unread === 0);
+
   return (
     <>
-      <header className="member-hero">
-        <div className="member-hero__identity">
+      <header className="dash-hero">
+        <div className="dash-hero__identity">
           <MemberAvatar displayName={displayName} avatarUrl={profile?.avatarUrl} />
-          <div className="member-hero__text">
-            <h1 className="member-hero__name" id="member-title">
-              {displayName}
+          <div className="dash-hero__text">
+            <h1 className="dash-hero__name" id="member-title">
+              {now ? `${now.greeting}，${displayName}` : `${copy.welcome}，${displayName}`}
             </h1>
-            <p className="member-hero__meta">
-              <span>
-                {copy.welcome}
-                {roleText ? ` · ${roleText}` : ""}
-              </span>
+            <p className="dash-hero__meta">
+              {now ? (
+                <span>
+                  {now.date} {now.weekday}
+                </span>
+              ) : null}
+              {roleText ? <span>{roleText}</span> : null}
               {joinedAt ? (
                 <span>
-                  {copy.joinedAtLabel} <span className="member-hero__meta-num">{joinedAt}</span>
+                  {copy.joinedAtLabel} {joinedAt}
                 </span>
               ) : null}
             </p>
           </div>
         </div>
-        <div className="member-hero__actions">
+        <div className="dash-hero__actions">
           <Button href="/member/repairs/new" variant="solid">
             {copy.quickNew}
           </Button>
-          <Button href="/member/repair-activities" variant="ghost">
-            {copy.activityManage}
-          </Button>
-          <Button href="/member/profile">{copy.settingsAction}</Button>
         </div>
       </header>
 
@@ -106,110 +148,187 @@ export function MemberDashboard({ initialDisplayName, roles }: MemberDashboardPr
         </Card>
       ) : null}
 
-      {state === "loading" ? <MemberSkeleton /> : null}
+      {state === "loading" ? <DashboardSkeleton /> : null}
 
       {state === "ready" && data ? (
-        <div className="member-workspace__content">
-          <div className="member-workspace__main">
-            <section aria-labelledby="member-queue-title">
-              <MemberSection id="member-queue-title" title={copy.queueTitle} tag={copy.queueTag}>
-                {data.degraded.includes("workQueue") ? (
-                  <SectionError onRetry={() => void load()} />
-                ) : (
-                  <MemberWorkQueueView queue={data.workQueue} />
-                )}
-              </MemberSection>
-            </section>
+        <>
+          <section className="dash-block" aria-labelledby="member-action-title">
+            <div className="dash-block__head">
+              <h2 className="dash-block__title" id="member-action-title">
+                {copy.actionTitle}
+              </h2>
+              <span className="dash-block__tag">{copy.actionTag}</span>
+            </div>
+            <DashStats>
+              <DashStat
+                label={copy.actionDraft}
+                value={queue?.draftCount ?? null}
+                unit={copy.unitCount}
+                href="/member/repairs?status=DRAFT"
+                active
+              />
+              <DashStat
+                label={copy.actionPending}
+                value={queue?.pendingCount ?? null}
+                unit={copy.unitCount}
+                href="/member/repairs?status=PENDING"
+              />
+              <DashStat
+                label={copy.actionRejected}
+                value={queue?.rejectedCount ?? null}
+                unit={copy.unitCount}
+                href="/member/repairs?status=REJECTED"
+                active
+              />
+              <DashStat
+                label={copy.actionUnread}
+                value={unread}
+                unit="条"
+                href="/member/notifications"
+                active
+              />
+            </DashStats>
+            {queueFailed ? (
+              <p className="dash-note">
+                {memberCopy.common.sectionLoadError}{" "}
+                <button className="dash-note__retry" type="button" onClick={() => void load()}>
+                  {memberCopy.common.reload}
+                </button>
+              </p>
+            ) : null}
+            {allClear ? <p className="dash-allclear">{copy.actionAllClear}</p> : null}
+          </section>
 
-            <section aria-labelledby="member-recent-title">
-              <MemberSection id="member-recent-title" title={copy.recentTitle} tag={copy.recentTag}>
-                {data.degraded.includes("recentRepairs") ? (
-                  <SectionError onRetry={() => void load()} />
-                ) : (
-                  <MemberRecentRepairs
-                    items={data.recentRepairs}
-                    moreHref="/member/repairs"
-                    moreLabel={copy.recentMore}
+          <DashGroup title={copy.quickTitle} id="member-quick-title" className="dash-block">
+            <DashTile icon="plus" label={copy.quickNew} desc={copy.quickNewDesc} href="/member/repairs/new" />
+            <DashTile icon="fileText" label={copy.quickAll} desc={copy.quickAllDesc} href="/member/repairs" />
+            <DashTile
+              icon="calendar"
+              label={copy.quickActivities}
+              desc={copy.quickActivitiesDesc}
+              href="/member/repair-activities"
+            />
+            <DashTile
+              icon="bell"
+              label={copy.quickNotifications}
+              desc={copy.quickNotificationsDesc}
+              href="/member/notifications"
+            />
+            <DashTile icon="heart" label={copy.quickFavorites} desc={copy.quickFavoritesDesc} href="/member/favorites" />
+            <DashTile icon="trophy" label={copy.quickRankings} desc={copy.quickRankingsDesc} href="/member/rankings" />
+            <DashTile icon="edit" label={copy.quickProfile} desc={copy.quickProfileDesc} href="/member/profile" />
+          </DashGroup>
+
+          <div className="dash-cols">
+            <div className="dash-cols__main">
+              <section aria-labelledby="member-metrics-title">
+                <MemberSection
+                  id="member-metrics-title"
+                  title={copy.metricsTitle}
+                  tag={copy.metricsTag}
+                  foot={copy.metricsFootnote}
+                >
+                  {data.degraded.includes("repairSummary") ? (
+                    <SectionError onRetry={() => void load()} />
+                  ) : (
+                    <MemberMetrics summary={data.repairSummary} />
+                  )}
+                </MemberSection>
+              </section>
+
+              <section aria-labelledby="member-recent-title">
+                <MemberSection id="member-recent-title" title={copy.recentTitle} tag={copy.recentTag}>
+                  {data.degraded.includes("recentRepairs") ? (
+                    <SectionError onRetry={() => void load()} />
+                  ) : (
+                    <MemberRecentRepairs
+                      items={data.recentRepairs}
+                      moreHref="/member/repairs"
+                      moreLabel={copy.recentMore}
+                    />
+                  )}
+                </MemberSection>
+              </section>
+            </div>
+
+            <aside className="dash-cols__aside">
+              <section aria-labelledby="member-ranking-title">
+                <MemberSection id="member-ranking-title" title={copy.rankingTitle} tag={copy.rankingTag}>
+                  {data.degraded.includes("ranking") ? (
+                    <SectionError onRetry={() => void load()} />
+                  ) : (
+                    <MemberRankingPreviewView preview={data.ranking} />
+                  )}
+                </MemberSection>
+              </section>
+
+              <section aria-labelledby="member-skills-title">
+                <details className="member-skills-fold">
+                  <summary className="member-skills-fold__summary">
+                    <span className="member-skills-fold__title" id="member-skills-title">
+                      {copy.skillsLabel}
+                    </span>
+                    <span className="member-section__tag">{copy.skillsTag}</span>
+                  </summary>
+                  <div className="member-skills-fold__body">
+                    <MemberSkillList skills={data.profile.skills} />
+                    <Button href="/member/profile" variant="ghost">
+                      {copy.skillsEditLink}
+                    </Button>
+                  </div>
+                </details>
+              </section>
+
+              <section aria-labelledby="member-upcoming-title">
+                <MemberSection
+                  id="member-upcoming-title"
+                  title={copy.upcomingTitle}
+                  tag={copy.upcomingTag}
+                >
+                  <MemberUpcoming
+                    notifications={data.notifications}
+                    favorites={data.favorites}
+                    onRetry={() => void load()}
                   />
-                )}
-              </MemberSection>
-            </section>
+                </MemberSection>
+              </section>
+            </aside>
           </div>
-
-          <aside className="member-workspace__aside">
-            <section aria-labelledby="member-metrics-title">
-              <MemberSection
-                id="member-metrics-title"
-                title={copy.metricsTitle}
-                tag={copy.metricsTag}
-                foot={copy.metricsFootnote}
-              >
-                {/* 局部降级：只让失败区块显示错误态，其余区块照常展示真实数据。 */}
-                {data.degraded.includes("repairSummary") ? (
-                  <SectionError onRetry={() => void load()} />
-                ) : (
-                  <MemberMetrics summary={data.repairSummary} />
-                )}
-              </MemberSection>
-            </section>
-
-            <section aria-labelledby="member-skills-title">
-              <details className="member-skills-fold">
-                <summary className="member-skills-fold__summary">
-                  <span className="member-skills-fold__title" id="member-skills-title">
-                    {copy.skillsLabel}
-                  </span>
-                  <span className="member-section__tag">{copy.skillsTag}</span>
-                </summary>
-                <div className="member-skills-fold__body">
-                  <MemberSkillList skills={data.profile.skills} />
-                  <Button href="/member/profile" variant="ghost">
-                    {copy.skillsEditLink}
-                  </Button>
-                </div>
-              </details>
-            </section>
-
-            <section aria-labelledby="member-ranking-title">
-              <MemberSection id="member-ranking-title" title={copy.rankingTitle} tag={copy.rankingTag}>
-                {/* 排行区块失败只影响本区块：其余区块照常展示真实数据 */}
-                {data.degraded.includes("ranking") ? (
-                  <SectionError onRetry={() => void load()} />
-                ) : (
-                  <MemberRankingPreviewView preview={data.ranking} />
-                )}
-              </MemberSection>
-            </section>
-
-            <section aria-labelledby="member-upcoming-title">
-              <MemberSection
-                id="member-upcoming-title"
-                title={copy.upcomingTitle}
-                tag={copy.upcomingTag}
-              >
-                <MemberUpcoming
-                  notifications={data.notifications}
-                  favorites={data.favorites}
-                  onRetry={() => void load()}
-                />
-              </MemberSection>
-            </section>
-          </aside>
-        </div>
+        </>
       ) : null}
     </>
   );
 }
 
-/**
- * 局部错误占位：仅在**单个区块**加载失败时替换该区块内容。
- * 不整页跳错误页，也不把失败渲染成「暂时没有数据」（两者语义不同）。
- */
+/** 局部错误占位：仅在**单个区块**加载失败时替换该区块内容。 */
 function SectionError({ onRetry }: { onRetry: () => void }) {
   return (
     <div className="member-section__error" role="status">
       <p>{memberCopy.common.sectionLoadError}</p>
       <Button onClick={onRetry}>{memberCopy.common.reload}</Button>
+    </div>
+  );
+}
+
+/** 加载骨架：只勾出待办带与双列的轮廓，hero 始终渲染真实内容。 */
+function DashboardSkeleton() {
+  return (
+    <div className="dash-skeleton" role="status" aria-live="polite">
+      <span className="sr-only">{memberCopy.common.loading}</span>
+      <div className="dash-skeleton__stats" aria-hidden="true">
+        {[0, 1, 2, 3].map((index) => (
+          <span className="dash-skeleton__bar dash-skeleton__bar--stat" key={index} />
+        ))}
+      </div>
+      <div className="dash-skeleton__tiles" aria-hidden="true">
+        {[0, 1, 2, 3, 4, 5, 6].map((index) => (
+          <span className="dash-skeleton__bar dash-skeleton__bar--tile" key={index} />
+        ))}
+      </div>
+      <div className="dash-skeleton__cols" aria-hidden="true">
+        <span className="dash-skeleton__bar dash-skeleton__bar--block" />
+        <span className="dash-skeleton__bar dash-skeleton__bar--block" />
+      </div>
     </div>
   );
 }

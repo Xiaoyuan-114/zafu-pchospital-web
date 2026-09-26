@@ -195,20 +195,19 @@ test("批量入参：字符串数组去重、拒绝空元素与非数组", () =>
   assert.throws(() => requiredString({ reason: "  " }, "reason"), /不能为空/);
 });
 
-test("后台导航不进入公开导航，且侧栏编号按展示顺序连续、互不重复", () => {
+test("后台导航不进入公开导航，且全部模块都有首页目录说明", () => {
   const publicHrefs = new Set(mainNav.map((item) => item.href));
   for (const item of adminNav) {
     assert.equal(item.href.startsWith("/admin/"), true, item.href);
     assert.equal(publicHrefs.has(item.href), false, `后台入口不得出现在 mainNav：${item.href}`);
   }
   const indexes = adminNav.map((item) => item.index);
-  assert.equal(new Set(indexes).size, indexes.length);
-  assert.deepEqual(indexes, ["01", "02", "03", "04", "05"]);
+  assert.equal(new Set(indexes).size, indexes.length, "后台入口编号重复");
   assert.equal(ADMIN_SECTION_INDEX.home, "00");
-  // T-P1-3：首页只放常用入口，完整模块走侧栏 / 「全部模块」
-  assert.equal(adminCopy.home.common.length >= 3 && adminCopy.home.common.length <= 4, true);
-  assert.equal(adminCopy.home.common.length <= adminNav.length, true);
-  for (const entry of adminCopy.home.common) {
-    assert.equal(adminNav.some((item) => item.href === entry.href), true, entry.href);
+  // 工作台重构：首页「全部模块」目录覆盖每一个模块，且每项都有非空说明。
+  assert.equal(adminNav.length, 11);
+  for (const item of adminNav) {
+    const desc = adminCopy.home.directoryDesc[item.href];
+    assert.ok(typeof desc === "string" && desc.length > 0, `${item.href} 缺 directoryDesc`);
   }
 });

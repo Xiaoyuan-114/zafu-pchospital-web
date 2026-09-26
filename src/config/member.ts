@@ -10,15 +10,14 @@
 import type { NavItem } from "@/config/navigation";
 
 /**
- * 成员端二级导航（T-P0-3）
+ * 成员端二级导航（工作台重构版）
  *
- * 分组：工作 / 我；账号区（改密 + 退出）由 `AccountMenu` 挂在侧栏足部，
- * 不在此列表里重复「修改密码」。勿把「新建维修」放进侧栏——主 CTA 留给工作台 / 列表顶栏。
+ * 全部 8 个入口按任务域平铺成 4 组，不再把低频入口收进足部「设置」菜单 ——
+ * 藏起来的入口等于不存在的入口。窄屏（<1100px）时这 4 组不进顶栏，
+ * 改由底部标签栏（工作台 / 维修 / 新增 / 消息 / 我的）+ 工作台首页的快捷入口承接。
  *
  * `/member` 必须精确匹配高亮，否则所有子页都会把「工作台」标成当前页。
- *
- * 只放**常驻**入口。消息通知 / 我的收藏 / 排行榜属于低频功能，收在侧栏足部的
- * `memberSettingsNav` 里（页面与会话不受影响，只是不再占导航位）。
+ * 账号区（改密 + 退出）由 `AccountMenu` 挂在侧栏足部，不在此列表里重复。
  */
 export type MemberNavGroup = {
   id: string;
@@ -27,50 +26,108 @@ export type MemberNavGroup = {
 };
 
 /**
- * UX R3 / N1 · 口径 M-B：公开导航扩到 01–05 后，成员整段 +1 → 06–12
- * （工作 06–09，设置 10–12），延续「公开 / 成员分段」历史约定。
+ * UX R3 / N1 · 口径 M-B：公开导航占 01–05，成员整段 +1 → 06–13，
+ * 延续「公开 / 成员分段」历史约定（概览 06，维修 07–09，互动 10–12，账户 13）。
  */
 export const memberNav: readonly MemberNavGroup[] = [
   {
-    id: "work",
-    title: "工作",
+    id: "overview",
+    title: "概览",
     items: [
-      { index: "06", label: "工作台", shortLabel: "工作台", labelEn: "Workspace", href: "/member" },
+      {
+        index: "06",
+        label: "工作台",
+        shortLabel: "工作台",
+        labelEn: "Workspace",
+        href: "/member",
+        icon: "home",
+      },
+    ],
+  },
+  {
+    id: "repairs",
+    title: "维修",
+    items: [
       {
         index: "07",
+        label: "维修记录",
+        shortLabel: "维修",
+        labelEn: "Repairs",
+        href: "/member/repairs",
+        icon: "fileText",
+      },
+      {
+        index: "08",
+        label: "新增维修",
+        shortLabel: "新增",
+        labelEn: "New Repair",
+        href: "/member/repairs/new",
+        icon: "plus",
+      },
+      {
+        index: "09",
         label: "维修活动",
         shortLabel: "活动",
         labelEn: "Activities",
         href: "/member/repair-activities",
+        icon: "calendar",
       },
-      { index: "08", label: "维修记录", shortLabel: "维修", labelEn: "Repairs", href: "/member/repairs" },
     ],
   },
   {
-    id: "me",
-    title: "我",
+    id: "community",
+    title: "互动",
     items: [
-      { index: "09", label: "个人资料", shortLabel: "资料", labelEn: "Profile", href: "/member/profile" },
+      {
+        index: "10",
+        label: "消息通知",
+        shortLabel: "消息",
+        labelEn: "Notifications",
+        href: "/member/notifications",
+        icon: "bell",
+      },
+      {
+        index: "11",
+        label: "我的收藏",
+        shortLabel: "收藏",
+        labelEn: "Favorites",
+        href: "/member/favorites",
+        icon: "heart",
+      },
+      {
+        index: "12",
+        label: "排行榜",
+        shortLabel: "排行",
+        labelEn: "Rankings",
+        href: "/member/rankings",
+        icon: "trophy",
+      },
+    ],
+  },
+  {
+    id: "account",
+    title: "账户",
+    items: [
+      {
+        index: "13",
+        label: "个人资料",
+        shortLabel: "资料",
+        labelEn: "Profile",
+        href: "/member/profile",
+        icon: "user",
+      },
     ],
   },
 ] as const;
 
-/** 收进侧栏足部「设置」菜单的成员端入口，编号沿用成员页既有序列（M-B：10–12）。 */
-export const memberSettingsNav: readonly NavItem[] = [
-  { index: "10", label: "消息通知", shortLabel: "通知", labelEn: "Notifications", href: "/member/notifications" },
-  { index: "11", label: "我的收藏", shortLabel: "收藏", labelEn: "Favorites", href: "/member/favorites" },
-  { index: "12", label: "排行榜", shortLabel: "排行", labelEn: "Rankings", href: "/member/rankings" },
-] as const;
-
 export const memberCopy = {
-  /** 成员壳品牌与导航无障碍名（T-P0-3） */
+  /** 成员壳品牌与导航无障碍名 */
   shell: {
     title: "成员空间",
     titleEn: "Member",
     navLabel: "成员导航",
-    /** 侧栏足部「设置」菜单：收起低频入口，按钮文案保持单字，避免挤占窄侧栏 */
-    settingsLabel: "设置",
-    settingsMenuLabel: "设置与更多入口",
+    /** 窄屏底部标签栏的无障碍名 */
+    tabbarLabel: "成员快捷导航",
   },
 
   common: {
@@ -121,8 +178,24 @@ export const memberCopy = {
     skillsEditLink: "编辑技能标签",
     noSkills: "尚未选择技能标签",
     settingsAction: "编辑个人资料",
-    /** hero 次要入口（ghost）；solid 只留给「新增维修记录」（C4） */
-    activityManage: "活动管理",
+
+    /** 时段问候（客户端按本地时间计算，避免服务端 / 客户端时区不一致）。 */
+    greetings: {
+      dawn: "夜深了",
+      morning: "早上好",
+      noon: "中午好",
+      afternoon: "下午好",
+      evening: "晚上好",
+    },
+
+    /** 待办数字带：四项全部指向可行动的列表 / 页面。 */
+    actionTitle: "待办",
+    actionTag: "To-do",
+    actionDraft: "草稿待提交",
+    actionPending: "等待审核",
+    actionRejected: "退回待处理",
+    actionUnread: "未读消息",
+    actionAllClear: "待办都处理完了，去登记一次新的维修吧。",
 
     metricsTitle: "维修概览",
     metricsTag: "Repair Metrics",
@@ -143,12 +216,21 @@ export const memberCopy = {
 
     quickTitle: "快捷操作",
     quickTag: "Shortcuts",
-    /** hero 唯一 solid 主 CTA；不进侧栏（侧栏保留「维修记录」） */
+    /** hero 唯一 solid 主 CTA，同时也是快捷入口的第一格 */
     quickNew: "新增维修记录",
-    quickAll: "查看全部记录",
-    quickProfile: "编辑个人资料",
+    quickNewDesc: "登记一次维修服务",
+    quickAll: "全部维修记录",
+    quickAllDesc: "查看、筛选我的记录",
+    quickActivities: "维修活动",
+    quickActivitiesDesc: "报名与接待活动",
     quickNotifications: "消息通知",
+    quickNotificationsDesc: "回复与审核动态",
     quickFavorites: "我的收藏",
+    quickFavoritesDesc: "收藏的案例记录",
+    quickRankings: "排行榜",
+    quickRankingsDesc: "本学期维修榜",
+    quickProfile: "编辑个人资料",
+    quickProfileDesc: "昵称与技能标签",
 
     recentTitle: "最近已通过维修",
     recentTag: "Recent Approved",

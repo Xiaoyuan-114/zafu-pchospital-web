@@ -7,6 +7,8 @@
  * UX R3 / N1：公开顺序写死为 首页 → 维修活动 → 关于 → 加入 → 文档（01–05）。
  */
 
+import type { IconName } from "@/components/ui/Icon";
+
 export type NavItem = {
   /** 章节编号，用于索引栏与浮层的 "01 / 02" 标记 */
   index: string;
@@ -17,6 +19,8 @@ export type NavItem = {
   /** 英文标签，用于索引栏辅助说明 */
   labelEn: string;
   href: string;
+  /** 侧栏条目的图标（工作台重构：成员 / 管理侧栏用图标取代编号）。公开 `mainNav` 不填。 */
+  icon?: IconName;
 };
 
 export const mainNav: readonly NavItem[] = [

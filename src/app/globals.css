@@ -4684,19 +4684,32 @@ html[data-theme="black-yellow"] {
 
   /* ---------------------------------------------------------- 账号菜单（T-P0-2）
      挂在成员 hero 行动区，以及成员 / 管理两侧侧栏足部。
-     侧栏足部的「设置」菜单（NavSettingsMenu）复用同一组类，只多一条 `.nav-settings__item`。
      无投影；面板用描边 + surface 底色。 */
   .account-menu {
     position: relative;
-    display: inline-flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--s-2);
-  }
-  .account-menu__trigger {
     inline-size: 100%;
-    justify-content: space-between;
+  }
+  /* 紧凑账号栏触发按钮：头像 + 用户名/角色 + 下箭头，hover 用 surface-2 而非整块 accent 填充。 */
+  .account-menu__trigger {
+    display: flex;
+    align-items: center;
     gap: var(--s-2);
+    inline-size: 100%;
+    padding: var(--s-2);
+    border: 0;
+    border-radius: var(--r-base);
+    background: transparent;
+    color: var(--ink-2);
+    font: inherit;
+    cursor: pointer;
+    transition:
+      background var(--d-ui) var(--ease-quart),
+      color var(--d-ui) var(--ease-quart);
+  }
+  .account-menu__trigger:hover,
+  .account-menu__trigger:focus-visible {
+    background: var(--surface-2);
+    color: var(--ink);
   }
   .account-menu__trigger svg {
     width: 14px;
@@ -4707,30 +4720,59 @@ html[data-theme="black-yellow"] {
   .account-menu[data-open="true"] .account-menu__trigger svg {
     transform: rotate(180deg);
   }
+  /* 头像：展示名首字符的圆形，用 accent 底 + accent-on 文字。 */
+  .account-menu__avatar {
+    display: grid;
+    place-items: center;
+    inline-size: 2rem;
+    block-size: 2rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-on);
+    font-size: var(--t-sm);
+    font-weight: 700;
+    flex: none;
+  }
+  .account-menu__identity {
+    display: grid;
+    gap: 0.1rem;
+    min-inline-size: 0;
+    flex: 1;
+    text-align: start;
+  }
   .account-menu__name {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-inline-size: 12rem;
+    font-size: var(--t-sm);
+    font-weight: 650;
+  }
+  .account-menu__role {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--t-micro);
+    color: var(--ink-3);
   }
   .account-menu__panel {
+    position: absolute;
     display: grid;
     gap: 1px;
     padding: var(--s-1);
     border: 1px solid var(--line);
     border-radius: var(--r-base);
     background: var(--surface-1);
+    z-index: 40;
+    min-inline-size: 12rem;
   }
   .account-menu--hero .account-menu__panel {
-    position: absolute;
     inset-inline-end: 0;
     top: calc(100% + 0.35rem);
-    z-index: 40;
-    min-inline-size: 11rem;
   }
+  /* 侧栏足部：面板向上弹（Popover，不参与布局；侧栏 overflow:hidden 内不会裁切）。 */
   .account-menu--nav .account-menu__panel {
-    /* 侧栏有 overflow，就地展开，不绝对定位。 */
-    position: static;
+    inset-inline: 0;
+    bottom: calc(100% + 0.5rem);
   }
   .account-menu__item {
     display: block;
@@ -4760,11 +4802,14 @@ html[data-theme="black-yellow"] {
   .account-menu__item--danger {
     color: var(--ink-2);
   }
-  /* 设置菜单条目：编号与名称同一行，读法与侧栏条目一致。 */
-  .nav-settings__item {
-    display: flex;
-    align-items: baseline;
-    gap: var(--s-2);
+
+  /* 窄屏：侧栏收成顶部一条，账号菜单在右侧，面板改为向下右对齐弹出。 */
+  @media (max-width: 1099px) {
+    .account-menu--nav .account-menu__panel {
+      inset-inline: auto 0;
+      top: calc(100% + 0.5rem);
+      bottom: auto;
+    }
   }
 
   /* ---------------------------------------------------------- 成员外壳（T-P0-3，对标 admin-shell） */
@@ -4876,8 +4921,14 @@ html[data-theme="black-yellow"] {
     color: var(--ink);
     font-weight: 750;
   }
-  .member-nav__link .eyebrow {
-    font-size: var(--t-micro);
+  /* 侧栏条目图标（工作台重构：用图标取代章节编号），颜色跟随条目 `currentColor`。 */
+  .nav-icon {
+    display: grid;
+    place-items: center;
+  }
+  .nav-icon svg {
+    inline-size: 1.1rem;
+    block-size: 1.1rem;
   }
   .member-nav__label {
     overflow: hidden;
@@ -4990,7 +5041,7 @@ html[data-theme="black-yellow"] {
   }
   .admin-nav__link {
     display: grid;
-    grid-template-columns: 1.7rem minmax(0, 1fr);
+    grid-template-columns: 1.7rem minmax(0, 1fr) auto;
     align-items: center;
     gap: var(--s-2);
     padding: 0.5rem 0.7rem;
@@ -5014,9 +5065,6 @@ html[data-theme="black-yellow"] {
     background: var(--surface-2);
     color: var(--ink);
     font-weight: 750;
-  }
-  .admin-nav__link .eyebrow {
-    font-size: var(--t-micro);
   }
   .admin-nav__label {
     overflow: hidden;
@@ -5756,7 +5804,9 @@ html[data-theme="black-yellow"] {
          侧栏回到 0 —— 于是「Admin Console 上方的空白」在切页时忽然变小再弹回来。
          视觉上的那点留白改由侧栏自身的 `padding-block-start` 提供，与页面高度无关。 */
       inset-block-start: 0;
-      max-block-size: calc(100vh - var(--s-7));
+      /* 高度固定为一屏（减 s-7 余量）：内容不足时中间导航列表（1fr 行）拉伸，
+         足部账号栏沉到侧栏最底部；内容超出时由 `__groups` 内部滚动。 */
+      block-size: calc(100vh - var(--s-7));
       /* 滚动交给中间的导航列表，足部账号菜单始终可见、面板不被裁切。 */
       overflow: hidden;
       border-inline-end: 1px solid var(--line);
@@ -5769,46 +5819,27 @@ html[data-theme="black-yellow"] {
   }
   @media (max-width: 1099px) {
     .admin-nav {
-      /* 窄屏：品牌 + 分组横滑 + 足部上下堆叠。 */
-      grid-template-rows: auto auto auto;
-      padding-block-end: var(--s-4);
+      /* 窄屏：侧栏收成顶部一条（品牌 + 账号菜单），导航交给底部标签栏 `.shell-tabbar`。 */
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--s-3);
+      padding-block: var(--s-3);
       border-block-end: 1px solid var(--line);
     }
     .admin-nav__groups {
-      display: flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      gap: var(--s-4);
-      overflow-x: auto;
-      padding-block-end: var(--s-1);
+      display: none;
     }
-    .admin-nav__group {
-      display: flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      align-items: center;
-      gap: var(--s-2);
-      flex: none;
+    .admin-nav__brand {
+      padding-inline: 0;
     }
-    .admin-nav__group-title {
-      flex: none;
-      padding-inline: 0.35rem;
-      white-space: nowrap;
+    .admin-nav__foot {
+      padding-block-start: 0;
+      border-block-start: 0;
     }
-    .admin-nav__list {
-      display: flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      gap: 1px;
-    }
-    .admin-nav__link {
-      grid-template-columns: auto minmax(0, 1fr);
-      border-inline-start: 0;
-      border-block-end: 2px solid transparent;
-      white-space: nowrap;
-    }
-    .admin-nav__link[aria-current="page"] {
-      border-block-end-color: var(--accent);
+    /* 内容让开底部固定标签栏（含全面屏底部安全区）。 */
+    .admin-shell__main {
+      padding-block-end: calc(4.25rem + env(safe-area-inset-bottom, 0px));
     }
   }
   @media (min-width: 1100px) {
@@ -5819,7 +5850,8 @@ html[data-theme="black-yellow"] {
     .member-nav {
       position: sticky;
       inset-block-start: 0;
-      max-block-size: calc(100vh - var(--s-7));
+      /* 与 admin-nav 同：高度固定一屏（减 s-7），足部账号栏沉底。 */
+      block-size: calc(100vh - var(--s-7));
       overflow: hidden;
       border-inline-end: 1px solid var(--line);
       padding-inline-end: var(--s-4);
@@ -5831,50 +5863,531 @@ html[data-theme="black-yellow"] {
   }
   @media (max-width: 1099px) {
     .member-nav {
-      /* 窄屏：品牌 + 分组横滑 + 足部上下堆叠。 */
-      grid-template-rows: auto auto auto;
-      padding-block-end: var(--s-4);
+      /* 窄屏：侧栏收成顶部一条（品牌 + 账号菜单），导航交给底部标签栏 `.shell-tabbar`。 */
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--s-3);
+      padding-block: var(--s-3);
       border-block-end: 1px solid var(--line);
     }
     .member-nav__groups {
-      display: flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      gap: var(--s-4);
-      overflow-x: auto;
-      padding-block-end: var(--s-1);
+      display: none;
     }
-    .member-nav__group {
-      display: flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      align-items: center;
-      gap: var(--s-2);
-      flex: none;
+    .member-nav__brand {
+      padding-inline: 0;
     }
-    .member-nav__group-title {
-      flex: none;
-      padding-inline: 0.35rem;
-      white-space: nowrap;
+    .member-nav__foot {
+      padding-block-start: 0;
+      border-block-start: 0;
     }
-    .member-nav__list {
-      display: flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      gap: 1px;
-    }
-    .member-nav__link {
-      grid-template-columns: auto minmax(0, 1fr) auto;
-      border-inline-start: 0;
-      border-block-end: 2px solid transparent;
-      white-space: nowrap;
-    }
-    .member-nav__link[aria-current="page"] {
-      border-block-end-color: var(--accent);
+    /* 内容让开底部固定标签栏（含全面屏底部安全区）。 */
+    .member-shell__main {
+      padding-block-end: calc(4.25rem + env(safe-area-inset-bottom, 0px));
     }
   }
 
 
+
+  /* ============================================================
+     工作台重构：底部标签栏 / 待办角标 / 首页视觉件（成员 + 管理共用）
+     颜色一律走语义令牌，两种主题自动适配。
+     ============================================================ */
+
+  /* 侧栏条目上的待办角标（未读消息 / 待审核数）。数字本身是信息，accent 淡底只是强化。 */
+  .nav-badge {
+    justify-self: end;
+    display: grid;
+    place-items: center;
+    min-inline-size: 1.4rem;
+    block-size: 1.4rem;
+    padding-inline: 0.3rem;
+    border: 1px solid var(--accent-line);
+    border-radius: 999px;
+    background: var(--accent-wash);
+    color: var(--accent);
+    font-size: var(--t-micro);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  /* 窄屏底部标签栏：固定在拇指区；≥1100px 隐藏，左侧栏接管导航。 */
+  .shell-tabbar {
+    position: fixed;
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: 60;
+    display: flex;
+    align-items: stretch;
+    background: var(--bg);
+    border-block-start: 1px solid var(--line);
+    padding-block-end: env(safe-area-inset-bottom, 0px);
+  }
+  .shell-tabbar__tab {
+    flex: 1 1 0;
+    min-inline-size: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding-block: 0.45rem;
+    color: var(--ink-3);
+    font-size: var(--t-micro);
+    font-weight: 650;
+    cursor: pointer;
+  }
+  .shell-tabbar__tab[aria-current="page"] {
+    color: var(--accent);
+  }
+  .shell-tabbar__icon {
+    position: relative;
+    display: grid;
+    place-items: center;
+  }
+  .shell-tabbar__icon svg {
+    inline-size: 1.35rem;
+    block-size: 1.35rem;
+  }
+  .shell-tabbar__label {
+    max-inline-size: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .shell-tabbar__badge {
+    position: absolute;
+    inset-block-start: -0.3rem;
+    inset-inline-start: 55%;
+    min-inline-size: 1rem;
+    block-size: 1rem;
+    padding-inline: 0.25rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-on);
+    font-size: 0.625rem;
+    font-weight: 700;
+    line-height: 1rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  /* 居中凸起的主行动（成员端「新增维修」）：不参与高亮，是一个常显动作。 */
+  .shell-tabbar__tab--primary .shell-tabbar__icon {
+    inline-size: 2.6rem;
+    block-size: 2.6rem;
+    margin-block-start: -1rem;
+    border: 3px solid var(--bg);
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-on);
+  }
+  @media (min-width: 1100px) {
+    .shell-tabbar {
+      display: none;
+    }
+  }
+
+  /* 「更多」抽屉：遮罩 + 底部面板（管理端 8 个低频模块）。 */
+  .shell-more {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+  }
+  .shell-more__backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    padding: 0;
+    background: color-mix(in srgb, var(--ink) 45%, transparent);
+    cursor: default;
+  }
+  .shell-more__panel {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    display: grid;
+    gap: var(--s-4);
+    max-block-size: 72vh;
+    overflow-y: auto;
+    padding: var(--s-4) var(--s-4) calc(var(--s-4) + env(safe-area-inset-bottom, 0px));
+    background: var(--bg);
+    border-block-start: 1px solid var(--line);
+  }
+  .shell-more__group-title {
+    margin: 0 0 var(--s-1);
+    padding-inline: 0.7rem;
+    font-size: var(--t-micro);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+  .shell-more__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px var(--s-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .shell-more__link {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-2);
+    padding: 0.65rem 0.7rem;
+    border-radius: var(--r-base);
+    color: var(--ink-2);
+    font-size: var(--t-sm);
+    font-weight: 650;
+  }
+  .shell-more__link:hover,
+  .shell-more__link:focus-visible {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+  .shell-more__link[aria-current="page"] {
+    background: var(--surface-2);
+    color: var(--ink);
+    font-weight: 750;
+  }
+  @media (min-width: 1100px) {
+    .shell-more {
+      display: none;
+    }
+  }
+
+  /* 首页问候区（成员 / 管理共用）。 */
+  .dash-hero {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--s-3);
+    padding-block: var(--s-2) var(--s-4);
+  }
+  .dash-hero__identity {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    min-inline-size: 0;
+  }
+  .dash-hero__text {
+    display: grid;
+    gap: 0.25rem;
+    min-inline-size: 0;
+  }
+  .dash-hero__eyebrow {
+    margin: 0;
+    font-size: var(--t-micro);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+  .dash-hero__name {
+    margin: 0;
+    font-size: clamp(1.35rem, 1.2vw + 1.05rem, 1.9rem);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .dash-hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem var(--s-2);
+    margin: 0;
+    color: var(--ink-3);
+    font-size: var(--t-sm);
+  }
+  .dash-hero__meta > span + span::before {
+    content: "·";
+    margin-inline-end: var(--s-2);
+    color: var(--ink-4);
+  }
+  .dash-hero__actions {
+    display: flex;
+    gap: var(--s-2);
+  }
+  /* 窄屏顶栏已经写着「ADMIN CONSOLE / 管理后台」，hero 里再写一遍只是重复。 */
+  @media (max-width: 759px) {
+    .dash-hero__eyebrow {
+      display: none;
+    }
+  }
+
+  /* 首页内容块：块间用细分隔线，标题 + 英文小标签。 */
+  .dash-block {
+    padding-block: var(--s-4);
+  }
+  .dash-block + .dash-block {
+    border-block-start: 1px solid var(--line-soft);
+  }
+  .dash-block__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-2);
+    margin-block-end: var(--s-3);
+  }
+  .dash-block__title {
+    margin: 0;
+    font-size: var(--t-lg);
+    font-weight: 750;
+    color: var(--ink);
+  }
+  .dash-block__tag {
+    font-size: var(--t-micro);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+
+  /* 待办数字卡：窄屏两列，≥760px 自适应铺开。整卡即链接。 */
+  .dash-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-2);
+  }
+  @media (min-width: 760px) {
+    .dash-stats {
+      grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+    }
+  }
+  .dash-stat {
+    display: grid;
+    gap: 0.15rem;
+    align-content: start;
+    padding: var(--s-3);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--r-base);
+    background: var(--surface-1);
+    transition:
+      border-color var(--d-fast) var(--ease-quart),
+      background var(--d-fast) var(--ease-quart);
+  }
+  .dash-stat:hover,
+  .dash-stat:focus-visible {
+    border-color: var(--line-strong);
+  }
+  .dash-stat__value {
+    font-family: var(--font-latin);
+    font-size: clamp(1.6rem, 1.2vw + 1.3rem, 2.1rem);
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
+    color: var(--ink);
+  }
+  .dash-stat__unit {
+    margin-inline-start: 0.25rem;
+    font-size: var(--t-xs);
+    font-weight: 600;
+    color: var(--ink-3);
+  }
+  .dash-stat__label {
+    font-size: var(--t-sm);
+    font-weight: 650;
+    color: var(--ink-2);
+  }
+  .dash-stat__hint {
+    font-size: var(--t-micro);
+    color: var(--ink-4);
+  }
+  /* 需要行动（> 0）：accent 淡底 + accent 数字。零与「—」保持中性。 */
+  .dash-stat--active {
+    border-color: var(--accent-line);
+    background: var(--accent-wash);
+  }
+  .dash-stat--active .dash-stat__value {
+    color: var(--accent);
+  }
+
+  /* 「清零」反馈条与局部失败提示。 */
+  .dash-allclear {
+    margin: var(--s-2) 0 0;
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--accent-line);
+    border-radius: var(--r-base);
+    background: var(--accent-wash);
+    color: var(--ink-2);
+    font-size: var(--t-sm);
+    font-weight: 600;
+  }
+  .dash-note {
+    margin: var(--s-2) 0 0;
+    color: var(--ink-3);
+    font-size: var(--t-sm);
+  }
+  .dash-note__retry {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    cursor: pointer;
+  }
+
+  /* 快捷入口砖（成员首页 7 格 / 管理目录复用）。 */
+  .dash-group__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-2);
+  }
+  @media (min-width: 760px) {
+    .dash-group__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .dash-tile {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    min-inline-size: 0;
+    padding: 0.65rem;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--r-base);
+    background: var(--surface-1);
+    transition:
+      border-color var(--d-fast) var(--ease-quart),
+      background var(--d-fast) var(--ease-quart);
+  }
+  .dash-tile:hover,
+  .dash-tile:focus-visible {
+    border-color: var(--line-strong);
+  }
+  .dash-tile__icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    inline-size: 2.1rem;
+    block-size: 2.1rem;
+    border-radius: var(--r-base);
+    background: var(--surface-2);
+    color: var(--ink-2);
+    transition:
+      background var(--d-fast) var(--ease-quart),
+      color var(--d-fast) var(--ease-quart);
+  }
+  .dash-tile:hover .dash-tile__icon,
+  .dash-tile:focus-visible .dash-tile__icon {
+    background: var(--accent-wash);
+    color: var(--accent);
+  }
+  .dash-tile__icon svg {
+    inline-size: 1.15rem;
+    block-size: 1.15rem;
+  }
+  .dash-tile__text {
+    display: grid;
+    gap: 0.1rem;
+    min-inline-size: 0;
+  }
+  .dash-tile__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--t-sm);
+    font-weight: 650;
+    color: var(--ink);
+  }
+  .dash-tile__desc {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--t-micro);
+    color: var(--ink-4);
+  }
+  @media (max-width: 759px) {
+    .dash-tile__desc {
+      display: none;
+    }
+  }
+
+  /* 首页双列（≥1100px 主栏 + 辅栏）。 */
+  .dash-cols {
+    display: grid;
+    gap: var(--s-4);
+  }
+  .dash-cols__main,
+  .dash-cols__aside {
+    display: grid;
+    gap: var(--s-4);
+    align-content: start;
+    min-inline-size: 0;
+  }
+  @media (min-width: 1100px) {
+    .dash-cols {
+      grid-template-columns: minmax(0, 1fr) 19.5rem;
+      gap: var(--s-5);
+      align-items: start;
+    }
+  }
+
+  /* 管理首页的全模块目录：分组标题 + 入口砖。 */
+  .dash-directory {
+    display: grid;
+    gap: var(--s-4);
+  }
+  .dash-directory__title {
+    margin: 0 0 var(--s-2);
+    font-size: var(--t-micro);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+  .dash-directory__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-2);
+  }
+  @media (min-width: 760px) {
+    .dash-directory__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  /* 首页加载骨架：只勾轮廓，不做动效。 */
+  .dash-skeleton {
+    display: grid;
+    gap: var(--s-3);
+    padding-block: var(--s-3);
+  }
+  .dash-skeleton__stats,
+  .dash-skeleton__tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-2);
+  }
+  @media (min-width: 760px) {
+    .dash-skeleton__stats {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .dash-skeleton__tiles {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .dash-skeleton__cols {
+    display: grid;
+    gap: var(--s-2);
+  }
+  @media (min-width: 1100px) {
+    .dash-skeleton__cols {
+      grid-template-columns: minmax(0, 1fr) 19.5rem;
+    }
+  }
+  .dash-skeleton__bar {
+    display: block;
+    border-radius: var(--r-base);
+    background: var(--surface-2);
+  }
+  .dash-skeleton__bar--stat {
+    block-size: 4.6rem;
+  }
+  .dash-skeleton__bar--tile {
+    block-size: 3.4rem;
+  }
+  .dash-skeleton__bar--block {
+    block-size: 12rem;
+  }
 
   /* 导航加载态骨架：只用 `--surface-2` 的块，不做动效。 */
   .admin-skeleton {

@@ -15,6 +15,10 @@ import type { SessionPrincipal } from "@/types/contracts";
  * 挂点：成员 / 管理侧栏足部（`variant="nav"`）。工作台 hero 不再挂一份，避免与侧栏重复。
  * 菜单项：双角色壳层切换（成员⇄管理）+ 修改密码 / 退出登录。
  *
+ * 触发按钮是**紧凑账号栏**：头像（`displayName` 首字符生成的圆形）+ 用户名 + 角色标签，
+ * 不再用 `.btn` 大按钮、也不常驻展开操作列表。点击后以 Popover 浮层（不参与布局）
+ * 弹出三项操作，避免展开时撑动侧栏布局。
+ *
  * 会话来源是 `GET /api/v1/me`：
  * - 成功 → 用 `displayName`（空则降级「成员」）作为触发文案；
  * - 未登录（`UNAUTHENTICATED`）或请求失败 → **静默不渲染**，绝不 toast
@@ -128,6 +132,14 @@ export function AccountMenu({
   const displayName =
     (principal?.displayName ?? initialDisplayName)?.trim() || accountMenuCopy.fallbackName;
 
+  // 头像：取展示名首字符（中文名取首字，英文名取首字母）。
+  const avatarChar = [...displayName][0] ?? "?";
+
+  // 角色标签：双角色账号优先显示「管理员」（在管理壳语义正确）；仅成员显示「成员」。
+  const roleLabel: string | null = principal
+    ? accountMenuCopy.roleLabels[principal.roles.includes("ADMIN") ? "ADMIN" : "MEMBER"] ?? null
+    : null;
+
   const dualRole = principal ? isDualRole(principal) : false;
   const inAdminShell = pathname.startsWith("/admin");
   // 双角色：管理壳 → 切成员；成员壳或其它页（如改密）→ 切管理。
@@ -145,7 +157,7 @@ export function AccountMenu({
       data-open={open ? "true" : "false"}
     >
       <button
-        className="account-menu__trigger btn"
+        className="account-menu__trigger"
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
@@ -153,7 +165,13 @@ export function AccountMenu({
         aria-label={accountMenuCopy.menuLabel}
         onClick={() => setOpen((value) => !value)}
       >
-        <span className="account-menu__name">{displayName}</span>
+        <span className="account-menu__avatar" aria-hidden="true">
+          {avatarChar}
+        </span>
+        <span className="account-menu__identity">
+          <span className="account-menu__name">{displayName}</span>
+          {roleLabel ? <span className="account-menu__role">{roleLabel}</span> : null}
+        </span>
         <Icon name="chevronDown" />
       </button>
 
